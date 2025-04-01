@@ -32,7 +32,7 @@ all: $(GO)
 
 openapi: transactions.proto
 		protoc --openapiv2_out=logtostderr=true:. $(OPT_ARGS) \
-			   archive.proto
+			   transactions.proto
 
 clean:
 		rm -f *.pb.go
