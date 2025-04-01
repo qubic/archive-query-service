@@ -3,6 +3,8 @@ package rpc
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -40,7 +42,6 @@ const maxPageSize uint32 = 250
 const defaultPageSize uint32 = 100
 
 func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetIdentityTransactionsRequest) (*protobuf.GetIdentityTransactionsResponse, error) {
-
 	var pageSize uint32
 	if req.GetPageSize() > maxPageSize { // max size
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
@@ -81,6 +82,71 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 	return &protobuf.GetIdentityTransactionsResponse{
 		Pagination:   pagination,
 		Transactions: transactions,
+	}, nil
+
+}
+
+func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *protobuf.GetTransferTransactionsPerTickRequestV2) (*protobuf.GetIdentityTransfersInTickRangeResponseV2, error) {
+	var pageSize uint32
+	if req.GetPageSize() > maxPageSize { // max size
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
+	} else if req.GetPageSize() == 0 {
+		pageSize = defaultPageSize // default
+	} else {
+		pageSize = req.GetPageSize()
+	}
+	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
+	response, err := performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
+	}
+
+	totalTransfers := make([]*protobuf.PerTickIdentityTransfers, 0, len(response.Hits.Hits))
+
+	for _, hit := range response.Hits.Hits {
+		inputBytes, err := base64.StdEncoding.DecodeString(hit.Source.Input)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", hit.Source.TxID)
+		}
+
+		sigBytes, err := base64.StdEncoding.DecodeString(hit.Source.Signature)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", hit.Source.TxID)
+		}
+
+		perTickIdentityTransfers := &protobuf.PerTickIdentityTransfers{
+			TickNumber: hit.Source.TickNumber,
+			Identity:   req.Identity,
+			Transactions: []*protobuf.TransactionData{
+				{
+					Transaction: &protobuf.TransactionData_Transaction{
+						SourceId:     hit.Source.SourceID,
+						DestId:       hit.Source.DestID,
+						Amount:       hit.Source.Amount,
+						TickNumber:   hit.Source.TickNumber,
+						InputType:    hit.Source.InputType,
+						InputSize:    hit.Source.InputSize,
+						InputHex:     hex.EncodeToString(inputBytes),
+						SignatureHex: hex.EncodeToString(sigBytes),
+						TxId:         hit.Source.TxID,
+					},
+					Timestamp: hit.Source.Timestamp,
+					MoneyFlew: hit.Source.MoneyFlew,
+				},
+			},
+		}
+		totalTransfers = append(totalTransfers, perTickIdentityTransfers)
+	}
+
+	pagination, err := getPaginationInformation(response.Hits.Total.Value, pageNumber+1, int(pageSize))
+	if err != nil {
+		log.Printf("Error creating pagination info: %s", err.Error())
+		return nil, status.Error(codes.Internal, "creating pagination info")
+	}
+
+	return &protobuf.GetIdentityTransfersInTickRangeResponseV2{
+		Pagination:   pagination,
+		Transactions: totalTransfers,
 	}, nil
 
 }

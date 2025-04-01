@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	TransactionsService_GetIdentityTransactions_FullMethodName = "/qubic.lts.transactions.pb.TransactionsService/GetIdentityTransactions"
+	TransactionsService_GetIdentityTransactions_FullMethodName           = "/qubic.lts.transactions.pb.TransactionsService/GetIdentityTransactions"
+	TransactionsService_GetIdentityTransfersInTickRangeV2_FullMethodName = "/qubic.lts.transactions.pb.TransactionsService/GetIdentityTransfersInTickRangeV2"
 )
 
 // TransactionsServiceClient is the client API for TransactionsService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TransactionsServiceClient interface {
 	GetIdentityTransactions(ctx context.Context, in *GetIdentityTransactionsRequest, opts ...grpc.CallOption) (*GetIdentityTransactionsResponse, error)
+	GetIdentityTransfersInTickRangeV2(ctx context.Context, in *GetTransferTransactionsPerTickRequestV2, opts ...grpc.CallOption) (*GetIdentityTransfersInTickRangeResponseV2, error)
 }
 
 type transactionsServiceClient struct {
@@ -46,11 +48,21 @@ func (c *transactionsServiceClient) GetIdentityTransactions(ctx context.Context,
 	return out, nil
 }
 
+func (c *transactionsServiceClient) GetIdentityTransfersInTickRangeV2(ctx context.Context, in *GetTransferTransactionsPerTickRequestV2, opts ...grpc.CallOption) (*GetIdentityTransfersInTickRangeResponseV2, error) {
+	out := new(GetIdentityTransfersInTickRangeResponseV2)
+	err := c.cc.Invoke(ctx, TransactionsService_GetIdentityTransfersInTickRangeV2_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransactionsServiceServer is the server API for TransactionsService service.
 // All implementations must embed UnimplementedTransactionsServiceServer
 // for forward compatibility
 type TransactionsServiceServer interface {
 	GetIdentityTransactions(context.Context, *GetIdentityTransactionsRequest) (*GetIdentityTransactionsResponse, error)
+	GetIdentityTransfersInTickRangeV2(context.Context, *GetTransferTransactionsPerTickRequestV2) (*GetIdentityTransfersInTickRangeResponseV2, error)
 	mustEmbedUnimplementedTransactionsServiceServer()
 }
 
@@ -60,6 +72,9 @@ type UnimplementedTransactionsServiceServer struct {
 
 func (UnimplementedTransactionsServiceServer) GetIdentityTransactions(context.Context, *GetIdentityTransactionsRequest) (*GetIdentityTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIdentityTransactions not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetIdentityTransfersInTickRangeV2(context.Context, *GetTransferTransactionsPerTickRequestV2) (*GetIdentityTransfersInTickRangeResponseV2, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdentityTransfersInTickRangeV2 not implemented")
 }
 func (UnimplementedTransactionsServiceServer) mustEmbedUnimplementedTransactionsServiceServer() {}
 
@@ -92,6 +107,24 @@ func _TransactionsService_GetIdentityTransactions_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransactionsService_GetIdentityTransfersInTickRangeV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransferTransactionsPerTickRequestV2)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetIdentityTransfersInTickRangeV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetIdentityTransfersInTickRangeV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetIdentityTransfersInTickRangeV2(ctx, req.(*GetTransferTransactionsPerTickRequestV2))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransactionsService_ServiceDesc is the grpc.ServiceDesc for TransactionsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +135,10 @@ var TransactionsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetIdentityTransactions",
 			Handler:    _TransactionsService_GetIdentityTransactions_Handler,
+		},
+		{
+			MethodName: "GetIdentityTransfersInTickRangeV2",
+			Handler:    _TransactionsService_GetIdentityTransfersInTickRangeV2_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
