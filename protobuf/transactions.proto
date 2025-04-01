@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package qubic.lts.transactions.pb;
+
+option go_package = "github.com/qubic/archive-query-service/protobuf/";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+message GetIdentityTransactionsRequest {
+  string identity = 1;
+  bool desc = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+message GetIdentityTransactionsResponse {
+  Pagination pagination = 1;
+  string identity = 2;
+  repeated Transaction transactions = 3;
+}
+
+message Pagination {
+  int32 total_records = 1;
+  int32 current_page = 2;
+  int32 total_pages = 3;
+  int32 page_size = 4;
+  int32 next_page = 5;
+  int32 previous_page = 6;
+}
+
+message Transaction {
+  string source_id = 1;
+  string dest_id = 2;
+  int64 amount = 3;
+  uint32 tick_number = 4;
+  uint32 input_type = 5;
+  uint32 input_size = 6;
+  string input = 7;
+  string signature = 8;
+  string tx_id = 9;
+  uint64 timestamp = 10;
+  bool money_flew = 11;
+}
+
+service TransactionsService {
+  rpc GetIdentityTransactions(GetIdentityTransactionsRequest) returns (GetIdentityTransactionsResponse) {
+    option (google.api.http) = {
+      get: "/v2/identities/{identity}/transactions"
+    };
+  };
+}
+
