@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qubic/archive-query-service/rpc"
 	"log"
 	"net/http"
@@ -33,8 +35,17 @@ func run() error {
 			ProfilingHost   string        `conf:"default:0.0.0.0:8002"`
 		}
 		ElasticSearch struct {
-			Address     string        `conf:"default:http://127.0.0.1:9200"`
-			ReadTimeout time.Duration `conf:"default:10s"`
+			Address                               string        `conf:"default:http://127.0.0.1:9200"`
+			Username                              string        `conf:"default:qubic-query"`
+			Password                              string        `conf:"optional"`
+			Certificate                           string        `conf:"default:http_ca.crt"`
+			MaxRetries                            int           `conf:"default:15"`
+			ReadTimeout                           time.Duration `conf:"default:10s"`
+			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
+		}
+		Metrics struct {
+			Namespace string `conf:"default:qubic-query"`
+			Port      int    `conf:"default:9999"`
 		}
 	}
 
@@ -64,8 +75,18 @@ func run() error {
 	}
 	log.Printf("main: Config :\n%v\n", out)
 
+	cert, err := os.ReadFile(cfg.ElasticSearch.Certificate)
+	if err != nil {
+		log.Printf("WARN: Failed to load Elastic certificate file: %v\n", err)
+	}
+
 	elsCfg := elasticsearch.Config{
-		Addresses: []string{cfg.ElasticSearch.Address},
+		Addresses:     []string{cfg.ElasticSearch.Address},
+		Username:      cfg.ElasticSearch.Username,
+		Password:      cfg.ElasticSearch.Password,
+		CACert:        cert,
+		RetryOnStatus: []int{502, 503, 504, 429},
+		MaxRetries:    cfg.ElasticSearch.MaxRetries,
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost:   10,
 			ResponseHeaderTimeout: cfg.ElasticSearch.ReadTimeout,
@@ -92,14 +113,61 @@ func run() error {
 		pprofErrors <- http.ListenAndServe(cfg.Server.ProfilingHost, nil)
 	}()
 
+	webServerErr := make(chan error, 1)
+	go func() {
+		log.Printf("main: Starting status and metrics endpoints on port [%d]\n", cfg.Metrics.Port)
+
+		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
+
+			totalErrorCount := int(rpcServer.TotalElasticErrorCount.Load())
+			consecutiveErrorCount := int(rpcServer.ConsecutiveElasticErrorCount.Load())
+
+			status := struct {
+				State                        string
+				TotalElasticErrorCount       int
+				ConsecutiveElasticErrorCount int
+			}{
+				State:                        "OK",
+				TotalElasticErrorCount:       totalErrorCount,
+				ConsecutiveElasticErrorCount: consecutiveErrorCount,
+			}
+
+			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveRequestErrorCountThreshold {
+				status.State = "ERROR"
+			}
+
+			data, err := json.Marshal(status)
+			if err != nil {
+				log.Printf("Failed to serialize status response: %v\n", err)
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			writer.Header().Add("Content-Type", "application/json")
+			if status.State != "OK" {
+				writer.WriteHeader(http.StatusInternalServerError)
+			}
+			_, err = writer.Write(data)
+			if err != nil {
+				log.Printf("Failed to write status response: %v\n", err)
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+		})
+
+		http.Handle("/metrics", promhttp.Handler())
+		webServerErr <- http.ListenAndServe(fmt.Sprintf(":%d", cfg.Metrics.Port), nil)
+	}()
+
 	for {
 		select {
 		case <-shutdown:
 			return errors.New("shutting down")
 		case err := <-pprofErrors:
 			return fmt.Errorf("pprof error: %v", err)
+		case err := <-webServerErr:
+			return fmt.Errorf("web server error: %v", err)
+
 		}
 	}
-
-	return nil
 }

@@ -11,6 +11,7 @@ message GetIdentityTransactionsRequest {
   bool desc = 2;
   uint32 page = 3;
   uint32 page_size = 4;
+  uint32 max_tick = 5;
 }
 
 message GetIdentityTransactionsResponse {
@@ -50,6 +51,7 @@ message GetTransferTransactionsPerTickRequestV2 {
   bool desc = 5;
   uint32 page = 6;
   uint32 page_size = 7;
+  uint32 max_tick = 8;
 }
 
 message GetIdentityTransfersInTickRangeResponseV2 {
