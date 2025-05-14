@@ -38,7 +38,7 @@ func run() error {
 			Address                               string        `conf:"default:http://127.0.0.1:9200"`
 			Username                              string        `conf:"default:qubic-query"`
 			Password                              string        `conf:"optional"`
-			Certificate                           string        `conf:"default:http_ca.crt"`
+			CertificateFilePath                   string        `conf:"default:http_ca.crt"`
 			MaxRetries                            int           `conf:"default:15"`
 			ReadTimeout                           time.Duration `conf:"default:10s"`
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
@@ -75,7 +75,7 @@ func run() error {
 	}
 	log.Printf("main: Config :\n%v\n", out)
 
-	cert, err := os.ReadFile(cfg.ElasticSearch.Certificate)
+	cert, err := os.ReadFile(cfg.ElasticSearch.CertificateFilePath)
 	if err != nil {
 		log.Printf("WARN: Failed to load Elastic certificate file: %v\n", err)
 	}

@@ -62,15 +62,15 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 	var transactions []*protobuf.Transaction
 	for _, hit := range response.Hits.Hits {
 		transactions = append(transactions, &protobuf.Transaction{
-			SourceId:   hit.Source.SourceID,
-			DestId:     hit.Source.DestID,
+			SourceId:   hit.Source.Source,
+			DestId:     hit.Source.Destination,
 			Amount:     hit.Source.Amount,
 			TickNumber: hit.Source.TickNumber,
 			InputType:  hit.Source.InputType,
 			InputSize:  hit.Source.InputSize,
-			Input:      hit.Source.Input,
+			Input:      hit.Source.InputData,
 			Signature:  hit.Source.Signature,
-			TxId:       hit.Source.TxID,
+			TxId:       hit.Source.Hash,
 			Timestamp:  hit.Source.Timestamp,
 			MoneyFlew:  hit.Source.MoneyFlew,
 		})
@@ -107,14 +107,14 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 	totalTransfers := make([]*protobuf.PerTickIdentityTransfers, 0, len(response.Hits.Hits))
 
 	for _, hit := range response.Hits.Hits {
-		inputBytes, err := base64.StdEncoding.DecodeString(hit.Source.Input)
+		inputBytes, err := base64.StdEncoding.DecodeString(hit.Source.InputData)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", hit.Source.TxID)
+			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", hit.Source.Hash)
 		}
 
 		sigBytes, err := base64.StdEncoding.DecodeString(hit.Source.Signature)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", hit.Source.TxID)
+			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", hit.Source.Hash)
 		}
 
 		perTickIdentityTransfers := &protobuf.PerTickIdentityTransfers{
@@ -123,15 +123,15 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 			Transactions: []*protobuf.TransactionData{
 				{
 					Transaction: &protobuf.TransactionData_Transaction{
-						SourceId:     hit.Source.SourceID,
-						DestId:       hit.Source.DestID,
+						SourceId:     hit.Source.Source,
+						DestId:       hit.Source.Destination,
 						Amount:       hit.Source.Amount,
 						TickNumber:   hit.Source.TickNumber,
 						InputType:    hit.Source.InputType,
 						InputSize:    hit.Source.InputSize,
 						InputHex:     hex.EncodeToString(inputBytes),
 						SignatureHex: hex.EncodeToString(sigBytes),
-						TxId:         hit.Source.TxID,
+						TxId:         hit.Source.Hash,
 					},
 					Timestamp: hit.Source.Timestamp,
 					MoneyFlew: hit.Source.MoneyFlew,
@@ -261,17 +261,17 @@ type EsSearchResponse struct {
 }
 
 type Tx struct {
-	TxID       string `json:"hash"`
-	SourceID   string `json:"source"`
-	DestID     string `json:"destination"`
-	Amount     int64  `json:"amount"`
-	TickNumber uint32 `json:"tickNumber"`
-	InputType  uint32 `json:"inputType"`
-	InputSize  uint32 `json:"inputSize"`
-	Input      string `json:"inputData"`
-	Signature  string `json:"signature"`
-	Timestamp  uint64 `json:"timestamp"`
-	MoneyFlew  bool   `json:"moneyFlew"`
+	Hash        string `json:"hash"`
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
+	Amount      int64  `json:"amount"`
+	TickNumber  uint32 `json:"tickNumber"`
+	InputType   uint32 `json:"inputType"`
+	InputSize   uint32 `json:"inputSize"`
+	InputData   string `json:"inputData"`
+	Signature   string `json:"signature"`
+	Timestamp   uint64 `json:"timestamp"`
+	MoneyFlew   bool   `json:"moneyFlew"`
 }
 
 // ATTENTION: first page has pageNumber == 1 as API starts with index 1
