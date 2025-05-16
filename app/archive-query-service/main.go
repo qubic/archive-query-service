@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qubic/archive-query-service/rpc"
 	"log"
@@ -27,18 +27,19 @@ func main() {
 func run() error {
 	var cfg struct {
 		Server struct {
-			ReadTimeout     time.Duration `conf:"default:5s"`
-			WriteTimeout    time.Duration `conf:"default:5s"`
-			ShutdownTimeout time.Duration `conf:"default:5s"`
-			HttpHost        string        `conf:"default:0.0.0.0:8000"`
-			GrpcHost        string        `conf:"default:0.0.0.0:8001"`
-			ProfilingHost   string        `conf:"default:0.0.0.0:8002"`
+			ReadTimeout      time.Duration `conf:"default:5s"`
+			WriteTimeout     time.Duration `conf:"default:5s"`
+			ShutdownTimeout  time.Duration `conf:"default:5s"`
+			HttpHost         string        `conf:"default:0.0.0.0:8000"`
+			GrpcHost         string        `conf:"default:0.0.0.0:8001"`
+			ProfilingHost    string        `conf:"default:0.0.0.0:8002"`
+			StatusServiceUrl string        `conf:"default:http://0.0.0.0:8010/v1/status"`
 		}
 		ElasticSearch struct {
 			Address                               string        `conf:"default:http://127.0.0.1:9200"`
 			Username                              string        `conf:"default:qubic-query"`
 			Password                              string        `conf:"optional"`
-			CertificateFilePath                   string        `conf:"default:http_ca.crt"`
+			CertificatePath                       string        `conf:"default:http_ca.crt"`
 			MaxRetries                            int           `conf:"default:15"`
 			ReadTimeout                           time.Duration `conf:"default:10s"`
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
@@ -75,9 +76,9 @@ func run() error {
 	}
 	log.Printf("main: Config :\n%v\n", out)
 
-	cert, err := os.ReadFile(cfg.ElasticSearch.CertificateFilePath)
+	cert, err := os.ReadFile(cfg.ElasticSearch.CertificatePath)
 	if err != nil {
-		log.Printf("WARN: Failed to load Elastic certificate file: %v\n", err)
+		log.Printf("info: Failed to load Elastic certificate file: %v\n", err)
 	}
 
 	elsCfg := elasticsearch.Config{
@@ -98,7 +99,15 @@ func run() error {
 		return fmt.Errorf("creating elasticsearch client: %v", err)
 	}
 
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, esClient)
+	cache := ttlcache.New[string, uint32](
+		ttlcache.WithTTL[string, uint32](time.Second),
+		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh ttl upon getting the item from cache
+	)
+
+	go cache.Start()
+	defer cache.Stop()
+
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, esClient, cfg.Server.StatusServiceUrl, cache)
 	err = rpcServer.Start()
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %v", err)
@@ -119,38 +128,14 @@ func run() error {
 
 		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
 
-			totalErrorCount := int(rpcServer.TotalElasticErrorCount.Load())
 			consecutiveErrorCount := int(rpcServer.ConsecutiveElasticErrorCount.Load())
 
-			status := struct {
-				State                        string
-				TotalElasticErrorCount       int
-				ConsecutiveElasticErrorCount int
-			}{
-				State:                        "OK",
-				TotalElasticErrorCount:       totalErrorCount,
-				ConsecutiveElasticErrorCount: consecutiveErrorCount,
-			}
-
 			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveRequestErrorCountThreshold {
-				status.State = "ERROR"
+				writer.WriteHeader(http.StatusInternalServerError)
 			}
-
-			data, err := json.Marshal(status)
+			_, err := writer.Write([]byte{})
 			if err != nil {
-				log.Printf("Failed to serialize status response: %v\n", err)
-				writer.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			writer.Header().Add("Content-Type", "application/json")
-			if status.State != "OK" {
-				writer.WriteHeader(http.StatusInternalServerError)
-			}
-			_, err = writer.Write(data)
-			if err != nil {
-				log.Printf("Failed to write status response: %v\n", err)
-				writer.WriteHeader(http.StatusInternalServerError)
-				return
+				log.Println("failed to respond to status request")
 			}
 
 		})

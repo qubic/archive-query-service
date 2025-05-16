@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/qubic/archive-query-service/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -24,6 +26,8 @@ import (
 
 var _ protobuf.TransactionsServiceServer = &Server{}
 
+const MaxTickCacheKey = "max-tick"
+
 type Server struct {
 	protobuf.UnimplementedTransactionsServiceServer
 	listenAddrGRPC               string
@@ -31,13 +35,18 @@ type Server struct {
 	esClient                     *elasticsearch.Client
 	ConsecutiveElasticErrorCount atomic.Int32
 	TotalElasticErrorCount       atomic.Int32
+	StatusServiceUrl             string
+	cache                        *ttlcache.Cache[string, uint32]
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, esClient *elasticsearch.Client) *Server {
+func NewServer(listenAddrGRPC, listenAddrHTTP string, esClient *elasticsearch.Client, statusServiceUrl string, cache *ttlcache.Cache[string, uint32]) *Server {
+
 	return &Server{
-		listenAddrGRPC: listenAddrGRPC,
-		listenAddrHTTP: listenAddrHTTP,
-		esClient:       esClient,
+		listenAddrGRPC:   listenAddrGRPC,
+		listenAddrHTTP:   listenAddrHTTP,
+		esClient:         esClient,
+		StatusServiceUrl: statusServiceUrl,
+		cache:            cache,
 	}
 }
 
@@ -54,7 +63,7 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
-	response, err := s.performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc, req.MaxTick)
+	response, err := s.performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
@@ -99,7 +108,7 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
-	response, err := s.performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc, req.MaxTick)
+	response, err := s.performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
@@ -212,11 +221,32 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, maxTi
 	return buf, nil
 }
 
-func (s *Server) performIdentitiesTransactionsQuery(ctx context.Context, esClient *elasticsearch.Client, ID string, pageSize, pageNumber int, desc bool, maxTick uint32) (EsSearchResponse, error) {
+func (s *Server) performIdentitiesTransactionsQuery(ctx context.Context, esClient *elasticsearch.Client, ID string, pageSize, pageNumber int, desc bool) (EsSearchResponse, error) {
+
+	var maxTick uint32
+
+	if s.cache.Has(MaxTickCacheKey) {
+
+		item := s.cache.Get(MaxTickCacheKey)
+		maxTick = item.Value()
+	} else {
+
+		httpMaxTick, err := s.fetchStatusMaxTick(ctx)
+		if err != nil {
+			return EsSearchResponse{}, fmt.Errorf("fetching status service max tick: %v", err)
+		}
+
+		s.cache.Set(MaxTickCacheKey, httpMaxTick, ttlcache.DefaultTTL)
+		item := s.cache.Get(MaxTickCacheKey)
+		maxTick = item.Value()
+	}
+
 	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, maxTick)
 	if err != nil {
 		return EsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
+
+	fmt.Println(maxTick)
 
 	res, err := esClient.Search(
 		esClient.Search.WithContext(ctx),
@@ -246,6 +276,35 @@ func (s *Server) performIdentitiesTransactionsQuery(ctx context.Context, esClien
 	s.ConsecutiveElasticErrorCount.Store(0)
 
 	return result, nil
+}
+
+func (s *Server) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.StatusServiceUrl, nil)
+	if err != nil {
+		return 0, fmt.Errorf("creating new request: %v", err)
+	}
+
+	httpRes, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("requesting max tick from status service: %v", err)
+	}
+	defer httpRes.Body.Close()
+
+	body, err := io.ReadAll(httpRes.Body)
+	if err != nil {
+		return 0, fmt.Errorf("reading request body: %v", err)
+	}
+
+	var statusResponse struct {
+		LastProcessedTick uint32 `json:"lastProcessedTick"`
+	}
+
+	err = json.Unmarshal(body, &statusResponse)
+	if err != nil {
+		return 0, fmt.Errorf("unmarshalling response: %v", err)
+	}
+
+	return statusResponse.LastProcessedTick, nil
 }
 
 type EsSearchResponse struct {
