@@ -224,9 +224,7 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, maxTi
 func (s *Server) performIdentitiesTransactionsQuery(ctx context.Context, esClient *elasticsearch.Client, ID string, pageSize, pageNumber int, desc bool) (EsSearchResponse, error) {
 
 	var maxTick uint32
-
 	if s.cache.Has(MaxTickCacheKey) {
-
 		item := s.cache.Get(MaxTickCacheKey)
 		maxTick = item.Value()
 	} else {
@@ -245,8 +243,6 @@ func (s *Server) performIdentitiesTransactionsQuery(ctx context.Context, esClien
 	if err != nil {
 		return EsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
-
-	fmt.Println(maxTick)
 
 	res, err := esClient.Search(
 		esClient.Search.WithContext(ctx),
