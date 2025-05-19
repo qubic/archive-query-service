@@ -40,7 +40,7 @@ func run() error {
 			Username                              string        `conf:"default:qubic-query"`
 			Password                              string        `conf:"optional"`
 			CertificatePath                       string        `conf:"default:http_ca.crt"`
-			MaxRetries                            int           `conf:"default:15"`
+			MaxRetries                            int           `conf:"default:10"`
 			ReadTimeout                           time.Duration `conf:"default:10s"`
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
 		}
