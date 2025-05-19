@@ -32,7 +32,7 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 var (
-	filter_TransactionsService_GetIdentityTransactions_0 = &utilities.DoubleArray{Encoding: map[string]int{"identity": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_TransactionsService_GetIdentityTransactions_0 = &utilities.DoubleArray{Encoding: map[string]int{"identity": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_TransactionsService_GetIdentityTransactions_0(ctx context.Context, marshaler runtime.Marshaler, client TransactionsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -102,7 +102,7 @@ func local_request_TransactionsService_GetIdentityTransactions_0(ctx context.Con
 }
 
 var (
-	filter_TransactionsService_GetIdentityTransfersInTickRangeV2_0 = &utilities.DoubleArray{Encoding: map[string]int{"identity": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_TransactionsService_GetIdentityTransfersInTickRangeV2_0 = &utilities.DoubleArray{Encoding: map[string]int{"identity": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_TransactionsService_GetIdentityTransfersInTickRangeV2_0(ctx context.Context, marshaler runtime.Marshaler, client TransactionsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {

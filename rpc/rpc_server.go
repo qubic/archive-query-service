@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/qubic/archive-query-service/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,25 +17,36 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"sync/atomic"
 )
 
 var _ protobuf.TransactionsServiceServer = &Server{}
 
+const MaxTickCacheKey = "max-tick"
+
 type Server struct {
 	protobuf.UnimplementedTransactionsServiceServer
-	listenAddrGRPC string
-	listenAddrHTTP string
-	esClient       *elasticsearch.Client
+	listenAddrGRPC               string
+	listenAddrHTTP               string
+	esClient                     *elasticsearch.Client
+	ConsecutiveElasticErrorCount atomic.Int32
+	TotalElasticErrorCount       atomic.Int32
+	StatusServiceUrl             string
+	cache                        *ttlcache.Cache[string, uint32]
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, esClient *elasticsearch.Client) *Server {
+func NewServer(listenAddrGRPC, listenAddrHTTP string, esClient *elasticsearch.Client, statusServiceUrl string, cache *ttlcache.Cache[string, uint32]) *Server {
+
 	return &Server{
-		listenAddrGRPC: listenAddrGRPC,
-		listenAddrHTTP: listenAddrHTTP,
-		esClient:       esClient,
+		listenAddrGRPC:   listenAddrGRPC,
+		listenAddrHTTP:   listenAddrHTTP,
+		esClient:         esClient,
+		StatusServiceUrl: statusServiceUrl,
+		cache:            cache,
 	}
 }
 
@@ -51,7 +63,7 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
-	response, err := performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
+	response, err := s.performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
@@ -59,15 +71,15 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 	var transactions []*protobuf.Transaction
 	for _, hit := range response.Hits.Hits {
 		transactions = append(transactions, &protobuf.Transaction{
-			SourceId:   hit.Source.SourceID,
-			DestId:     hit.Source.DestID,
+			SourceId:   hit.Source.Source,
+			DestId:     hit.Source.Destination,
 			Amount:     hit.Source.Amount,
 			TickNumber: hit.Source.TickNumber,
 			InputType:  hit.Source.InputType,
 			InputSize:  hit.Source.InputSize,
-			Input:      hit.Source.Input,
+			Input:      hit.Source.InputData,
 			Signature:  hit.Source.Signature,
-			TxId:       hit.Source.TxID,
+			TxId:       hit.Source.Hash,
 			Timestamp:  hit.Source.Timestamp,
 			MoneyFlew:  hit.Source.MoneyFlew,
 		})
@@ -96,7 +108,7 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
-	response, err := performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
+	response, err := s.performIdentitiesTransactionsQuery(ctx, s.esClient, req.Identity, int(pageSize), pageNumber, req.Desc)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
@@ -104,14 +116,14 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 	totalTransfers := make([]*protobuf.PerTickIdentityTransfers, 0, len(response.Hits.Hits))
 
 	for _, hit := range response.Hits.Hits {
-		inputBytes, err := base64.StdEncoding.DecodeString(hit.Source.Input)
+		inputBytes, err := base64.StdEncoding.DecodeString(hit.Source.InputData)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", hit.Source.TxID)
+			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", hit.Source.Hash)
 		}
 
 		sigBytes, err := base64.StdEncoding.DecodeString(hit.Source.Signature)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", hit.Source.TxID)
+			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", hit.Source.Hash)
 		}
 
 		perTickIdentityTransfers := &protobuf.PerTickIdentityTransfers{
@@ -120,15 +132,15 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 			Transactions: []*protobuf.TransactionData{
 				{
 					Transaction: &protobuf.TransactionData_Transaction{
-						SourceId:     hit.Source.SourceID,
-						DestId:       hit.Source.DestID,
+						SourceId:     hit.Source.Source,
+						DestId:       hit.Source.Destination,
 						Amount:       hit.Source.Amount,
 						TickNumber:   hit.Source.TickNumber,
 						InputType:    hit.Source.InputType,
 						InputSize:    hit.Source.InputSize,
 						InputHex:     hex.EncodeToString(inputBytes),
 						SignatureHex: hex.EncodeToString(sigBytes),
-						TxId:         hit.Source.TxID,
+						TxId:         hit.Source.Hash,
 					},
 					Timestamp: hit.Source.Timestamp,
 					MoneyFlew: hit.Source.MoneyFlew,
@@ -151,12 +163,21 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 
 }
 
-func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool) (bytes.Buffer, error) {
+func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, maxTick uint32) (bytes.Buffer, error) {
 	from := pageNumber * pageSize
 	querySort := "asc"
 	if desc {
 		querySort = "desc"
 	}
+
+	tickNumberRangeFilter := map[string]interface{}{
+		"lte": maxTick,
+		//"gte": 10000000, // min tick can also be implemented if needed
+	}
+	if maxTick <= 0 {
+		delete(tickNumberRangeFilter, "lte")
+	}
+
 	query := map[string]interface{}{
 		"track_total_hits": "true",
 		"query": map[string]interface{}{
@@ -164,12 +185,19 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool) (byte
 				"should": []interface{}{
 					map[string]interface{}{
 						"match": map[string]interface{}{
-							"sourceID": ID,
+							"source": ID,
 						},
 					},
 					map[string]interface{}{
 						"match": map[string]interface{}{
-							"destID": ID,
+							"destination": ID,
+						},
+					},
+				},
+				"filter": []interface{}{
+					map[string]interface{}{
+						"range": map[string]interface{}{
+							"tickNumber": tickNumberRangeFilter,
 						},
 					},
 				},
@@ -193,24 +221,45 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool) (byte
 	return buf, nil
 }
 
-func performIdentitiesTransactionsQuery(ctx context.Context, esClient *elasticsearch.Client, ID string, pageSize, pageNumber int, desc bool) (EsSearchResponse, error) {
-	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc)
+func (s *Server) performIdentitiesTransactionsQuery(ctx context.Context, esClient *elasticsearch.Client, ID string, pageSize, pageNumber int, desc bool) (EsSearchResponse, error) {
+
+	var maxTick uint32
+	if s.cache.Has(MaxTickCacheKey) {
+		item := s.cache.Get(MaxTickCacheKey)
+		maxTick = item.Value()
+	} else {
+
+		httpMaxTick, err := s.fetchStatusMaxTick(ctx)
+		if err != nil {
+			return EsSearchResponse{}, fmt.Errorf("fetching status service max tick: %v", err)
+		}
+
+		s.cache.Set(MaxTickCacheKey, httpMaxTick, ttlcache.DefaultTTL)
+		item := s.cache.Get(MaxTickCacheKey)
+		maxTick = item.Value()
+	}
+
+	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, maxTick)
 	if err != nil {
 		return EsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
 
 	res, err := esClient.Search(
 		esClient.Search.WithContext(ctx),
-		esClient.Search.WithIndex("transactions"),
+		esClient.Search.WithIndex("qubic-transactions-alias"),
 		esClient.Search.WithBody(&query),
 		esClient.Search.WithPretty(),
 	)
 	if err != nil {
+		s.TotalElasticErrorCount.Add(1)
+		s.ConsecutiveElasticErrorCount.Add(1)
 		return EsSearchResponse{}, fmt.Errorf("performing search: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
+		s.TotalElasticErrorCount.Add(1)
+		s.ConsecutiveElasticErrorCount.Add(1)
 		return EsSearchResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
 	}
 
@@ -220,7 +269,38 @@ func performIdentitiesTransactionsQuery(ctx context.Context, esClient *elasticse
 		return EsSearchResponse{}, fmt.Errorf("decoding response: %v", err)
 	}
 
+	s.ConsecutiveElasticErrorCount.Store(0)
+
 	return result, nil
+}
+
+func (s *Server) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.StatusServiceUrl, nil)
+	if err != nil {
+		return 0, fmt.Errorf("creating new request: %v", err)
+	}
+
+	httpRes, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("requesting max tick from status service: %v", err)
+	}
+	defer httpRes.Body.Close()
+
+	body, err := io.ReadAll(httpRes.Body)
+	if err != nil {
+		return 0, fmt.Errorf("reading request body: %v", err)
+	}
+
+	var statusResponse struct {
+		LastProcessedTick uint32 `json:"lastProcessedTick"`
+	}
+
+	err = json.Unmarshal(body, &statusResponse)
+	if err != nil {
+		return 0, fmt.Errorf("unmarshalling response: %v", err)
+	}
+
+	return statusResponse.LastProcessedTick, nil
 }
 
 type EsSearchResponse struct {
@@ -236,17 +316,17 @@ type EsSearchResponse struct {
 }
 
 type Tx struct {
-	TxID       string `json:"txID"`
-	SourceID   string `json:"sourceID"`
-	DestID     string `json:"destID"`
-	Amount     int64  `json:"amount"`
-	TickNumber uint32 `json:"tickNumber"`
-	InputType  uint32 `json:"inputType"`
-	InputSize  uint32 `json:"inputSize"`
-	Input      string `json:"input"`
-	Signature  string `json:"signature"`
-	Timestamp  uint64 `json:"timestamp"`
-	MoneyFlew  bool   `json:"moneyFlew"`
+	Hash        string `json:"hash"`
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
+	Amount      int64  `json:"amount"`
+	TickNumber  uint32 `json:"tickNumber"`
+	InputType   uint32 `json:"inputType"`
+	InputSize   uint32 `json:"inputSize"`
+	InputData   string `json:"inputData"`
+	Signature   string `json:"signature"`
+	Timestamp   uint64 `json:"timestamp"`
+	MoneyFlew   bool   `json:"moneyFlew"`
 }
 
 // ATTENTION: first page has pageNumber == 1 as API starts with index 1

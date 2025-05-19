@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/jellydator/ttlcache/v3"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qubic/archive-query-service/rpc"
 	"log"
 	"net/http"
@@ -25,16 +27,26 @@ func main() {
 func run() error {
 	var cfg struct {
 		Server struct {
-			ReadTimeout     time.Duration `conf:"default:5s"`
-			WriteTimeout    time.Duration `conf:"default:5s"`
-			ShutdownTimeout time.Duration `conf:"default:5s"`
-			HttpHost        string        `conf:"default:0.0.0.0:8000"`
-			GrpcHost        string        `conf:"default:0.0.0.0:8001"`
-			ProfilingHost   string        `conf:"default:0.0.0.0:8002"`
+			ReadTimeout      time.Duration `conf:"default:5s"`
+			WriteTimeout     time.Duration `conf:"default:5s"`
+			ShutdownTimeout  time.Duration `conf:"default:5s"`
+			HttpHost         string        `conf:"default:0.0.0.0:8000"`
+			GrpcHost         string        `conf:"default:0.0.0.0:8001"`
+			ProfilingHost    string        `conf:"default:0.0.0.0:8002"`
+			StatusServiceUrl string        `conf:"default:http://0.0.0.0:8010/v1/status"`
 		}
 		ElasticSearch struct {
-			Address     string        `conf:"default:http://127.0.0.1:9200"`
-			ReadTimeout time.Duration `conf:"default:10s"`
+			Address                               string        `conf:"default:http://127.0.0.1:9200"`
+			Username                              string        `conf:"default:qubic-query"`
+			Password                              string        `conf:"optional"`
+			CertificatePath                       string        `conf:"default:http_ca.crt"`
+			MaxRetries                            int           `conf:"default:10"`
+			ReadTimeout                           time.Duration `conf:"default:10s"`
+			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
+		}
+		Metrics struct {
+			Namespace string `conf:"default:qubic-query"`
+			Port      int    `conf:"default:9999"`
 		}
 	}
 
@@ -64,8 +76,18 @@ func run() error {
 	}
 	log.Printf("main: Config :\n%v\n", out)
 
+	cert, err := os.ReadFile(cfg.ElasticSearch.CertificatePath)
+	if err != nil {
+		log.Printf("info: Failed to load Elastic certificate file: %v\n", err)
+	}
+
 	elsCfg := elasticsearch.Config{
-		Addresses: []string{cfg.ElasticSearch.Address},
+		Addresses:     []string{cfg.ElasticSearch.Address},
+		Username:      cfg.ElasticSearch.Username,
+		Password:      cfg.ElasticSearch.Password,
+		CACert:        cert,
+		RetryOnStatus: []int{502, 503, 504, 429},
+		MaxRetries:    cfg.ElasticSearch.MaxRetries,
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost:   10,
 			ResponseHeaderTimeout: cfg.ElasticSearch.ReadTimeout,
@@ -77,7 +99,15 @@ func run() error {
 		return fmt.Errorf("creating elasticsearch client: %v", err)
 	}
 
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, esClient)
+	cache := ttlcache.New[string, uint32](
+		ttlcache.WithTTL[string, uint32](time.Second),
+		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh ttl upon getting the item from cache
+	)
+
+	go cache.Start()
+	defer cache.Stop()
+
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, esClient, cfg.Server.StatusServiceUrl, cache)
 	err = rpcServer.Start()
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %v", err)
@@ -92,14 +122,37 @@ func run() error {
 		pprofErrors <- http.ListenAndServe(cfg.Server.ProfilingHost, nil)
 	}()
 
+	webServerErr := make(chan error, 1)
+	go func() {
+		log.Printf("main: Starting status and metrics endpoints on port [%d]\n", cfg.Metrics.Port)
+
+		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
+
+			consecutiveErrorCount := int(rpcServer.ConsecutiveElasticErrorCount.Load())
+
+			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveRequestErrorCountThreshold {
+				writer.WriteHeader(http.StatusInternalServerError)
+			}
+			_, err := writer.Write([]byte{})
+			if err != nil {
+				log.Println("failed to respond to status request")
+			}
+
+		})
+
+		http.Handle("/metrics", promhttp.Handler())
+		webServerErr <- http.ListenAndServe(fmt.Sprintf(":%d", cfg.Metrics.Port), nil)
+	}()
+
 	for {
 		select {
 		case <-shutdown:
 			return errors.New("shutting down")
 		case err := <-pprofErrors:
 			return fmt.Errorf("pprof error: %v", err)
+		case err := <-webServerErr:
+			return fmt.Errorf("web server error: %v", err)
+
 		}
 	}
-
-	return nil
 }
