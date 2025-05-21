@@ -372,11 +372,12 @@ func getPaginationInformation(totalRecords, pageNumber, pageSize int) (*protobuf
 	return &pagination, nil
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
 
 	srv := grpc.NewServer(
 		grpc.MaxRecvMsgSize(600*1024*1024),
 		grpc.MaxSendMsgSize(600*1024*1024),
+		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 	protobuf.RegisterTransactionsServiceServer(srv, s)
 	reflection.Register(srv)

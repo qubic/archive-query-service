@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
+	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/jellydator/ttlcache/v3"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qubic/archive-query-service/rpc"
 	"log"
@@ -107,8 +110,15 @@ func run() error {
 	go cache.Start()
 	defer cache.Stop()
 
+	srvMetrics := grpcProm.NewServerMetrics(
+		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": "query-service"})),
+	)
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(srvMetrics)
+	reg.MustRegister(collectors.NewGoCollector())
+
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, esClient, cfg.Server.StatusServiceUrl, cache)
-	err = rpcServer.Start()
+	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor())
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %v", err)
 	}
@@ -140,7 +150,7 @@ func run() error {
 
 		})
 
-		http.Handle("/metrics", promhttp.Handler())
+		http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{EnableOpenMetrics: true}))
 		webServerErr <- http.ListenAndServe(fmt.Sprintf(":%d", cfg.Metrics.Port), nil)
 	}()
 
