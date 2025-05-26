@@ -6,7 +6,6 @@ import (
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
 	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
-	"github.com/jellydator/ttlcache/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -40,6 +39,7 @@ func run() error {
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.0:9901"`
+			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 		}
 		ElasticSearch struct {
 			Address                               string        `conf:"default:http://127.0.0.1:9200"`
@@ -107,14 +107,6 @@ func run() error {
 		return fmt.Errorf("creating elasticsearch client: %v", err)
 	}
 
-	cache := ttlcache.New[string, uint32](
-		ttlcache.WithTTL[string, uint32](time.Second),
-		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh ttl upon getting the item from cache
-	)
-
-	go cache.Start()
-	defer cache.Stop()
-
 	srvMetrics := grpcProm.NewServerMetrics(
 		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": "query-service"})),
 	)
@@ -128,9 +120,14 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient, statusServiceClient, cache)
+	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.StatusDataCacheTTL)
+
+	go cache.Start()
+	defer cache.Stop()
+
+	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient, cache)
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
-	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient)
+	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(), tickInBoundsInterceptor.GetInterceptor, identitiesValidatorInterceptor.GetInterceptor)
 	if err != nil {
