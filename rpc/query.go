@@ -8,6 +8,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/jellydator/ttlcache/v3"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
+	"strconv"
 	"sync/atomic"
 )
 
@@ -18,10 +19,17 @@ type QueryBuilder struct {
 	StatusServiceClient          statusPb.StatusServiceClient
 	cache                        *ttlcache.Cache[string, uint32]
 	txIndex                      string
+	tickDataIndex                string
 }
 
-func NewQueryBuilder(txIndex string, esClient *elasticsearch.Client, statusServiceClient statusPb.StatusServiceClient, cache *ttlcache.Cache[string, uint32]) *QueryBuilder {
-	return &QueryBuilder{txIndex: txIndex, esClient: esClient, StatusServiceClient: statusServiceClient, cache: cache}
+func NewQueryBuilder(txIndex string, tickDataIndex string, esClient *elasticsearch.Client, statusServiceClient statusPb.StatusServiceClient, cache *ttlcache.Cache[string, uint32]) *QueryBuilder {
+	return &QueryBuilder{
+		txIndex:             txIndex,
+		tickDataIndex:       tickDataIndex,
+		esClient:            esClient,
+		StatusServiceClient: statusServiceClient,
+		cache:               cache,
+	}
 }
 
 func (qb *QueryBuilder) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
@@ -99,6 +107,25 @@ func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) 
 	var result TransactionGetResponse
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return TransactionGetResponse{}, fmt.Errorf("decoding response: %v", err)
+	}
+
+	return result, nil
+}
+
+func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(ctx context.Context, tickNumber uint32) (TickDataGetResponse, error) {
+	res, err := qb.esClient.Get(qb.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
+	if err != nil {
+		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %v", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return TickDataGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
+	}
+
+	var result TickDataGetResponse
+	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return TickDataGetResponse{}, fmt.Errorf("decoding response: %v", err)
 	}
 
 	return result, nil
@@ -240,6 +267,16 @@ type TransactionGetResponse struct {
 	Source      Tx     `json:"_source"`
 }
 
+type TickDataGetResponse struct {
+	Index       string   `json:"_index"`
+	Id          string   `json:"_id"`
+	Version     int      `json:"_version"`
+	SeqNo       int      `json:"_seq_no"`
+	PrimaryTerm int      `json:"_primary_term"`
+	Found       bool     `json:"found"`
+	Source      TickData `json:"_source"`
+}
+
 type Tx struct {
 	Hash        string `json:"hash"`
 	Source      string `json:"source"`
@@ -252,4 +289,16 @@ type Tx struct {
 	Signature   string `json:"signature"`
 	Timestamp   uint64 `json:"timestamp"`
 	MoneyFlew   bool   `json:"moneyFlew"`
+}
+
+type TickData struct {
+	ComputorIndex     uint32   `json:"computorIndex"`
+	Epoch             uint32   `json:"epoch"`
+	TickNumber        uint32   `json:"tickNumber"`
+	Timestamp         uint64   `json:"timestamp"`
+	VarStruct         string   `json:"varStruct"`
+	Timelock          string   `json:"timelock"`
+	TransactionHashes []string `json:"transactionHashes"`
+	ContractFees      []int64  `json:"contractFees"`
+	Signature         string   `json:"signature"`
 }

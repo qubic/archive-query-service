@@ -59,3 +59,32 @@ func TxToNewFormat(tx Tx) *protobuf.NewTransaction {
 		MoneyFlew:  tx.MoneyFlew,
 	}
 }
+
+func TickDataToArchiveFormat(tickData TickData) (*protobuf.TickData, error) {
+	sigBytes, err := base64.StdEncoding.DecodeString(tickData.Signature)
+	if err != nil {
+		return nil, fmt.Errorf("decoding base64 signature for tick data with number %d: %w", tickData.TickNumber, err)
+	}
+
+	varStructBytes, err := base64.StdEncoding.DecodeString(tickData.VarStruct)
+	if err != nil {
+		return nil, fmt.Errorf("decoding base64 varStruct for tick data with number %d: %w", tickData.TickNumber, err)
+	}
+
+	timeLockBytes, err := base64.StdEncoding.DecodeString(tickData.Timelock)
+	if err != nil {
+		return nil, fmt.Errorf("decoding base64 timelock for tick data with number %d: %w", tickData.TickNumber, err)
+	}
+
+	return &protobuf.TickData{
+		ComputorIndex:  tickData.ComputorIndex,
+		Epoch:          tickData.Epoch,
+		TickNumber:     tickData.TickNumber,
+		Timestamp:      tickData.Timestamp,
+		VarStruct:      varStructBytes,
+		TimeLock:       timeLockBytes,
+		TransactionIds: tickData.TransactionHashes,
+		ContractFees:   tickData.ContractFees,
+		SignatureHex:   hex.EncodeToString(sigBytes),
+	}, nil
+}

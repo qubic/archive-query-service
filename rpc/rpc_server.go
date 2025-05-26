@@ -141,7 +141,7 @@ func (s *Server) GetTickTransactionsV2(ctx context.Context, req *protobuf.GetTic
 
 }
 
-func (s *Server) GetTickTransaction(ctx context.Context, req *protobuf.GetTickTransactionsRequest) (*protobuf.GetTickTransactionsResponse, error) {
+func (s *Server) GetTickTransactions(ctx context.Context, req *protobuf.GetTickTransactionsRequest) (*protobuf.GetTickTransactionsResponse, error) {
 	res, err := s.qb.performTickTransactionsQuery(ctx, req.TickNumber)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -278,6 +278,25 @@ func (s *Server) GetTransactionV2(ctx context.Context, req *protobuf.GetTransact
 	}
 
 	return &protobuf.GetTransactionResponseV2{Transaction: tx.Transaction, Timestamp: tx.Timestamp, MoneyFlew: tx.MoneyFlew}, nil
+}
+
+func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataRequest) (*protobuf.GetTickDataResponse, error) {
+	res, err := s.qb.performGetTickDataByTickNumberQuery(ctx, req.TickNumber)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "getting tick data: %v", err)
+	}
+
+	// empty tick condition
+	if !res.Found {
+		return &protobuf.GetTickDataResponse{TickData: nil}, nil
+	}
+
+	tickData, err := TickDataToArchiveFormat(res.Source)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting tick data to archive format: %s", err.Error())
+	}
+
+	return &protobuf.GetTickDataResponse{TickData: tickData}, nil
 }
 
 func (s *Server) GetApprovedTickTransactionsV2(ctx context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
