@@ -11,6 +11,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qubic/archive-query-service/rpc"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net/http"
 	"os"
@@ -30,13 +33,13 @@ func main() {
 func run() error {
 	var cfg struct {
 		Server struct {
-			ReadTimeout      time.Duration `conf:"default:5s"`
-			WriteTimeout     time.Duration `conf:"default:5s"`
-			ShutdownTimeout  time.Duration `conf:"default:5s"`
-			HttpHost         string        `conf:"default:0.0.0.0:8000"`
-			GrpcHost         string        `conf:"default:0.0.0.0:8001"`
-			ProfilingHost    string        `conf:"default:0.0.0.0:8002"`
-			StatusServiceUrl string        `conf:"default:http://0.0.0.0:8010/v1/status"`
+			ReadTimeout           time.Duration `conf:"default:5s"`
+			WriteTimeout          time.Duration `conf:"default:5s"`
+			ShutdownTimeout       time.Duration `conf:"default:5s"`
+			HttpHost              string        `conf:"default:0.0.0.0:8000"`
+			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
+			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
+			StatusServiceGrpcHost string        `conf:"default:127.0.0.0:9901"`
 		}
 		ElasticSearch struct {
 			Address                               string        `conf:"default:http://127.0.0.1:9200"`
@@ -117,8 +120,16 @@ func run() error {
 	reg.MustRegister(srvMetrics)
 	reg.MustRegister(collectors.NewGoCollector())
 
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, esClient, cfg.Server.StatusServiceUrl, cache)
-	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor())
+	statusServiceGrpcConn, err := grpc.NewClient(cfg.Server.StatusServiceGrpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return fmt.Errorf("creating archiver api connection: %v", err)
+	}
+	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
+
+	queryBuilder := rpc.NewQueryBuilder(esClient, statusServiceClient, cache)
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
+	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient)
+	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(), tickInBoundsInterceptor.GetInterceptor)
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %v", err)
 	}
@@ -138,7 +149,7 @@ func run() error {
 
 		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
 
-			consecutiveErrorCount := int(rpcServer.ConsecutiveElasticErrorCount.Load())
+			consecutiveErrorCount := int(queryBuilder.ConsecutiveElasticErrorCount.Load())
 
 			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveRequestErrorCountThreshold {
 				writer.WriteHeader(http.StatusInternalServerError)

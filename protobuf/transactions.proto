@@ -6,6 +6,40 @@ option go_package = "github.com/qubic/archive-query-service/protobuf/";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
+message LastProcessedTick {
+  uint32 last_processed_tick = 1;
+}
+
+message GetTickRequestV2 {
+  uint32 tick_number = 1;
+}
+
+message GetTickTransactionsRequestV2 {
+  uint32 tick_number = 1;
+  bool transfers = 2;
+  bool approved = 3;
+}
+
+message GetTickTransactionsResponseV2 {
+  repeated TransactionData transactions = 1;
+}
+
+message GetTickTransactionsRequest {
+  uint32 tick_number = 1;
+}
+
+message GetTickDataRequest {
+  uint32 tick_number = 1;
+}
+
+message GetTickApprovedTransactionsRequest {
+  uint32 tick_number = 1;
+}
+
+message NextAvailableTick {
+  uint32 next_tick_number = 1;
+}
+
 message GetIdentityTransactionsRequest {
   string identity = 1;
   bool desc = 2;
@@ -91,6 +125,12 @@ service TransactionsService {
   rpc GetIdentityTransfersInTickRangeV2(GetTransferTransactionsPerTickRequestV2) returns (GetIdentityTransfersInTickRangeResponseV2) {// Uses V1 request
     option (google.api.http) = {
       get: "/v2/identities/{identity}/transfers"
+    };
+  };
+
+  rpc GetTickTransactionsV2(GetTickTransactionsRequestV2) returns (GetTickTransactionsResponseV2){
+    option (google.api.http) = {
+      get: "/v2/ticks/{tick_number}/transactions"
     };
   };
 }
