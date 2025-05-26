@@ -27,6 +27,7 @@ const (
 	TransactionsService_GetTransaction_FullMethodName                    = "/qubic.lts.transactions.pb.TransactionsService/GetTransaction"
 	TransactionsService_GetTransactionStatus_FullMethodName              = "/qubic.lts.transactions.pb.TransactionsService/GetTransactionStatus"
 	TransactionsService_GetTransactionV2_FullMethodName                  = "/qubic.lts.transactions.pb.TransactionsService/GetTransactionV2"
+	TransactionsService_GetTickData_FullMethodName                       = "/qubic.lts.transactions.pb.TransactionsService/GetTickData"
 )
 
 // TransactionsServiceClient is the client API for TransactionsService service.
@@ -43,6 +44,7 @@ type TransactionsServiceClient interface {
 	// Deprecated: Use /v2/transactions/{tx_id} instead.
 	GetTransactionStatus(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionStatusResponse, error)
 	GetTransactionV2(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponseV2, error)
+	GetTickData(ctx context.Context, in *GetTickDataRequest, opts ...grpc.CallOption) (*GetTickDataResponse, error)
 }
 
 type transactionsServiceClient struct {
@@ -125,6 +127,15 @@ func (c *transactionsServiceClient) GetTransactionV2(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *transactionsServiceClient) GetTickData(ctx context.Context, in *GetTickDataRequest, opts ...grpc.CallOption) (*GetTickDataResponse, error) {
+	out := new(GetTickDataResponse)
+	err := c.cc.Invoke(ctx, TransactionsService_GetTickData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransactionsServiceServer is the server API for TransactionsService service.
 // All implementations must embed UnimplementedTransactionsServiceServer
 // for forward compatibility
@@ -139,6 +150,7 @@ type TransactionsServiceServer interface {
 	// Deprecated: Use /v2/transactions/{tx_id} instead.
 	GetTransactionStatus(context.Context, *GetTransactionRequest) (*GetTransactionStatusResponse, error)
 	GetTransactionV2(context.Context, *GetTransactionRequest) (*GetTransactionResponseV2, error)
+	GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error)
 	mustEmbedUnimplementedTransactionsServiceServer()
 }
 
@@ -169,6 +181,9 @@ func (UnimplementedTransactionsServiceServer) GetTransactionStatus(context.Conte
 }
 func (UnimplementedTransactionsServiceServer) GetTransactionV2(context.Context, *GetTransactionRequest) (*GetTransactionResponseV2, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTransactionV2 not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTickData not implemented")
 }
 func (UnimplementedTransactionsServiceServer) mustEmbedUnimplementedTransactionsServiceServer() {}
 
@@ -327,6 +342,24 @@ func _TransactionsService_GetTransactionV2_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransactionsService_GetTickData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTickDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetTickData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetTickData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetTickData(ctx, req.(*GetTickDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransactionsService_ServiceDesc is the grpc.ServiceDesc for TransactionsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -365,6 +398,10 @@ var TransactionsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTransactionV2",
 			Handler:    _TransactionsService_GetTransactionV2_Handler,
+		},
+		{
+			MethodName: "GetTickData",
+			Handler:    _TransactionsService_GetTickData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

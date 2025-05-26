@@ -50,6 +50,7 @@ func run() error {
 			ReadTimeout                           time.Duration `conf:"default:10s"`
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
 			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
+			TickDataIndex                         string        `conf:"default:qubic-tick-data-alias"`
 		}
 		Metrics struct {
 			Namespace string `conf:"default:qubic-query"`
@@ -127,10 +128,11 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, esClient, statusServiceClient, cache)
+	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient, statusServiceClient, cache)
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient)
-	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(), tickInBoundsInterceptor.GetInterceptor)
+	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
+	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(), tickInBoundsInterceptor.GetInterceptor, identitiesValidatorInterceptor.GetInterceptor)
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %v", err)
 	}

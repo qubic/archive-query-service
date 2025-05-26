@@ -28,10 +28,6 @@ message GetTickTransactionsRequest {
   uint32 tick_number = 1;
 }
 
-message GetTickDataRequest {
-  uint32 tick_number = 1;
-}
-
 message GetTickApprovedTransactionsRequest {
   uint32 tick_number = 1;
 }
@@ -146,6 +142,27 @@ message GetTransactionResponseV2 {
   bool money_flew = 3;
 }
 
+message TickData {
+  uint32 computor_index = 1;
+  uint32 epoch = 2;
+  uint32 tick_number = 3;
+  uint64 timestamp = 4;
+  bytes var_struct = 5;
+  bytes time_lock = 6;
+  repeated string transaction_ids = 7;
+  repeated int64 contract_fees = 8;
+  string signature_hex = 9;
+}
+
+message GetTickDataRequest {
+  uint32 tick_number = 1;
+}
+
+
+message GetTickDataResponse {
+  TickData tick_data = 1;
+}
+
 service TransactionsService {
   rpc GetIdentityTransactions(GetIdentityTransactionsRequest) returns (GetIdentityTransactionsResponse) {
     option (google.api.http) = {
@@ -194,6 +211,12 @@ service TransactionsService {
   rpc GetTransactionV2(GetTransactionRequest) returns (GetTransactionResponseV2) {
     option (google.api.http) = {
       get: "/v2/transactions/{tx_id}"
+    };
+  };
+
+  rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse){
+    option (google.api.http) = {
+      get: "/v1/ticks/{tick_number}/tick-data"
     };
   };
 }
