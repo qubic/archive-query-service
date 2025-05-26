@@ -22,6 +22,11 @@ const (
 	TransactionsService_GetIdentityTransactions_FullMethodName           = "/qubic.lts.transactions.pb.TransactionsService/GetIdentityTransactions"
 	TransactionsService_GetIdentityTransfersInTickRangeV2_FullMethodName = "/qubic.lts.transactions.pb.TransactionsService/GetIdentityTransfersInTickRangeV2"
 	TransactionsService_GetTickTransactionsV2_FullMethodName             = "/qubic.lts.transactions.pb.TransactionsService/GetTickTransactionsV2"
+	TransactionsService_GetTickTransactions_FullMethodName               = "/qubic.lts.transactions.pb.TransactionsService/GetTickTransactions"
+	TransactionsService_GetTickApprovedTransactions_FullMethodName       = "/qubic.lts.transactions.pb.TransactionsService/GetTickApprovedTransactions"
+	TransactionsService_GetTransaction_FullMethodName                    = "/qubic.lts.transactions.pb.TransactionsService/GetTransaction"
+	TransactionsService_GetTransactionStatus_FullMethodName              = "/qubic.lts.transactions.pb.TransactionsService/GetTransactionStatus"
+	TransactionsService_GetTransactionV2_FullMethodName                  = "/qubic.lts.transactions.pb.TransactionsService/GetTransactionV2"
 )
 
 // TransactionsServiceClient is the client API for TransactionsService service.
@@ -31,6 +36,13 @@ type TransactionsServiceClient interface {
 	GetIdentityTransactions(ctx context.Context, in *GetIdentityTransactionsRequest, opts ...grpc.CallOption) (*GetIdentityTransactionsResponse, error)
 	GetIdentityTransfersInTickRangeV2(ctx context.Context, in *GetTransferTransactionsPerTickRequestV2, opts ...grpc.CallOption) (*GetIdentityTransfersInTickRangeResponseV2, error)
 	GetTickTransactionsV2(ctx context.Context, in *GetTickTransactionsRequestV2, opts ...grpc.CallOption) (*GetTickTransactionsResponseV2, error)
+	GetTickTransactions(ctx context.Context, in *GetTickTransactionsRequest, opts ...grpc.CallOption) (*GetTickTransactionsResponse, error)
+	// Deprecated: Use /v2/ticks/{tick_number}/transactions instead.
+	GetTickApprovedTransactions(ctx context.Context, in *GetTickApprovedTransactionsRequest, opts ...grpc.CallOption) (*GetTickApprovedTransactionsResponse, error)
+	GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error)
+	// Deprecated: Use /v2/transactions/{tx_id} instead.
+	GetTransactionStatus(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionStatusResponse, error)
+	GetTransactionV2(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponseV2, error)
 }
 
 type transactionsServiceClient struct {
@@ -68,6 +80,51 @@ func (c *transactionsServiceClient) GetTickTransactionsV2(ctx context.Context, i
 	return out, nil
 }
 
+func (c *transactionsServiceClient) GetTickTransactions(ctx context.Context, in *GetTickTransactionsRequest, opts ...grpc.CallOption) (*GetTickTransactionsResponse, error) {
+	out := new(GetTickTransactionsResponse)
+	err := c.cc.Invoke(ctx, TransactionsService_GetTickTransactions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *transactionsServiceClient) GetTickApprovedTransactions(ctx context.Context, in *GetTickApprovedTransactionsRequest, opts ...grpc.CallOption) (*GetTickApprovedTransactionsResponse, error) {
+	out := new(GetTickApprovedTransactionsResponse)
+	err := c.cc.Invoke(ctx, TransactionsService_GetTickApprovedTransactions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *transactionsServiceClient) GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error) {
+	out := new(GetTransactionResponse)
+	err := c.cc.Invoke(ctx, TransactionsService_GetTransaction_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *transactionsServiceClient) GetTransactionStatus(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionStatusResponse, error) {
+	out := new(GetTransactionStatusResponse)
+	err := c.cc.Invoke(ctx, TransactionsService_GetTransactionStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *transactionsServiceClient) GetTransactionV2(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponseV2, error) {
+	out := new(GetTransactionResponseV2)
+	err := c.cc.Invoke(ctx, TransactionsService_GetTransactionV2_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransactionsServiceServer is the server API for TransactionsService service.
 // All implementations must embed UnimplementedTransactionsServiceServer
 // for forward compatibility
@@ -75,6 +132,13 @@ type TransactionsServiceServer interface {
 	GetIdentityTransactions(context.Context, *GetIdentityTransactionsRequest) (*GetIdentityTransactionsResponse, error)
 	GetIdentityTransfersInTickRangeV2(context.Context, *GetTransferTransactionsPerTickRequestV2) (*GetIdentityTransfersInTickRangeResponseV2, error)
 	GetTickTransactionsV2(context.Context, *GetTickTransactionsRequestV2) (*GetTickTransactionsResponseV2, error)
+	GetTickTransactions(context.Context, *GetTickTransactionsRequest) (*GetTickTransactionsResponse, error)
+	// Deprecated: Use /v2/ticks/{tick_number}/transactions instead.
+	GetTickApprovedTransactions(context.Context, *GetTickApprovedTransactionsRequest) (*GetTickApprovedTransactionsResponse, error)
+	GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error)
+	// Deprecated: Use /v2/transactions/{tx_id} instead.
+	GetTransactionStatus(context.Context, *GetTransactionRequest) (*GetTransactionStatusResponse, error)
+	GetTransactionV2(context.Context, *GetTransactionRequest) (*GetTransactionResponseV2, error)
 	mustEmbedUnimplementedTransactionsServiceServer()
 }
 
@@ -90,6 +154,21 @@ func (UnimplementedTransactionsServiceServer) GetIdentityTransfersInTickRangeV2(
 }
 func (UnimplementedTransactionsServiceServer) GetTickTransactionsV2(context.Context, *GetTickTransactionsRequestV2) (*GetTickTransactionsResponseV2, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTickTransactionsV2 not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetTickTransactions(context.Context, *GetTickTransactionsRequest) (*GetTickTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTickTransactions not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetTickApprovedTransactions(context.Context, *GetTickApprovedTransactionsRequest) (*GetTickApprovedTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTickApprovedTransactions not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTransaction not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetTransactionStatus(context.Context, *GetTransactionRequest) (*GetTransactionStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTransactionStatus not implemented")
+}
+func (UnimplementedTransactionsServiceServer) GetTransactionV2(context.Context, *GetTransactionRequest) (*GetTransactionResponseV2, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTransactionV2 not implemented")
 }
 func (UnimplementedTransactionsServiceServer) mustEmbedUnimplementedTransactionsServiceServer() {}
 
@@ -158,6 +237,96 @@ func _TransactionsService_GetTickTransactionsV2_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransactionsService_GetTickTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTickTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetTickTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetTickTransactions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetTickTransactions(ctx, req.(*GetTickTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TransactionsService_GetTickApprovedTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTickApprovedTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetTickApprovedTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetTickApprovedTransactions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetTickApprovedTransactions(ctx, req.(*GetTickApprovedTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TransactionsService_GetTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetTransaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetTransaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetTransaction(ctx, req.(*GetTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TransactionsService_GetTransactionStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetTransactionStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetTransactionStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetTransactionStatus(ctx, req.(*GetTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TransactionsService_GetTransactionV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionsServiceServer).GetTransactionV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionsService_GetTransactionV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionsServiceServer).GetTransactionV2(ctx, req.(*GetTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransactionsService_ServiceDesc is the grpc.ServiceDesc for TransactionsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +345,26 @@ var TransactionsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTickTransactionsV2",
 			Handler:    _TransactionsService_GetTickTransactionsV2_Handler,
+		},
+		{
+			MethodName: "GetTickTransactions",
+			Handler:    _TransactionsService_GetTickTransactions_Handler,
+		},
+		{
+			MethodName: "GetTickApprovedTransactions",
+			Handler:    _TransactionsService_GetTickApprovedTransactions_Handler,
+		},
+		{
+			MethodName: "GetTransaction",
+			Handler:    _TransactionsService_GetTransaction_Handler,
+		},
+		{
+			MethodName: "GetTransactionStatus",
+			Handler:    _TransactionsService_GetTransactionStatus_Handler,
+		},
+		{
+			MethodName: "GetTransactionV2",
+			Handler:    _TransactionsService_GetTransactionV2_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

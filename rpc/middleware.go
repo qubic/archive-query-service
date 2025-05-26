@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/qubic/archive-query-service/protobuf"
+	"github.com/qubic/go-archiver/protobuff"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -58,7 +59,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 
 	if tickNumber > lastProcessedTick {
 		st := status.Newf(codes.FailedPrecondition, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)
-		st, err = st.WithDetails(&protobuf.LastProcessedTick{LastProcessedTick: lastProcessedTick})
+		st, err = st.WithDetails(&protobuff.LastProcessedTick{LastProcessedTick: lastProcessedTick})
 		if err != nil {
 			return status.Errorf(codes.Internal, "creating custom status")
 		}
@@ -73,7 +74,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch.Intervals)
 	if wasSkipped == true {
 		st := status.Newf(codes.OutOfRange, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
-		st, err = st.WithDetails(&protobuf.NextAvailableTick{NextTickNumber: nextAvailableTick})
+		st, err = st.WithDetails(&protobuff.NextAvailableTick{NextTickNumber: nextAvailableTick})
 		if err != nil {
 			return status.Errorf(codes.Internal, "creating custom status")
 		}

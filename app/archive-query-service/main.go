@@ -49,6 +49,7 @@ func run() error {
 			MaxRetries                            int           `conf:"default:10"`
 			ReadTimeout                           time.Duration `conf:"default:10s"`
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
+			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
 		}
 		Metrics struct {
 			Namespace string `conf:"default:qubic-query"`
@@ -126,7 +127,7 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	queryBuilder := rpc.NewQueryBuilder(esClient, statusServiceClient, cache)
+	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, esClient, statusServiceClient, cache)
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient)
 	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(), tickInBoundsInterceptor.GetInterceptor)

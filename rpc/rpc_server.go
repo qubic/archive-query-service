@@ -2,12 +2,12 @@ package rpc
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
 	"github.com/qubic/archive-query-service/protobuf"
+	"github.com/qubic/go-node-connector/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -58,21 +58,9 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
 
-	var transactions []*protobuf.Transaction
+	var transactions []*protobuf.NewTransaction
 	for _, hit := range response.Hits.Hits {
-		transactions = append(transactions, &protobuf.Transaction{
-			SourceId:   hit.Source.Source,
-			DestId:     hit.Source.Destination,
-			Amount:     hit.Source.Amount,
-			TickNumber: hit.Source.TickNumber,
-			InputType:  hit.Source.InputType,
-			InputSize:  hit.Source.InputSize,
-			Input:      hit.Source.InputData,
-			Signature:  hit.Source.Signature,
-			TxId:       hit.Source.Hash,
-			Timestamp:  hit.Source.Timestamp,
-			MoneyFlew:  hit.Source.MoneyFlew,
-		})
+		transactions = append(transactions, TxToNewFormat(hit.Source))
 	}
 
 	pagination, err := getPaginationInformation(response.Hits.Total.Value, pageNumber+1, int(pageSize))
@@ -106,36 +94,15 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 	totalTransfers := make([]*protobuf.PerTickIdentityTransfers, 0, len(response.Hits.Hits))
 
 	for _, hit := range response.Hits.Hits {
-		inputBytes, err := base64.StdEncoding.DecodeString(hit.Source.InputData)
+		tx, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", hit.Source.Hash)
-		}
-
-		sigBytes, err := base64.StdEncoding.DecodeString(hit.Source.Signature)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", hit.Source.Hash)
+			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
 		}
 
 		perTickIdentityTransfers := &protobuf.PerTickIdentityTransfers{
-			TickNumber: hit.Source.TickNumber,
-			Identity:   req.Identity,
-			Transactions: []*protobuf.TransactionData{
-				{
-					Transaction: &protobuf.TransactionData_Transaction{
-						SourceId:     hit.Source.Source,
-						DestId:       hit.Source.Destination,
-						Amount:       hit.Source.Amount,
-						TickNumber:   hit.Source.TickNumber,
-						InputType:    hit.Source.InputType,
-						InputSize:    hit.Source.InputSize,
-						InputHex:     hex.EncodeToString(inputBytes),
-						SignatureHex: hex.EncodeToString(sigBytes),
-						TxId:         hit.Source.Hash,
-					},
-					Timestamp: hit.Source.Timestamp,
-					MoneyFlew: hit.Source.MoneyFlew,
-				},
-			},
+			TickNumber:   hit.Source.TickNumber,
+			Identity:     req.Identity,
+			Transactions: []*protobuf.TransactionData{tx},
 		}
 		totalTransfers = append(totalTransfers, perTickIdentityTransfers)
 	}
@@ -174,6 +141,145 @@ func (s *Server) GetTickTransactionsV2(ctx context.Context, req *protobuf.GetTic
 
 }
 
+func (s *Server) GetTickTransaction(ctx context.Context, req *protobuf.GetTickTransactionsRequest) (*protobuf.GetTickTransactionsResponse, error) {
+	res, err := s.qb.performTickTransactionsQuery(ctx, req.TickNumber)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "tick transactions for specified tick not found")
+		}
+		return nil, status.Errorf(codes.Internal, "getting tick transactions: %v", err)
+	}
+
+	var transactions []*protobuf.Transaction
+
+	for _, hit := range res.Hits.Hits {
+		txData, err := TxToArchivePartialFormat(hit.Source)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format: %s", err.Error())
+		}
+
+		transactions = append(transactions, txData)
+	}
+
+	return &protobuf.GetTickTransactionsResponse{Transactions: transactions}, nil
+}
+
+func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.GetTickApprovedTransactionsRequest) (*protobuf.GetTickApprovedTransactionsResponse, error) {
+	res, err := s.qb.performTickTransactionsQuery(ctx, req.TickNumber)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "tick approved transactions for specified tick not found")
+		}
+		return nil, status.Errorf(codes.Internal, "getting tick approved transactions: %v", err)
+	}
+
+	var transactions []*protobuf.Transaction
+
+	for _, hit := range res.Hits.Hits {
+		tx := hit.Source
+		if !tx.MoneyFlew {
+			continue
+		}
+
+		txData, err := TxToArchivePartialFormat(hit.Source)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format: %s", err.Error())
+		}
+
+		if tx.InputType == 1 && tx.InputSize == 1000 && tx.Destination == "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVWRF" {
+			moneyFlew, err := recomputeSendManyMoneyFlew(txData)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "recomputeSendManyMoneyFlew: %v", err)
+			}
+
+			if moneyFlew == false {
+				continue
+			}
+		}
+
+		transactions = append(transactions, txData)
+	}
+
+	return &protobuf.GetTickApprovedTransactionsResponse{ApprovedTransactions: transactions}, nil
+}
+
+func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionResponse, error) {
+	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
+		}
+		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
+	}
+
+	tx, err := TxToArchivePartialFormat(res.Source)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format: %s", err.Error())
+	}
+
+	return &protobuf.GetTransactionResponse{Transaction: tx}, nil
+}
+
+func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionStatusResponse, error) {
+	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
+		}
+		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
+	}
+
+	if !res.Found {
+		return nil, status.Errorf(codes.NotFound, "tx status for specified tx id not found")
+	}
+
+	moneyFlew := res.Source.MoneyFlew
+
+	// this was ported from archiver, will disable it for now as I believe it's not impacting anything
+	//if res.Source.Amount <= 0 {
+	//	return nil, status.Errorf(codes.NotFound, "tx status for specified tx id not found")
+	//}
+
+	if moneyFlew == false {
+		return &protobuf.GetTransactionStatusResponse{TransactionStatus: &protobuf.TransactionStatus{TxId: res.Source.Hash, MoneyFlew: false}}, nil
+	}
+
+	txData, err := TxToArchiveFullFormat(res.Source)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+	}
+
+	tx := txData.Transaction
+
+	if tx.InputType == 1 && tx.InputSize == 1000 && tx.DestId == "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVWRF" {
+		moneyFlew, err = recomputeSendManyMoneyFlew(tx)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "recomputeSendManyMoneyFlew: %v", err)
+		}
+
+		return &protobuf.GetTransactionStatusResponse{TransactionStatus: &protobuf.TransactionStatus{TxId: tx.TxId, MoneyFlew: moneyFlew}}, nil
+	}
+
+	return &protobuf.GetTransactionStatusResponse{TransactionStatus: &protobuf.TransactionStatus{TxId: tx.TxId, MoneyFlew: moneyFlew}}, nil
+}
+
+func (s *Server) GetTransactionV2(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionResponseV2, error) {
+	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
+		}
+		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
+	}
+
+	tx, err := TxToArchiveFullFormat(res.Source)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+	}
+
+	return &protobuf.GetTransactionResponseV2{Transaction: tx.Transaction, Timestamp: tx.Timestamp, MoneyFlew: tx.MoneyFlew}, nil
+}
+
 func (s *Server) GetApprovedTickTransactionsV2(ctx context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 	var transactions []*protobuf.TransactionData
 
@@ -183,30 +289,9 @@ func (s *Server) GetApprovedTickTransactionsV2(ctx context.Context, res Transact
 			continue
 		}
 
-		inputBytes, err := base64.StdEncoding.DecodeString(tx.InputData)
+		txData, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", tx.Hash)
-		}
-
-		sigBytes, err := base64.StdEncoding.DecodeString(tx.Signature)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", tx.Hash)
-		}
-
-		txData := &protobuf.TransactionData{
-			Transaction: &protobuf.TransactionData_Transaction{
-				SourceId:     tx.Source,
-				DestId:       tx.Destination,
-				Amount:       tx.Amount,
-				TickNumber:   tx.TickNumber,
-				InputType:    tx.InputType,
-				InputSize:    tx.InputSize,
-				InputHex:     hex.EncodeToString(inputBytes),
-				SignatureHex: hex.EncodeToString(sigBytes),
-				TxId:         tx.Hash,
-			},
-			Timestamp: tx.Timestamp,
-			MoneyFlew: tx.MoneyFlew,
+			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
 		}
 
 		transactions = append(transactions, txData)
@@ -224,30 +309,9 @@ func (s *Server) GetTransferTickTransactionsV2(ctx context.Context, res Transact
 			continue
 		}
 
-		inputBytes, err := base64.StdEncoding.DecodeString(tx.InputData)
+		txData, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", tx.Hash)
-		}
-
-		sigBytes, err := base64.StdEncoding.DecodeString(tx.Signature)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", tx.Hash)
-		}
-
-		txData := &protobuf.TransactionData{
-			Transaction: &protobuf.TransactionData_Transaction{
-				SourceId:     tx.Source,
-				DestId:       tx.Destination,
-				Amount:       tx.Amount,
-				TickNumber:   tx.TickNumber,
-				InputType:    tx.InputType,
-				InputSize:    tx.InputSize,
-				InputHex:     hex.EncodeToString(inputBytes),
-				SignatureHex: hex.EncodeToString(sigBytes),
-				TxId:         tx.Hash,
-			},
-			Timestamp: tx.Timestamp,
-			MoneyFlew: tx.MoneyFlew,
+			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
 		}
 
 		transactions = append(transactions, txData)
@@ -261,32 +325,9 @@ func (s *Server) GetAllTickTransactionsV2(ctx context.Context, res TransactionsS
 	var transactions []*protobuf.TransactionData
 
 	for _, hit := range res.Hits.Hits {
-		tx := hit.Source
-
-		inputBytes, err := base64.StdEncoding.DecodeString(tx.InputData)
+		txData, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 input for tx with id %s", tx.Hash)
-		}
-
-		sigBytes, err := base64.StdEncoding.DecodeString(tx.Signature)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "decoding base64 signature for tx with id %s", tx.Hash)
-		}
-
-		txData := &protobuf.TransactionData{
-			Transaction: &protobuf.TransactionData_Transaction{
-				SourceId:     tx.Source,
-				DestId:       tx.Destination,
-				Amount:       tx.Amount,
-				TickNumber:   tx.TickNumber,
-				InputType:    tx.InputType,
-				InputSize:    tx.InputSize,
-				InputHex:     hex.EncodeToString(inputBytes),
-				SignatureHex: hex.EncodeToString(sigBytes),
-				TxId:         tx.Hash,
-			},
-			Timestamp: tx.Timestamp,
-			MoneyFlew: tx.MoneyFlew,
+			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
 		}
 
 		transactions = append(transactions, txData)
@@ -336,6 +377,24 @@ func getPaginationInformation(totalRecords, pageNumber, pageSize int) (*protobuf
 		PreviousPage: int32(min(totalPages, previousPage)), // -1 if there is none, do not exceed total pages
 	}
 	return &pagination, nil
+}
+
+func recomputeSendManyMoneyFlew(tx *protobuf.Transaction) (bool, error) {
+	decodedInput, err := hex.DecodeString(tx.InputHex)
+	if err != nil {
+		return false, status.Errorf(codes.Internal, "decoding tx input: %v", err)
+	}
+	var sendmanypayload types.SendManyTransferPayload
+	err = sendmanypayload.UnmarshallBinary(decodedInput)
+	if err != nil {
+		return false, status.Errorf(codes.Internal, "unmarshalling payload: %v", err)
+	}
+
+	if tx.Amount < sendmanypayload.GetTotalAmount() {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
