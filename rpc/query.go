@@ -4,36 +4,104 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/jellydator/ttlcache/v3"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"strconv"
 	"sync/atomic"
+	"time"
 )
+
+var ErrDocumentNotFound = errors.New("document not found")
+
+const maxTickCacheKey = "max_tick"
+const tickIntervalsCacheKey = "tick_intervals"
+
+type StatusCache struct {
+	lastProcessedTickProvider *ttlcache.Cache[string, uint32]
+	tickIntervalsProvider     *ttlcache.Cache[string, []*statusPb.TickInterval]
+	StatusServiceClient       statusPb.StatusServiceClient
+}
+
+func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, ttl time.Duration) *StatusCache {
+	lastProcessedTickProvider := ttlcache.New[string, uint32](
+		ttlcache.WithTTL[string, uint32](ttl),
+		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh ttl upon getting the item from cache
+	)
+
+	tickIntervalsProvider := ttlcache.New[string, []*statusPb.TickInterval](
+		ttlcache.WithTTL[string, []*statusPb.TickInterval](ttl),
+		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh ttl upon getting the item from cache
+	)
+	return &StatusCache{
+		lastProcessedTickProvider: lastProcessedTickProvider,
+		tickIntervalsProvider:     tickIntervalsProvider,
+		StatusServiceClient:       statusServiceClient,
+	}
+}
+
+func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
+	if s.lastProcessedTickProvider.Has(maxTickCacheKey) {
+		item := s.lastProcessedTickProvider.Get(maxTickCacheKey)
+		return item.Value(), nil
+	}
+
+	maxTick, err := s.fetchStatusMaxTick(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("fetching status service max tick: %v", err)
+	}
+
+	s.lastProcessedTickProvider.Set(maxTickCacheKey, maxTick, ttlcache.DefaultTTL)
+	return maxTick, nil
+}
+
+func (s *StatusCache) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
+	if s.tickIntervalsProvider.Has(tickIntervalsCacheKey) {
+		item := s.tickIntervalsProvider.Get(tickIntervalsCacheKey)
+		return item.Value(), nil
+	}
+
+	tickIntervals, err := s.fetchTickIntervals(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("fetching status service max tick: %v", err)
+	}
+
+	s.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	return tickIntervals, nil
+}
+
+func (s *StatusCache) Start() {
+	s.lastProcessedTickProvider.Start()
+	s.tickIntervalsProvider.Start()
+}
+
+func (s *StatusCache) Stop() {
+	s.lastProcessedTickProvider.Stop()
+	s.tickIntervalsProvider.Stop()
+}
 
 type QueryBuilder struct {
 	esClient                     *elasticsearch.Client
 	ConsecutiveElasticErrorCount atomic.Int32
 	TotalElasticErrorCount       atomic.Int32
-	StatusServiceClient          statusPb.StatusServiceClient
-	cache                        *ttlcache.Cache[string, uint32]
+	cache                        *StatusCache
 	txIndex                      string
 	tickDataIndex                string
 }
 
-func NewQueryBuilder(txIndex string, tickDataIndex string, esClient *elasticsearch.Client, statusServiceClient statusPb.StatusServiceClient, cache *ttlcache.Cache[string, uint32]) *QueryBuilder {
+func NewQueryBuilder(txIndex string, tickDataIndex string, esClient *elasticsearch.Client, cache *StatusCache) *QueryBuilder {
 	return &QueryBuilder{
-		txIndex:             txIndex,
-		tickDataIndex:       tickDataIndex,
-		esClient:            esClient,
-		StatusServiceClient: statusServiceClient,
-		cache:               cache,
+		txIndex:       txIndex,
+		tickDataIndex: tickDataIndex,
+		esClient:      esClient,
+		cache:         cache,
 	}
 }
 
-func (qb *QueryBuilder) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
-	statusResponse, err := qb.StatusServiceClient.GetStatus(ctx, nil)
+func (s *StatusCache) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
+	statusResponse, err := s.StatusServiceClient.GetStatus(ctx, nil)
 	if err != nil {
 		return 0, fmt.Errorf("fetching status service: %v", err)
 	}
@@ -41,27 +109,38 @@ func (qb *QueryBuilder) fetchStatusMaxTick(ctx context.Context) (uint32, error) 
 	return statusResponse.LastProcessedTick, nil
 }
 
-func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool) (TransactionsSearchResponse, error) {
-	var maxTick uint32
-	if qb.cache.Has(MaxTickCacheKey) {
-		item := qb.cache.Get(MaxTickCacheKey)
-		maxTick = item.Value()
-	} else {
+func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
+	tickIntervalsResponse, err := s.StatusServiceClient.GetTickIntervals(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("fetching tick intervals: %v", err)
+	}
 
-		httpMaxTick, err := qb.fetchStatusMaxTick(ctx)
-		if err != nil {
-			return TransactionsSearchResponse{}, fmt.Errorf("fetching status service max tick: %v", err)
-		}
+	if len(tickIntervalsResponse.Intervals) == 0 {
+		return nil, fmt.Errorf("no tick intervals found")
+	}
 
-		qb.cache.Set(MaxTickCacheKey, httpMaxTick, ttlcache.DefaultTTL)
-		item := qb.cache.Get(MaxTickCacheKey)
-		maxTick = item.Value()
+	return tickIntervalsResponse.Intervals, nil
+}
+
+func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool) (result TransactionsSearchResponse, err error) {
+	maxTick, err := qb.cache.GetMaxTick(ctx)
+	if err != nil {
+		return TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
 	}
 
 	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, maxTick)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
+
+	defer func() {
+		if err != nil {
+			qb.TotalElasticErrorCount.Add(1)
+			qb.ConsecutiveElasticErrorCount.Add(1)
+		} else {
+			qb.ConsecutiveElasticErrorCount.Store(0)
+		}
+	}()
 
 	res, err := qb.esClient.Search(
 		qb.esClient.Search.WithContext(ctx),
@@ -70,41 +149,49 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 		qb.esClient.Search.WithPretty(),
 	)
 	if err != nil {
-		qb.TotalElasticErrorCount.Add(1)
-		qb.ConsecutiveElasticErrorCount.Add(1)
 		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		qb.TotalElasticErrorCount.Add(1)
-		qb.ConsecutiveElasticErrorCount.Add(1)
 		return TransactionsSearchResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
 	}
 
-	// Decode the response into a map.
-	var result TransactionsSearchResponse
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %v", err)
 	}
 
-	qb.ConsecutiveElasticErrorCount.Store(0)
-
 	return result, nil
 }
 
-func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) (TransactionGetResponse, error) {
+func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) (result TransactionGetResponse, err error) {
+	defer func() {
+		if errors.Is(err, ErrDocumentNotFound) {
+			return
+		}
+
+		if err != nil {
+			qb.TotalElasticErrorCount.Add(1)
+			qb.ConsecutiveElasticErrorCount.Add(1)
+		} else {
+			qb.ConsecutiveElasticErrorCount.Store(0)
+		}
+	}()
+
 	res, err := qb.esClient.Get(qb.txIndex, txID)
 	if err != nil {
 		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %v", err)
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode == 404 {
+		return TransactionGetResponse{}, ErrDocumentNotFound
+	}
+
 	if res.IsError() {
 		return TransactionGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
 	}
 
-	var result TransactionGetResponse
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return TransactionGetResponse{}, fmt.Errorf("decoding response: %v", err)
 	}
@@ -112,18 +199,34 @@ func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) 
 	return result, nil
 }
 
-func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(ctx context.Context, tickNumber uint32) (TickDataGetResponse, error) {
+func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(ctx context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
+	defer func() {
+		if errors.Is(err, ErrDocumentNotFound) {
+			return
+		}
+
+		if err != nil {
+			qb.TotalElasticErrorCount.Add(1)
+			qb.ConsecutiveElasticErrorCount.Add(1)
+		} else {
+			qb.ConsecutiveElasticErrorCount.Store(0)
+		}
+	}()
+
 	res, err := qb.esClient.Get(qb.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
 	if err != nil {
 		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %v", err)
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode == 404 {
+		return TickDataGetResponse{}, ErrDocumentNotFound
+	}
+
 	if res.IsError() {
 		return TickDataGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
 	}
 
-	var result TickDataGetResponse
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return TickDataGetResponse{}, fmt.Errorf("decoding response: %v", err)
 	}
@@ -137,6 +240,15 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
 
+	defer func() {
+		if err != nil {
+			qb.TotalElasticErrorCount.Add(1)
+			qb.ConsecutiveElasticErrorCount.Add(1)
+		} else {
+			qb.ConsecutiveElasticErrorCount.Store(0)
+		}
+	}()
+
 	res, err := qb.esClient.Search(
 		qb.esClient.Search.WithContext(ctx),
 		qb.esClient.Search.WithIndex(qb.txIndex),
@@ -144,15 +256,11 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 		qb.esClient.Search.WithPretty(),
 	)
 	if err != nil {
-		qb.TotalElasticErrorCount.Add(1)
-		qb.ConsecutiveElasticErrorCount.Add(1)
 		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		qb.TotalElasticErrorCount.Add(1)
-		qb.ConsecutiveElasticErrorCount.Add(1)
 		return TransactionsSearchResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
 	}
 
@@ -161,8 +269,6 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %v", err)
 	}
-
-	qb.ConsecutiveElasticErrorCount.Store(0)
 
 	return result, nil
 }

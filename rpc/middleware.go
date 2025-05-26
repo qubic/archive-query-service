@@ -13,11 +13,12 @@ import (
 )
 
 type TickWithinBoundsInterceptor struct {
-	store statusPb.StatusServiceClient
+	store       statusPb.StatusServiceClient
+	statusCache *StatusCache
 }
 
-func NewTickWithinBoundsInterceptor(store statusPb.StatusServiceClient) *TickWithinBoundsInterceptor {
-	return &TickWithinBoundsInterceptor{store: store}
+func NewTickWithinBoundsInterceptor(store statusPb.StatusServiceClient, statusCache *StatusCache) *TickWithinBoundsInterceptor {
+	return &TickWithinBoundsInterceptor{store: store, statusCache: statusCache}
 }
 
 func (twb *TickWithinBoundsInterceptor) GetInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -97,12 +98,17 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 }
 
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {
-
-	statusRes, err := twb.store.GetStatus(ctx, nil)
+	maxTick, err := twb.statusCache.GetMaxTick(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get last processed tick")
+		return status.Errorf(codes.Internal, "failed to get max tick from cache: %v", err)
 	}
-	lastProcessedTick := statusRes.LastProcessedTick
+
+	tickIntervals, err := twb.statusCache.GetTickIntervals(ctx)
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to get tick intervals from cache: %v", err)
+	}
+
+	lastProcessedTick := maxTick
 
 	if tickNumber > lastProcessedTick {
 		st := status.Newf(codes.FailedPrecondition, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)
@@ -113,12 +119,8 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 		return st.Err()
 	}
 
-	processedTickIntervalsPerEpoch, err := twb.store.GetTickIntervals(ctx, nil)
-	if err != nil {
-		return status.Errorf(codes.Internal, "getting processed tick intervals per epoch")
-	}
-
-	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch.Intervals)
+	processedTickIntervalsPerEpoch := tickIntervals
+	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch)
 	if wasSkipped == true {
 		st := status.Newf(codes.OutOfRange, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
 		st, err = st.WithDetails(&protobuff.NextAvailableTick{NextTickNumber: nextAvailableTick})
