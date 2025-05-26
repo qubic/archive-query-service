@@ -85,7 +85,7 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 
 	var pubkeyFixed [32]byte
 	copy(pubkeyFixed[:], pubKey[:32])
-	id, err = id.FromPubKey(pubkeyFixed, true)
+	id, err = id.FromPubKey(pubkeyFixed, isLowercase)
 	if err != nil {
 		return fmt.Errorf("converting pubkey back to id: %w", err)
 	}
