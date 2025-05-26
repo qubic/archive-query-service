@@ -50,7 +50,7 @@ message GetIdentityTransactionsRequest {
 message GetIdentityTransactionsResponse {
   Pagination pagination = 1;
   string identity = 2;
-  repeated Transaction transactions = 3;
+  repeated NewTransaction transactions = 3;
 }
 
 message Pagination {
@@ -69,11 +69,9 @@ message Transaction {
   uint32 tick_number = 4;
   uint32 input_type = 5;
   uint32 input_size = 6;
-  string input = 7;
-  string signature = 8;
+  string input_hex = 7;
+  string signature_hex = 8;
   string tx_id = 9;
-  uint64 timestamp = 10;
-  bool money_flew = 11;
 }
 
 message GetTransferTransactionsPerTickRequestV2 {
@@ -97,19 +95,52 @@ message PerTickIdentityTransfers {
   repeated TransactionData transactions = 3;
 }
 
-message TransactionData {
-  message Transaction {
-    string source_id = 1;
-    string dest_id = 2;
-    int64 amount = 3;
-    uint32 tick_number = 4;
-    uint32 input_type = 5;
-    uint32 input_size = 6;
-    string input_hex = 7;
-    string signature_hex = 8;
-    string tx_id = 9;
-  }
+message NewTransaction {
+  string source_id = 1;
+  string dest_id = 2;
+  int64 amount = 3;
+  uint32 tick_number = 4;
+  uint32 input_type = 5;
+  uint32 input_size = 6;
+  string input = 7;
+  string signature = 8;
+  string tx_id = 9;
+  uint64 timestamp = 10;
+  bool money_flew = 11;
+}
 
+message TransactionData {
+  Transaction transaction = 1;
+  uint64 timestamp = 2;
+  bool money_flew = 3;
+}
+
+message GetTickTransactionsResponse {
+  repeated Transaction transactions = 1;
+}
+
+message GetTickApprovedTransactionsResponse {
+  repeated Transaction approved_transactions = 1;
+}
+
+message GetTransactionRequest {
+  string tx_id = 1;
+}
+
+message TransactionStatus {
+  string tx_id = 1;
+  bool moneyFlew = 2;
+}
+
+message GetTransactionStatusResponse {
+  TransactionStatus transaction_status = 1;
+}
+
+message GetTransactionResponse{
+  Transaction transaction = 1;
+}
+
+message GetTransactionResponseV2 {
   Transaction transaction = 1;
   uint64 timestamp = 2;
   bool money_flew = 3;
@@ -131,6 +162,38 @@ service TransactionsService {
   rpc GetTickTransactionsV2(GetTickTransactionsRequestV2) returns (GetTickTransactionsResponseV2){
     option (google.api.http) = {
       get: "/v2/ticks/{tick_number}/transactions"
+    };
+  };
+
+  rpc GetTickTransactions(GetTickTransactionsRequest) returns (GetTickTransactionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ticks/{tick_number}/transactions"
+    };
+  };
+
+  // Deprecated: Use /v2/ticks/{tick_number}/transactions instead.
+  rpc GetTickApprovedTransactions (GetTickApprovedTransactionsRequest) returns (GetTickApprovedTransactionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ticks/{tick_number}/approved-transactions"
+    };
+  }
+
+  rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {
+    option (google.api.http) = {
+      get: "/v1/transactions/{tx_id}"
+    };
+  };
+
+  // Deprecated: Use /v2/transactions/{tx_id} instead.
+  rpc GetTransactionStatus (GetTransactionRequest) returns (GetTransactionStatusResponse) {
+    option (google.api.http) = {
+      get: "/v1/tx-status/{tx_id}"
+    };
+  }
+
+  rpc GetTransactionV2(GetTransactionRequest) returns (GetTransactionResponseV2) {
+    option (google.api.http) = {
+      get: "/v2/transactions/{tx_id}"
     };
   };
 }

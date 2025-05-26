@@ -10,6 +10,7 @@ require (
 	github.com/jellydator/ttlcache/v3 v3.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.22.0
+	github.com/qubic/go-archiver v0.10.4
 	github.com/qubic/go-data-publisher/status-service v0.4.1-0.20250526075845-f244088193e7
 	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463
 	google.golang.org/grpc v1.71.1

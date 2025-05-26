@@ -17,10 +17,11 @@ type QueryBuilder struct {
 	TotalElasticErrorCount       atomic.Int32
 	StatusServiceClient          statusPb.StatusServiceClient
 	cache                        *ttlcache.Cache[string, uint32]
+	txIndex                      string
 }
 
-func NewQueryBuilder(esClient *elasticsearch.Client, statusServiceClient statusPb.StatusServiceClient, cache *ttlcache.Cache[string, uint32]) *QueryBuilder {
-	return &QueryBuilder{esClient: esClient, StatusServiceClient: statusServiceClient, cache: cache}
+func NewQueryBuilder(txIndex string, esClient *elasticsearch.Client, statusServiceClient statusPb.StatusServiceClient, cache *ttlcache.Cache[string, uint32]) *QueryBuilder {
+	return &QueryBuilder{txIndex: txIndex, esClient: esClient, StatusServiceClient: statusServiceClient, cache: cache}
 }
 
 func (qb *QueryBuilder) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
@@ -33,7 +34,6 @@ func (qb *QueryBuilder) fetchStatusMaxTick(ctx context.Context) (uint32, error) 
 }
 
 func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool) (TransactionsSearchResponse, error) {
-
 	var maxTick uint32
 	if qb.cache.Has(MaxTickCacheKey) {
 		item := qb.cache.Get(MaxTickCacheKey)
@@ -57,7 +57,7 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 
 	res, err := qb.esClient.Search(
 		qb.esClient.Search.WithContext(ctx),
-		qb.esClient.Search.WithIndex("qubic-transactions-alias"),
+		qb.esClient.Search.WithIndex(qb.txIndex),
 		qb.esClient.Search.WithBody(&query),
 		qb.esClient.Search.WithPretty(),
 	)
@@ -85,6 +85,25 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 	return result, nil
 }
 
+func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) (TransactionGetResponse, error) {
+	res, err := qb.esClient.Get(qb.txIndex, txID)
+	if err != nil {
+		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %v", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return TransactionGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
+	}
+
+	var result TransactionGetResponse
+	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return TransactionGetResponse{}, fmt.Errorf("decoding response: %v", err)
+	}
+
+	return result, nil
+}
+
 func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick uint32) (TransactionsSearchResponse, error) {
 	query, err := createTickTransactionsQuery(tick)
 	if err != nil {
@@ -93,7 +112,7 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 
 	res, err := qb.esClient.Search(
 		qb.esClient.Search.WithContext(ctx),
-		qb.esClient.Search.WithIndex("qubic-transactions-alias"),
+		qb.esClient.Search.WithIndex(qb.txIndex),
 		qb.esClient.Search.WithBody(&query),
 		qb.esClient.Search.WithPretty(),
 	)
@@ -197,16 +216,28 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
+type TxHit struct {
+	Source Tx `json:"_source"`
+}
+
 type TransactionsSearchResponse struct {
 	Hits struct {
 		Total struct {
 			Value    int    `json:"value"`
 			Relation string `json:"relation"`
 		} `json:"total"`
-		Hits []struct {
-			Source Tx `json:"_source"`
-		} `json:"hits"`
+		Hits []TxHit `json:"hits"`
 	} `json:"hits"`
+}
+
+type TransactionGetResponse struct {
+	Index       string `json:"_index"`
+	Id          string `json:"_id"`
+	Version     int    `json:"_version"`
+	SeqNo       int    `json:"_seq_no"`
+	PrimaryTerm int    `json:"_primary_term"`
+	Found       bool   `json:"found"`
+	Source      Tx     `json:"_source"`
 }
 
 type Tx struct {
