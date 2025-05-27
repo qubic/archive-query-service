@@ -339,6 +339,7 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 				"tickNumber": tick,
 			},
 		},
+		"size": 1024,
 	}
 
 	var buf bytes.Buffer
