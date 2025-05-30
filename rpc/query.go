@@ -45,7 +45,9 @@ func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, ttl time.D
 func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
 	if s.lastProcessedTickProvider.Has(maxTickCacheKey) {
 		item := s.lastProcessedTickProvider.Get(maxTickCacheKey)
-		return item.Value(), nil
+		if item != nil {
+			return item.Value(), nil
+		}
 	}
 
 	maxTick, err := s.fetchStatusMaxTick(ctx)
@@ -60,7 +62,9 @@ func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
 func (s *StatusCache) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
 	if s.tickIntervalsProvider.Has(tickIntervalsCacheKey) {
 		item := s.tickIntervalsProvider.Get(tickIntervalsCacheKey)
-		return item.Value(), nil
+		if item != nil {
+			return item.Value(), nil
+		}
 	}
 
 	tickIntervals, err := s.fetchTickIntervals(ctx)
