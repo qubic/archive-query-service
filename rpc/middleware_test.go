@@ -141,6 +141,13 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
 		},
+		{
+			name:                      "nil tick interval", // shouldn't happen
+			tick:                      50,
+			intervals:                 nil,
+			expectedSkipped:           false,
+			expectedNextAvailableTick: 0,
+		},
 	}
 
 	for _, tc := range tcs {
