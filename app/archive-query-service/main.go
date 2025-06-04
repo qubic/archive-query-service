@@ -38,15 +38,15 @@ func run() error {
 			HttpHost              string        `conf:"default:0.0.0.0:8000"`
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
-			StatusServiceGrpcHost string        `conf:"default:127.0.0.0:9901"`
+			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 		}
 		ElasticSearch struct {
-			Address                               string        `conf:"default:http://127.0.0.1:9200"`
+			Address                               []string      `conf:"default:https://localhost:9200"`
 			Username                              string        `conf:"default:qubic-query"`
 			Password                              string        `conf:"optional"`
 			CertificatePath                       string        `conf:"default:http_ca.crt"`
-			MaxRetries                            int           `conf:"default:10"`
+			MaxRetries                            int           `conf:"default:3"`
 			ReadTimeout                           time.Duration `conf:"default:10s"`
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
 			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
@@ -86,11 +86,11 @@ func run() error {
 
 	cert, err := os.ReadFile(cfg.ElasticSearch.CertificatePath)
 	if err != nil {
-		log.Printf("info: Failed to load Elastic certificate file: %v\n", err)
+		log.Printf("warn: Failed to load Elastic certificate file: %v\n", err)
 	}
 
 	elsCfg := elasticsearch.Config{
-		Addresses:     []string{cfg.ElasticSearch.Address},
+		Addresses:     cfg.ElasticSearch.Address,
 		Username:      cfg.ElasticSearch.Username,
 		Password:      cfg.ElasticSearch.Password,
 		CACert:        cert,
