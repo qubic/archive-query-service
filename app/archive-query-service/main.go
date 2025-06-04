@@ -7,7 +7,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qubic/archive-query-service/rpc"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
@@ -112,7 +111,6 @@ func run() error {
 	)
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(srvMetrics)
-	reg.MustRegister(collectors.NewGoCollector())
 
 	statusServiceGrpcConn, err := grpc.NewClient(cfg.Server.StatusServiceGrpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
