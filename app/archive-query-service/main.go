@@ -110,7 +110,7 @@ func run() error {
 	srvMetrics := grpcProm.NewServerMetrics(
 		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": "query-service"})),
 	)
-	reg := prometheus.NewRegistry()
+	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(srvMetrics)
 	reg.MustRegister(collectors.NewGoCollector())
 
@@ -161,7 +161,7 @@ func run() error {
 
 		})
 
-		http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{EnableOpenMetrics: true}))
+		http.Handle("/metrics", promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true}))
 		webServerErr <- http.ListenAndServe(fmt.Sprintf(":%d", cfg.Metrics.Port), nil)
 	}()
 
