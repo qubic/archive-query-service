@@ -42,7 +42,7 @@ func run() error {
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 		}
 		ElasticSearch struct {
-			Address                               string        `conf:"default:http://127.0.0.1:9200"`
+			Address                               []string      `conf:"default:https://localhost:9200"`
 			Username                              string        `conf:"default:qubic-query"`
 			Password                              string        `conf:"optional"`
 			CertificatePath                       string        `conf:"default:http_ca.crt"`
@@ -86,11 +86,11 @@ func run() error {
 
 	cert, err := os.ReadFile(cfg.ElasticSearch.CertificatePath)
 	if err != nil {
-		log.Printf("info: Failed to load Elastic certificate file: %v\n", err)
+		log.Printf("warn: Failed to load Elastic certificate file: %v\n", err)
 	}
 
 	elsCfg := elasticsearch.Config{
-		Addresses:     []string{cfg.ElasticSearch.Address},
+		Addresses:     cfg.ElasticSearch.Address,
 		Username:      cfg.ElasticSearch.Username,
 		Password:      cfg.ElasticSearch.Password,
 		CACert:        cert,
