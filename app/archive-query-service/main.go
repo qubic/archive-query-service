@@ -38,7 +38,7 @@ func run() error {
 			HttpHost              string        `conf:"default:0.0.0.0:8000"`
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
-			StatusServiceGrpcHost string        `conf:"default:127.0.0.0:9901"`
+			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 		}
 		ElasticSearch struct {
