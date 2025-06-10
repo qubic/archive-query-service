@@ -166,7 +166,7 @@ func (lte *LogTechnicalErrorInterceptor) GetInterceptor(ctx context.Context, req
 			} else {
 				method = info.FullMethod
 			}
-			log.Printf("[ERROR] [%s] %s: %s", statusError.Code(), method, err.Error())
+			log.Printf("[ERROR] [%s] %s: %s. Request: %v", statusError.Code(), method, err.Error(), req)
 		}
 	}
 	return h, err
