@@ -168,7 +168,7 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 	return result, nil
 }
 
-func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) (result TransactionGetResponse, err error) {
+func (qb *QueryBuilder) performGetTxByIDQuery(_ context.Context, txID string) (result TransactionGetResponse, err error) {
 	defer func() {
 		if errors.Is(err, ErrDocumentNotFound) {
 			return
@@ -203,7 +203,7 @@ func (qb *QueryBuilder) performGetTxByIDQuery(ctx context.Context, txID string) 
 	return result, nil
 }
 
-func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(ctx context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
+func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(_ context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
 	defer func() {
 		if errors.Is(err, ErrDocumentNotFound) {
 			return
@@ -293,7 +293,7 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, maxTi
 	}
 
 	query := map[string]interface{}{
-		"track_total_hits": "true",
+		"track_total_hits": "10000", // limit to max page size for better performance
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"should": []interface{}{
