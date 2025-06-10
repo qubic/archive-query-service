@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 )
 
 type TickWithinBoundsInterceptor struct {
@@ -148,4 +149,17 @@ func WasSkippedByArchive(tick uint32, processedTicksIntervalPerEpoch []*statusPb
 	}
 
 	return false, 0
+}
+
+type LogTechnicalErrorInterceptor struct{}
+
+func (lte *LogTechnicalErrorInterceptor) GetInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	h, err := handler(ctx, req)
+	if err != nil {
+		statusError, ok := status.FromError(err)
+		if ok && statusError.Code() == codes.Internal {
+			log.Printf("[ERROR]: %s", err.Error())
+		}
+	}
+	return h, err
 }

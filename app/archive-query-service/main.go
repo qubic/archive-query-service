@@ -43,7 +43,7 @@ func run() error {
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
 			Username                              string        `conf:"default:qubic-query"`
-			Password                              string        `conf:"optional"`
+			Password                              string        `conf:"mask,optional"`
 			CertificatePath                       string        `conf:"default:http_ca.crt"`
 			MaxRetries                            int           `conf:"default:3"`
 			ReadTimeout                           time.Duration `conf:"default:10s"`
@@ -127,7 +127,11 @@ func run() error {
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
-	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(), tickInBoundsInterceptor.GetInterceptor, identitiesValidatorInterceptor.GetInterceptor)
+	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
+	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(),
+		logTechnicalErrorInterceptor.GetInterceptor,
+		tickInBoundsInterceptor.GetInterceptor,
+		identitiesValidatorInterceptor.GetInterceptor)
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %v", err)
 	}
