@@ -70,7 +70,7 @@ func (i *IdentitiesValidatorInterceptor) GetInterceptor(ctx context.Context, req
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("invalid id format: %w", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id format: %v", err)
 	}
 
 	h, err := handler(ctx, req)
@@ -93,7 +93,7 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 	}
 
 	if id.String() != idStr {
-		return fmt.Errorf("original id string %s does not match converted id %s", idStr, id.String())
+		return fmt.Errorf("original id string %s does not match expected %s", idStr, id.String())
 	}
 
 	return nil
@@ -157,8 +157,8 @@ type LogTechnicalErrorInterceptor struct{}
 func (lte *LogTechnicalErrorInterceptor) GetInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	h, err := handler(ctx, req)
 	if err != nil {
-		statusError, ok := status.FromError(err)
-		if ok && statusError.Code() == codes.Internal {
+		statusError, _ := status.FromError(err)
+		if statusError.Code() == codes.Internal || statusError.Code() == codes.Unknown {
 			lastIndex := strings.LastIndex(info.FullMethod, "/")
 			var method string
 			if lastIndex > 1 && len(info.FullMethod) > lastIndex+1 {
