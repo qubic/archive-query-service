@@ -132,14 +132,14 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 		return TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
 	}
 
-	var maxTick uint32
+	var queryEndTick uint32
 	if reqEndTick != 0 && reqEndTick <= statusMaxTick {
-		maxTick = reqEndTick
+		queryEndTick = reqEndTick
 	} else {
-		maxTick = statusMaxTick
+		queryEndTick = statusMaxTick
 	}
 
-	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, maxTick)
+	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, queryEndTick)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
