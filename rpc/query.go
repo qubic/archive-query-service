@@ -127,13 +127,16 @@ func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickI
 }
 
 func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, reqStartTick, reqEndTick uint32) (result TransactionsSearchResponse, err error) {
-	maxTick, err := qb.cache.GetMaxTick(ctx)
+	statusMaxTick, err := qb.cache.GetMaxTick(ctx)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
 	}
 
-	if reqEndTick != 0 {
+	var maxTick uint32
+	if reqEndTick != 0 && reqEndTick <= statusMaxTick {
 		maxTick = reqEndTick
+	} else {
+		maxTick = statusMaxTick
 	}
 
 	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, maxTick)
