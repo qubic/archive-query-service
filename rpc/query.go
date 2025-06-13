@@ -126,13 +126,17 @@ func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickI
 	return tickIntervalsResponse.Intervals, nil
 }
 
-func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool) (result TransactionsSearchResponse, err error) {
+func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, reqStartTick, reqEndTick uint32) (result TransactionsSearchResponse, err error) {
 	maxTick, err := qb.cache.GetMaxTick(ctx)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
 	}
 
-	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, maxTick)
+	if reqEndTick != 0 {
+		maxTick = reqEndTick
+	}
+
+	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, maxTick)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %v", err)
 	}
@@ -277,7 +281,7 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 	return result, nil
 }
 
-func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, maxTick uint32) (bytes.Buffer, error) {
+func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (bytes.Buffer, error) {
 	from := pageNumber * pageSize
 	querySort := "asc"
 	if desc {
@@ -285,10 +289,10 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, maxTi
 	}
 
 	tickNumberRangeFilter := map[string]interface{}{
-		"lte": maxTick,
-		//"gte": 10000000, // min tick can also be implemented if needed
+		"lte": endTick,
+		"gte": startTick,
 	}
-	if maxTick <= 0 {
+	if endTick <= 0 {
 		delete(tickNumberRangeFilter, "lte")
 	}
 

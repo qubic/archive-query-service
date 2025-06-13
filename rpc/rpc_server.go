@@ -51,7 +51,7 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
-	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc)
+	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, 0, 0)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
@@ -84,7 +84,7 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
-	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc)
+	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, req.StartTick, req.EndTick)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
 	}
