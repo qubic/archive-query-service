@@ -1,6 +1,6 @@
 module github.com/qubic/archive-query-service
 
-go 1.24.0
+go 1.24.4
 
 require (
 	github.com/ardanlabs/conf v1.5.0
