@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package qubic.v2.archive.pb;
+
+option go_package = "github.com/qubic/archive-query-service/api";
+import "messages.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+service ArchiveQueryService {
+    rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
+        option (google.api.http) = {
+            post: "/getTransactionByHash"
+            body: "*"
+            response_body: "transaction"
+        };
+    }
+
+    rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
+        option (google.api.http) = {
+            post: "/getTransactionsForTick"
+            body: "*"
+            response_body: "transactions"
+        };
+    }
+
+    rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
+        option (google.api.http) = {
+            post: "/getTransactionsForIdentity"
+            body: "*"
+            response_body: "transactions"
+        };
+    }
+
+    rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
+        option (google.api.http) = {
+            post: "/getTickData"
+            body: "*"
+            response_body: "tick_data"
+        };
+    }
+}

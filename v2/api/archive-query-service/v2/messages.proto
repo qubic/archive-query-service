@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package qubic.v2.archive.pb;
+option go_package = "github.com/qubic/archive-query-service/api";
+
+message LastProcessedTick {
+    uint32 last_processed_tick = 1;
+}
+
+message NextAvailableTick {
+    uint32 next_tick_number = 1;
+}
+
+message Transaction {
+    string hash = 1;
+    int64 amount = 2;
+    string source = 3;
+    string destination = 4;
+    uint32 tick_number = 5;
+    uint64 timestamp = 6;
+    uint32 input_type = 7;
+    uint32 input_size = 8;
+    string input_data = 9;
+    string signature = 10;
+    bool money_flew = 11;
+}
+
+message TickData {
+    uint32 tick_number = 1;
+    uint32 epoch = 2;
+    uint32 computor_index = 3;
+    uint64 timestamp = 4;
+    string var_struct = 5;
+    string time_lock = 6;
+    repeated string transaction_hashes = 7;
+    repeated int64 contract_fees = 8;
+    string signature = 9;
+}
+
+message GetTransactionByHashRequest {
+    string hash = 1;
+}
+
+message GetTransactionByHashResponse {
+    Transaction transaction = 1;
+}
+
+message GetTransactionsForTickRequest {
+    uint32 tick_number = 1;
+}
+
+message GetTransactionsForTickResponse {
+    repeated Transaction transactions = 1;
+}
+
+message GetTransactionsForIdentityRequest {
+    string identity = 1;
+}
+
+message GetTransactionsForIdentityResponse {
+    repeated Transaction transactions = 1;
+}
+
+message GetTickDataRequest {
+    uint32 tick_number = 1;
+}
+
+message GetTickDataResponse {
+    TickData tick_data = 1;
+}
