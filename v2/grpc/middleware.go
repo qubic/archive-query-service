@@ -132,7 +132,7 @@ func (twb *TickWithinBoundsInterceptor) GetInterceptor(ctx context.Context, req 
 	}
 
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Errorf("invalid tick number: %w", err).Error())
+		return nil, status.Error(codes.InvalidArgument, fmt.Errorf("invalid tick number: %w", err).Error())
 	}
 
 	h, err := handler(ctx, req)
@@ -155,7 +155,7 @@ func (i *IdentitiesValidatorInterceptor) GetInterceptor(ctx context.Context, req
 	}
 
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, fmt.Errorf("invalid id format: %w", err).Error())
+		return nil, status.Error(codes.InvalidArgument, fmt.Errorf("invalid id format: %w", err).Error())
 	}
 
 	h, err := handler(ctx, req)

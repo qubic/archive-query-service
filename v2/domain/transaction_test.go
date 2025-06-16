@@ -20,8 +20,7 @@ func TestTransactionService_GetTransactionByHash(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock.NewMockTransactionRepository(ctrl)
-
-	serv := NewTransactionService(maxTickFetcherFunc, repo)
+	serv := NewTransactionService(repo, maxTickFetcherFunc)
 	repo.EXPECT().GetTransactionByHash(gomock.Any(), gomock.Any()).Return(&api.Transaction{Source: "test"}, nil)
 
 	tx, err := serv.GetTransactionByHash(context.Background(), "test-hash")
