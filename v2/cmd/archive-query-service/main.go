@@ -128,7 +128,8 @@ func run() error {
 	repo := elastic.NewRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient)
 
 	txService := domain.NewTransactionService(repo, cache.GetMaxTick)
-	rpcServer := rpc.NewArchiveQueryService(txService, nil)
+	tdService := domain.NewTickDataService(repo)
+	rpcServer := rpc.NewArchiveQueryService(txService, tdService)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor

@@ -25,7 +25,7 @@ type tickData struct {
 	TickNumber        uint32   `json:"tickNumber"`
 	Timestamp         uint64   `json:"timestamp"`
 	VarStruct         string   `json:"varStruct"`
-	Timelock          string   `json:"timelock"`
+	Timelock          string   `json:"timeLock"`
 	TransactionHashes []string `json:"transactionHashes"`
 	ContractFees      []int64  `json:"contractFees"`
 	Signature         string   `json:"signature"`
