@@ -65,7 +65,7 @@ func (t *transactionsSuite) SetupSuite() {
 		t.ctx,
 		"docker.elastic.co/elasticsearch/elasticsearch:8.10.2",
 		tcelastic.WithPassword("password"),
-		testcontainers.WithWaitStrategy(wait.ForLog("\"message\":\"started").WithStartupTimeout(15*time.Second)),
+		testcontainers.WithWaitStrategy(wait.ForLog("\"message\":\"started").WithStartupTimeout(1*time.Minute)),
 	)
 	require.NoError(t.T(), err)
 	t.container = container
