@@ -124,7 +124,7 @@ func run() error {
 	defer cache.Stop()
 
 	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient, cache)
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor

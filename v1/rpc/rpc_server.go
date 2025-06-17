@@ -7,6 +7,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
 	"github.com/qubic/archive-query-service/protobuf"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/qubic/go-node-connector/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -14,6 +15,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 	"net/http"
@@ -28,13 +31,15 @@ type Server struct {
 	listenAddrGRPC string
 	listenAddrHTTP string
 	qb             *QueryBuilder
+	statusService  statusPb.StatusServiceClient
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryBuilder) *Server {
+func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryBuilder, statusClient statusPb.StatusServiceClient) *Server {
 	return &Server{
 		listenAddrGRPC: listenAddrGRPC,
 		listenAddrHTTP: listenAddrHTTP,
 		qb:             qb,
+		statusService:  statusClient,
 	}
 }
 
@@ -351,6 +356,33 @@ func (s *Server) GetAllTickTransactionsV2(ctx context.Context, res TransactionsS
 	}
 
 	return &protobuf.GetTickTransactionsResponseV2{Transactions: transactions}, nil
+}
+
+func (s *Server) GetArchiverStatus(ctx context.Context, empty *emptypb.Empty) (*protobuf.GetArchiverStatusResponse, error) {
+	archiverStatus, err := s.statusService.GetArchiverStatus(ctx, empty)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "getting status: %s", err.Error())
+	}
+
+	response, err := convertArchiverStatus(archiverStatus)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting status: %s", err.Error())
+	}
+
+	return response, nil
+}
+
+func convertArchiverStatus(source *statusPb.GetArchiverStatusResponse) (*protobuf.GetArchiverStatusResponse, error) {
+	marshalled, err := proto.Marshal(source)
+	if err != nil {
+		return nil, fmt.Errorf("marshalling status: %s", err.Error())
+	}
+	var target protobuf.GetArchiverStatusResponse
+	err = proto.Unmarshal(marshalled, &target)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling status: %s", err.Error())
+	}
+	return &target, nil
 }
 
 // ATTENTION: first page has pageNumber == 1 as API starts with index 1
