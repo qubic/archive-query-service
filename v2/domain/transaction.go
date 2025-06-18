@@ -6,7 +6,7 @@ import (
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 )
 
-//go:generate go tool go.uber.org/mock/mockgen -destination=mock/repository.mock.go -package=mock -source transaction.go
+//go:generate go tool go.uber.org/mock/mockgen -destination=mock/transactions.mock.go -package=mock -source transaction.go
 type TransactionRepository interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)

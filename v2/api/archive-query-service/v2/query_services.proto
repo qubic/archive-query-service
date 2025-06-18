@@ -36,7 +36,7 @@ service ArchiveQueryService {
         option (google.api.http) = {
             post: "/getTickData"
             body: "*"
-            response_body: "tick_data"
+            //response_body: "tick_data"
         };
     }
 }
