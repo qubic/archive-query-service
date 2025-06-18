@@ -458,7 +458,7 @@ func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
 
 	lis, err := net.Listen("tcp", s.listenAddrGRPC)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return fmt.Errorf("listening on grpc port: %w", err)
 	}
 
 	go func() {

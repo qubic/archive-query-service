@@ -52,7 +52,7 @@ func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
 
 	maxTick, err := s.fetchStatusMaxTick(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("fetching status service max tick: %v", err)
+		return 0, fmt.Errorf("fetching status service max tick: %w", err)
 	}
 
 	s.lastProcessedTickProvider.Set(maxTickCacheKey, maxTick, ttlcache.DefaultTTL)
@@ -69,7 +69,7 @@ func (s *StatusCache) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInt
 
 	tickIntervals, err := s.fetchTickIntervals(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("fetching status service max tick: %v", err)
+		return nil, fmt.Errorf("fetching status service max tick: %w", err)
 	}
 
 	s.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
@@ -107,7 +107,7 @@ func NewQueryBuilder(txIndex string, tickDataIndex string, esClient *elasticsear
 func (s *StatusCache) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
 	statusResponse, err := s.StatusServiceClient.GetStatus(ctx, nil)
 	if err != nil {
-		return 0, fmt.Errorf("fetching status service: %v", err)
+		return 0, fmt.Errorf("fetching status service: %w", err)
 	}
 
 	return statusResponse.LastProcessedTick, nil
@@ -116,7 +116,7 @@ func (s *StatusCache) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
 func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
 	tickIntervalsResponse, err := s.StatusServiceClient.GetTickIntervals(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("fetching tick intervals: %v", err)
+		return nil, fmt.Errorf("fetching tick intervals: %w", err)
 	}
 
 	if len(tickIntervalsResponse.Intervals) == 0 {
@@ -141,7 +141,7 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 
 	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, queryEndTick)
 	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %v", err)
+		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
 	}
 
 	defer func() {
@@ -160,7 +160,7 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 		qb.esClient.Search.WithPretty(),
 	)
 	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %v", err)
+		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -169,7 +169,7 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %v", err)
+		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %w", err)
 	}
 
 	return result, nil
@@ -191,7 +191,7 @@ func (qb *QueryBuilder) performGetTxByIDQuery(_ context.Context, txID string) (r
 
 	res, err := qb.esClient.Get(qb.txIndex, txID)
 	if err != nil {
-		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %v", err)
+		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -204,7 +204,7 @@ func (qb *QueryBuilder) performGetTxByIDQuery(_ context.Context, txID string) (r
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionGetResponse{}, fmt.Errorf("decoding response: %v", err)
+		return TransactionGetResponse{}, fmt.Errorf("decoding response: %w", err)
 	}
 
 	return result, nil
@@ -226,7 +226,7 @@ func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(_ context.Context, t
 
 	res, err := qb.esClient.Get(qb.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
 	if err != nil {
-		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %v", err)
+		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -239,7 +239,7 @@ func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(_ context.Context, t
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TickDataGetResponse{}, fmt.Errorf("decoding response: %v", err)
+		return TickDataGetResponse{}, fmt.Errorf("decoding response: %w", err)
 	}
 
 	return result, nil
@@ -248,7 +248,7 @@ func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(_ context.Context, t
 func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick uint32) (TransactionsSearchResponse, error) {
 	query, err := createTickTransactionsQuery(tick)
 	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %v", err)
+		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
 	}
 
 	defer func() {
@@ -267,7 +267,7 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 		qb.esClient.Search.WithPretty(),
 	)
 	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %v", err)
+		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -278,7 +278,7 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 	// Decode the response into a map.
 	var result TransactionsSearchResponse
 	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %v", err)
+		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %w", err)
 	}
 
 	return result, nil
@@ -336,7 +336,7 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, start
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %v", err)
+		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
 	}
 
 	return buf, nil
@@ -355,7 +355,7 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %v", err)
+		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
 	}
 
 	return buf, nil
