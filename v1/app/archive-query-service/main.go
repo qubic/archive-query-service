@@ -62,24 +62,24 @@ func run() error {
 		case errors.Is(err, conf.ErrHelpWanted):
 			usage, err := conf.Usage(prefix, &cfg)
 			if err != nil {
-				return fmt.Errorf("generating config usage: %v", err)
+				return fmt.Errorf("generating config usage: %w", err)
 			}
 			fmt.Println(usage)
 			return nil
 		case errors.Is(err, conf.ErrVersionWanted):
 			version, err := conf.VersionString(prefix, &cfg)
 			if err != nil {
-				return fmt.Errorf("generating config version: %v", err)
+				return fmt.Errorf("generating config version: %w", err)
 			}
 			fmt.Println(version)
 			return nil
 		}
-		return fmt.Errorf("parsing config: %v", err)
+		return fmt.Errorf("parsing config: %w", err)
 	}
 
 	out, err := conf.String(&cfg)
 	if err != nil {
-		return fmt.Errorf("generating config for output: %v", err)
+		return fmt.Errorf("generating config for output: %w", err)
 	}
 	log.Printf("main: Config :\n%v\n", out)
 
@@ -103,7 +103,7 @@ func run() error {
 
 	esClient, err := elasticsearch.NewClient(elsCfg)
 	if err != nil {
-		return fmt.Errorf("creating elasticsearch client: %v", err)
+		return fmt.Errorf("creating elasticsearch client: %w", err)
 	}
 
 	srvMetrics := grpcProm.NewServerMetrics(
@@ -114,7 +114,7 @@ func run() error {
 
 	statusServiceGrpcConn, err := grpc.NewClient(cfg.Server.StatusServiceGrpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return fmt.Errorf("creating archiver api connection: %v", err)
+		return fmt.Errorf("creating archiver api connection: %w", err)
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
@@ -124,7 +124,7 @@ func run() error {
 	defer cache.Stop()
 
 	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient, cache)
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder)
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
@@ -133,7 +133,7 @@ func run() error {
 		tickInBoundsInterceptor.GetInterceptor,
 		identitiesValidatorInterceptor.GetInterceptor)
 	if err != nil {
-		return fmt.Errorf("starting rpc server: %v", err)
+		return fmt.Errorf("starting rpc server: %w", err)
 	}
 
 	shutdown := make(chan os.Signal, 1)
@@ -172,9 +172,9 @@ func run() error {
 		case <-shutdown:
 			return errors.New("shutting down")
 		case err := <-pprofErrors:
-			return fmt.Errorf("pprof error: %v", err)
+			return fmt.Errorf("pprof error: %w", err)
 		case err := <-webServerErr:
-			return fmt.Errorf("web server error: %v", err)
+			return fmt.Errorf("web server error: %w", err)
 
 		}
 	}
