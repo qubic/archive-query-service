@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	v2 "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,10 +42,10 @@ func (m *MockTransactionRepository) EXPECT() *MockTransactionRepositoryMockRecor
 }
 
 // GetTransactionByHash mocks base method.
-func (m *MockTransactionRepository) GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error) {
+func (m *MockTransactionRepository) GetTransactionByHash(ctx context.Context, hash string) (*v2.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(*api.Transaction)
+	ret0, _ := ret[0].(*v2.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -57,10 +57,10 @@ func (mr *MockTransactionRepositoryMockRecorder) GetTransactionByHash(ctx, hash 
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
+func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*v2.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, maxTick, pageSize, pageNumber, desc)
-	ret0, _ := ret[0].([]*api.Transaction)
+	ret0, _ := ret[0].([]*v2.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -72,10 +72,10 @@ func (mr *MockTransactionRepositoryMockRecorder) GetTransactionsForIdentity(ctx,
 }
 
 // GetTransactionsForTickNumber mocks base method.
-func (m *MockTransactionRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error) {
+func (m *MockTransactionRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*v2.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionsForTickNumber", ctx, tickNumber)
-	ret0, _ := ret[0].([]*api.Transaction)
+	ret0, _ := ret[0].([]*v2.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
