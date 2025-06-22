@@ -5,6 +5,7 @@ import (
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
@@ -19,16 +20,23 @@ type TickDataService interface {
 	GetTickData(ctx context.Context, tickNumber uint32) (*api.TickData, error)
 }
 
-type ArchiveQueryService struct {
-	api.UnimplementedArchiveQueryServiceServer
-	txService TransactionsService
-	tdService TickDataService
+type StatusService interface {
+	GetLastProcessedTick(ctx context.Context) (*api.GetLastProcessedTickResponse, error)
+	GetProcessedTickIntervals(ctx context.Context) (*api.GetProcessedTicksIntervalsResponse, error)
 }
 
-func NewArchiveQueryService(txService TransactionsService, tdService TickDataService) *ArchiveQueryService {
+type ArchiveQueryService struct {
+	api.UnimplementedArchiveQueryServiceServer
+	txService     TransactionsService
+	tdService     TickDataService
+	statusService StatusService
+}
+
+func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService) *ArchiveQueryService {
 	return &ArchiveQueryService{
-		txService: txService,
-		tdService: tdService,
+		txService:     txService,
+		tdService:     tdService,
+		statusService: statusService,
 	}
 }
 
@@ -66,4 +74,22 @@ func (s *ArchiveQueryService) GetTickData(ctx context.Context, req *api.GetTickD
 	}
 
 	return &api.GetTickDataResponse{TickData: td}, nil
+}
+
+func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, req *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
+	lpt, err := s.statusService.GetLastProcessedTick(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get last processed tick: %v", err)
+	}
+
+	return lpt, nil
+}
+
+func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, req *emptypb.Empty) (*api.GetProcessedTicksIntervalsResponse, error) {
+	intervals, err := s.statusService.GetProcessedTickIntervals(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get processed tick intervals: %v", err)
+	}
+
+	return intervals, nil
 }

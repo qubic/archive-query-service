@@ -37,6 +37,12 @@ message TickData {
     string signature = 9;
 }
 
+message ProcessedTickInterval {
+    uint32 epoch = 1;
+    uint32 first_tick = 2;
+    uint32 last_tick = 3;
+}
+
 message GetTransactionByHashRequest {
     string hash = 1;
 }
@@ -67,4 +73,13 @@ message GetTickDataRequest {
 
 message GetTickDataResponse {
     TickData tick_data = 1;
+}
+
+message GetProcessedTicksIntervalsResponse {
+    repeated ProcessedTickInterval processed_ticks_intervals = 1;
+}
+
+message GetLastProcessedTickResponse {
+    uint32 tick_number = 1;
+    uint32 epoch_number = 2;
 }
