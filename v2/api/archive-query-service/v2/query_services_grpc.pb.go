@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,6 +24,8 @@ const (
 	ArchiveQueryService_GetTransactionsForTick_FullMethodName     = "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForTick"
 	ArchiveQueryService_GetTransactionsForIdentity_FullMethodName = "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForIdentity"
 	ArchiveQueryService_GetTickData_FullMethodName                = "/qubic.v2.archive.pb.ArchiveQueryService/GetTickData"
+	ArchiveQueryService_GetLastProcessedTick_FullMethodName       = "/qubic.v2.archive.pb.ArchiveQueryService/GetLastProcessedTick"
+	ArchiveQueryService_GetProcessedTicksIntervals_FullMethodName = "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTicksIntervals"
 )
 
 // ArchiveQueryServiceClient is the client API for ArchiveQueryService service.
@@ -33,6 +36,8 @@ type ArchiveQueryServiceClient interface {
 	GetTransactionsForTick(ctx context.Context, in *GetTransactionsForTickRequest, opts ...grpc.CallOption) (*GetTransactionsForTickResponse, error)
 	GetTransactionsForIdentity(ctx context.Context, in *GetTransactionsForIdentityRequest, opts ...grpc.CallOption) (*GetTransactionsForIdentityResponse, error)
 	GetTickData(ctx context.Context, in *GetTickDataRequest, opts ...grpc.CallOption) (*GetTickDataResponse, error)
+	GetLastProcessedTick(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLastProcessedTickResponse, error)
+	GetProcessedTicksIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTicksIntervalsResponse, error)
 }
 
 type archiveQueryServiceClient struct {
@@ -79,6 +84,24 @@ func (c *archiveQueryServiceClient) GetTickData(ctx context.Context, in *GetTick
 	return out, nil
 }
 
+func (c *archiveQueryServiceClient) GetLastProcessedTick(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLastProcessedTickResponse, error) {
+	out := new(GetLastProcessedTickResponse)
+	err := c.cc.Invoke(ctx, ArchiveQueryService_GetLastProcessedTick_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *archiveQueryServiceClient) GetProcessedTicksIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTicksIntervalsResponse, error) {
+	out := new(GetProcessedTicksIntervalsResponse)
+	err := c.cc.Invoke(ctx, ArchiveQueryService_GetProcessedTicksIntervals_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ArchiveQueryServiceServer is the server API for ArchiveQueryService service.
 // All implementations must embed UnimplementedArchiveQueryServiceServer
 // for forward compatibility
@@ -87,6 +110,8 @@ type ArchiveQueryServiceServer interface {
 	GetTransactionsForTick(context.Context, *GetTransactionsForTickRequest) (*GetTransactionsForTickResponse, error)
 	GetTransactionsForIdentity(context.Context, *GetTransactionsForIdentityRequest) (*GetTransactionsForIdentityResponse, error)
 	GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error)
+	GetLastProcessedTick(context.Context, *emptypb.Empty) (*GetLastProcessedTickResponse, error)
+	GetProcessedTicksIntervals(context.Context, *emptypb.Empty) (*GetProcessedTicksIntervalsResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()
 }
 
@@ -105,6 +130,12 @@ func (UnimplementedArchiveQueryServiceServer) GetTransactionsForIdentity(context
 }
 func (UnimplementedArchiveQueryServiceServer) GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTickData not implemented")
+}
+func (UnimplementedArchiveQueryServiceServer) GetLastProcessedTick(context.Context, *emptypb.Empty) (*GetLastProcessedTickResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLastProcessedTick not implemented")
+}
+func (UnimplementedArchiveQueryServiceServer) GetProcessedTicksIntervals(context.Context, *emptypb.Empty) (*GetProcessedTicksIntervalsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProcessedTicksIntervals not implemented")
 }
 func (UnimplementedArchiveQueryServiceServer) mustEmbedUnimplementedArchiveQueryServiceServer() {}
 
@@ -191,6 +222,42 @@ func _ArchiveQueryService_GetTickData_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ArchiveQueryService_GetLastProcessedTick_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArchiveQueryServiceServer).GetLastProcessedTick(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ArchiveQueryService_GetLastProcessedTick_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArchiveQueryServiceServer).GetLastProcessedTick(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ArchiveQueryService_GetProcessedTicksIntervals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArchiveQueryServiceServer).GetProcessedTicksIntervals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ArchiveQueryService_GetProcessedTicksIntervals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArchiveQueryServiceServer).GetProcessedTicksIntervals(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ArchiveQueryService_ServiceDesc is the grpc.ServiceDesc for ArchiveQueryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -213,6 +280,14 @@ var ArchiveQueryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTickData",
 			Handler:    _ArchiveQueryService_GetTickData_Handler,
+		},
+		{
+			MethodName: "GetLastProcessedTick",
+			Handler:    _ArchiveQueryService_GetLastProcessedTick_Handler,
+		},
+		{
+			MethodName: "GetProcessedTicksIntervals",
+			Handler:    _ArchiveQueryService_GetProcessedTicksIntervals_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
