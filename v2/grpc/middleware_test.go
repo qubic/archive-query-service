@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
+	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"testing"
 )
 
@@ -9,14 +9,14 @@ func Test_WasSkippedByArchive(t *testing.T) {
 	tcs := []struct {
 		name                      string
 		tick                      uint32
-		intervals                 []*statusPb.TickInterval
+		intervals                 []*api.ProcessedTickInterval
 		expectedSkipped           bool
 		expectedNextAvailableTick uint32
 	}{
 		{
 			name: "before first interval",
 			tick: 10,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -32,7 +32,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "between first and second interval",
 			tick: 31,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -48,7 +48,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "in first interval - first tick",
 			tick: 20,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -64,7 +64,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "in first interval - between first and last",
 			tick: 25,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -80,7 +80,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "in first interval - last tick",
 			tick: 30,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -96,7 +96,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "in last interval - first tick",
 			tick: 40,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -112,7 +112,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "in last interval - between first and last",
 			tick: 45,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,
@@ -128,7 +128,7 @@ func Test_WasSkippedByArchive(t *testing.T) {
 		{
 			name: "in last interval - last tick",
 			tick: 50,
-			intervals: []*statusPb.TickInterval{
+			intervals: []*api.ProcessedTickInterval{
 				{
 					FirstTick: 20,
 					LastTick:  30,

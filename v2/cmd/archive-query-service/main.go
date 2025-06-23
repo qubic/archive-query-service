@@ -120,7 +120,7 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.StatusDataCacheTTL)
+	cache := domain.NewStatusCache(statusServiceClient, cfg.Server.StatusDataCacheTTL)
 
 	go cache.Start()
 	defer cache.Stop()
@@ -128,8 +128,9 @@ func run() error {
 	repo := elastic.NewRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient)
 
 	txService := domain.NewTransactionService(repo, cache.GetMaxTick)
-	rpcServer := rpc.NewArchiveQueryService(txService, nil)
-	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
+	statusService := domain.NewStatusService(cache)
+	rpcServer := rpc.NewArchiveQueryService(txService, nil, statusService)
+	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
 	startCfg := rpc.StartConfig{
