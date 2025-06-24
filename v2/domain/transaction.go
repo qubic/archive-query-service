@@ -2,7 +2,6 @@ package domain
 
 import (
 	"context"
-	"errors"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 )
 
@@ -35,23 +34,11 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
+func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters *api.GetTransactionsForIdentityFilters, aggregations *api.GetTransactionsForIdentityAggregations, page *api.Page) ([]*api.Transaction, error) {
 	maxTick, err := s.maxTickFetcher(ctx)
-	if err != nil {
+	if err != nil || maxTick < 1 {
 		return nil, err
 	}
-
-	if maxTick < 1 {
-		return nil, nil // No transactions available
-	}
-
-	if pageNumber < 0 || pageSize <= 0 {
-		return nil, errors.New("pageNumber and pageSize must be greater than 0")
-	}
-
-	if pageNumber*pageSize > int(maxTick) {
-		return nil, errors.New("pageNumber and pageSize must be greater than or equal to maxTick")
-	}
-
-	return s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, pageSize, pageNumber, desc)
+	// TODO implement
+	return s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, int(page.GetSize()), int(page.GetNumber()), false)
 }
