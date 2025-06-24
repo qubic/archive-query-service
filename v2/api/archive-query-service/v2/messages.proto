@@ -13,7 +13,7 @@ message NextAvailableTick {
 
 message Transaction {
     string hash = 1;
-    int64 amount = 2;
+    uint64 amount = 2;
     string source = 3;
     string destination = 4;
     uint32 tick_number = 5;
@@ -37,6 +37,39 @@ message TickData {
     string signature = 9;
 }
 
+// aggregations
+
+message RangeUint64 {
+    oneof lower_bound {
+        uint64 gt = 1;
+        uint64 gte = 2;
+    }
+    oneof upper_bound {
+        uint64 lt = 3;
+        uint64 lte = 4;
+    }
+}
+
+message RangeUint32 {
+    oneof lower_bound {
+        uint32 gt = 1;
+        uint32 gte = 2;
+    }
+    oneof upper_bound {
+        uint32 lt = 3;
+        uint32 lte = 4;
+    }
+}
+
+// paging
+
+message Page {
+    optional uint32 number = 1;
+    optional uint32 size = 2;
+}
+
+// requests and responses
+
 message GetTransactionByHashRequest {
     string hash = 1;
 }
@@ -53,8 +86,26 @@ message GetTransactionsForTickResponse {
     repeated Transaction transactions = 1;
 }
 
+message GetTransactionsForIdentityFilters {
+    optional string destination = 1;
+    optional uint64 amount = 3;
+    optional uint32 input_type = 4;
+    optional uint32 tick_number = 5;
+    optional uint64 timestamp = 6;
+}
+
+message GetTransactionsForIdentityAggregations {
+    optional RangeUint64 amount = 3;
+    optional RangeUint32 input_type = 4;
+    optional RangeUint32 tick_number = 5;
+    optional RangeUint64 timestamp = 6;
+}
+
 message GetTransactionsForIdentityRequest {
     string identity = 1;
+    optional GetTransactionsForIdentityFilters filters = 2;
+    optional GetTransactionsForIdentityAggregations aggregations = 3;
+    optional Page page = 4;
 }
 
 message GetTransactionsForIdentityResponse {
