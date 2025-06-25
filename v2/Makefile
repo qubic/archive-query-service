@@ -7,7 +7,7 @@ OPT_ARGS := $(shell [[ "$$(uname -s)" == "Darwin" && "$$(uname -m)" == "arm64" ]
 # Tasks
 .PHONY: all mock-gen proto-gen proto-clean swagger-gen test-cover
 
-all: mock-gen proto-gen swagger-gen
+all: proto-gen mock-gen swagger-gen
 clean: proto-clean
 
 mock-gen:
