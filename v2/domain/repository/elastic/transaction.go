@@ -7,6 +7,7 @@ import (
 	"fmt"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain"
+	"github.com/qubic/archive-query-service/v2/entities"
 	"log"
 	"strings"
 )
@@ -103,36 +104,6 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	return transactionHitsToApiTransactions(result.Hits.Hits), nil
 }
 
-func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string]*api.Range, page *api.Page) ([]*api.Transaction, error) {
-	from := page.GetNumber() * page.GetSize() // skip previous pages
-	query, err := createIdentitiesQueryString(identity, filters, ranges, from, page.GetSize(), maxTick)
-	if err != nil {
-		return nil, fmt.Errorf("creating query: %w", err)
-	}
-
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.txIndex),
-		r.esClient.Search.WithBody(strings.NewReader(query)),
-		r.esClient.Search.WithPretty(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, fmt.Errorf("error response from data store: %s", res.String())
-	}
-
-	var result transactionsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return transactionHitsToApiTransactions(result.Hits.Hits), nil
-}
-
 func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	query := map[string]interface{}{
 		"track_total_hits": "true",
@@ -152,7 +123,41 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
-func createIdentitiesQueryString(identity string, filters map[string]string, ranges map[string]*api.Range, from, size, maxTick uint32) (string, error) {
+func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+	query, err := createIdentitiesQueryString(identity, filters, ranges, from, size, maxTick)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating query: %w", err)
+	}
+
+	res, err := r.esClient.Search(
+		r.esClient.Search.WithContext(ctx),
+		r.esClient.Search.WithIndex(r.txIndex),
+		r.esClient.Search.WithBody(strings.NewReader(query)),
+		r.esClient.Search.WithPretty(),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("performing search: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return nil, nil, fmt.Errorf("error response from data store: %s", res.String())
+	}
+
+	var result transactionsSearchResponse
+	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, nil, fmt.Errorf("decoding response: %w", err)
+	}
+
+	hits := &entities.Hits{
+		Total:    result.Hits.Total.Value,
+		Relation: "",
+	}
+
+	return transactionHitsToApiTransactions(result.Hits.Hits), hits, nil
+}
+
+func createIdentitiesQueryString(identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
 	var query string
 
 	filterStrings := make([]string, 0, len(filters)+len(ranges)+1)
@@ -198,22 +203,11 @@ func createIdentitiesQueryString(identity string, filters map[string]string, ran
 	return query, nil
 }
 
-func createRangeFilter(property string, r *api.Range) (string, error) {
+func createRangeFilter(property string, r []*entities.Range) (string, error) {
 	var rangeStrings []string
-	switch r.GetLowerBound().(type) {
-	case *api.Range_Gt:
-		rangeStrings = append(rangeStrings, fmt.Sprintf(`"gt":"%s"`, r.GetGt()))
-	case *api.Range_Gte:
-		rangeStrings = append(rangeStrings, fmt.Sprintf(`"gte":"%s"`, r.GetGte()))
+	for _, v := range r {
+		rangeStrings = append(rangeStrings, fmt.Sprintf(`"%s":"%s"`, v.Operation, v.Value))
 	}
-
-	switch r.GetUpperBound().(type) {
-	case *api.Range_Lt:
-		rangeStrings = append(rangeStrings, fmt.Sprintf(`"lt":"%s"`, r.GetLt()))
-	case *api.Range_Lte:
-		rangeStrings = append(rangeStrings, fmt.Sprintf(`"lte":"%s"`, r.GetLte()))
-	}
-
 	if len(rangeStrings) > 0 {
 		return fmt.Sprintf(`{"range":{"%s":{%s}}}`, property, strings.Join(rangeStrings, ",")), nil
 	} else {

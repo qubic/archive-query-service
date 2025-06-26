@@ -1,17 +1,13 @@
 package elastic
 
 import (
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"testing"
 )
 
 func TestTransactionElasticRepository_createIdentitiesQueryString_returnQuery(t *testing.T) {
-	//var filters map[string]string
-	//var ranges map[string]*api.Range
-
 	expectedQuery := `{ 
       "query": {
 		"bool": {
@@ -91,14 +87,10 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenRanges_re
 	  "track_total_hits": 10000
 	}`
 
-	range1 := api.Range{}
-	err := protojson.Unmarshal([]byte(`{ "lt": "42" }`), &range1)
-	require.NoError(t, err)
-	range2 := api.Range{}
-	err = protojson.Unmarshal([]byte(`{ "gte": "12", "lte": "43" }`), &range2)
-	range3 := api.Range{}
-	err = protojson.Unmarshal([]byte(`{ "gt": "44" }`), &range3)
-	ranges := map[string]*api.Range{"some-value": &range1, "another-value": &range2, "third-value": &range3}
+	range1 := []*entities.Range{{Operation: "lt", Value: "42"}}
+	range2 := []*entities.Range{{Operation: "gte", Value: "12"}, {Operation: "lte", Value: "43"}}
+	range3 := []*entities.Range{{Operation: "gt", Value: "44"}}
+	ranges := map[string][]*entities.Range{"some-value": range1, "another-value": range2, "third-value": range3}
 	identity := "some-identity"
 	query, err := createIdentitiesQueryString(identity, nil, ranges, 0, 5, 1000000)
 	require.NoError(t, err)
@@ -131,10 +123,8 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenRangesAnd
 	  "track_total_hits": 10000
 	}`
 
-	range1 := api.Range{}
-	err := protojson.Unmarshal([]byte(`{ "lte": "42", "gt": "0" }`), &range1)
-	require.NoError(t, err)
-	ranges := map[string]*api.Range{"range-value": &range1}
+	range1 := []*entities.Range{{Operation: "lte", Value: "42"}, {Operation: "gt", Value: "0"}}
+	ranges := map[string][]*entities.Range{"range-value": range1}
 	filters := map[string]string{"some-value": "42", "another-value": "foo"}
 	identity := "some-identity"
 	query, err := createIdentitiesQueryString(identity, filters, ranges, 200, 100, 1000000)

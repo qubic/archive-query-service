@@ -4,21 +4,25 @@ import (
 	"errors"
 	"fmt"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/qubic/go-node-connector/types"
 	"strconv"
 )
 
 const maxPageSize uint32 = 1024
 const maxHitsSize uint32 = 10000
+const defaultPageSize = 10
 
-func validatePage(page *api.Page) error {
-	if page.GetSize() > maxPageSize {
-		return fmt.Errorf("maximum page size: [%d], got: [%d]", maxPageSize, page.GetSize())
+func validatePagination(page *api.Pagination) (from uint32, size uint32, err error) {
+	from = page.GetOffset()
+	if from >= maxHitsSize {
+		return 0, 0, fmt.Errorf("offset [%d] exceeds maximum [%d]", from, maxHitsSize)
 	}
-	if page.GetNumber()*page.GetSize() >= maxHitsSize {
-		return fmt.Errorf("maximum result size: [%d]", maxHitsSize)
+	size = page.GetSize()
+	if size > maxPageSize {
+		return 0, 0, fmt.Errorf("size [%d] exceeds maximum [%d]", size, maxPageSize)
 	}
-	return nil
+	return from, If(size > 0, size, defaultPageSize), nil
 }
 
 func validateIdentityTransactionQueryFilters(filters map[string]string) error {
@@ -69,39 +73,52 @@ func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	return nil
 }
 
-func validateIdentityTransactionQueryRanges(filters map[string]string, ranges map[string]*api.Range) error {
+func validateIdentityTransactionQueryRanges(filters map[string]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
+	convertedRanges := map[string][]*entities.Range{}
 	if len(ranges) == 0 {
-		return nil
+		return nil, nil
 	}
 	allowedRanges := [4]string{"amount", "tickNumber", "inputType", "timestamp"}
 	if len(ranges) > len(allowedRanges) {
-		return errors.New("too many ranges")
+		return nil, errors.New("too many ranges")
 	}
 
 	for key, value := range ranges {
 		switch key {
 		case "amount":
-			err := validateRange(value, 64)
+			r, err := validateRange(value, 64)
 			if err != nil {
-				return fmt.Errorf("invalid amount range: [%w]", err)
+				return nil, fmt.Errorf("invalid amount range: [%w]", err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
 			}
 		case "tickNumber":
-			err := validateRange(value, 32)
+			r, err := validateRange(value, 32)
 			if err != nil {
-				return fmt.Errorf("invalid tickNumber range: [%w]", err)
+				return nil, fmt.Errorf("invalid tickNumber range: [%w]", err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
 			}
 		case "inputType":
-			err := validateRange(value, 32)
+			r, err := validateRange(value, 32)
 			if err != nil {
-				return fmt.Errorf("invalid inputType range: [%w]", err)
+				return nil, fmt.Errorf("invalid inputType range: [%w]", err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
 			}
 		case "timestamp":
-			err := validateRange(value, 64)
+			r, err := validateRange(value, 64)
 			if err != nil {
-				return fmt.Errorf("invalid timestamp range: [%w]", err)
+				return nil, fmt.Errorf("invalid timestamp range: [%w]", err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
 			}
 		default:
-			return fmt.Errorf("unsupported range: [%s]", key)
+			return nil, fmt.Errorf("unsupported range: [%s]", key)
 		}
 	}
 
@@ -110,38 +127,11 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 		for key := range ranges {
 			_, ok := filters[key]
 			if ok {
-				return fmt.Errorf("range [%s] is already declared as filter", key)
+				return nil, fmt.Errorf("range [%s] is already declared as filter", key)
 			}
 		}
 	}
-	return nil
-}
-
-func validateRange(r *api.Range, bitSize int) error {
-	if r != nil {
-		gt, err := strconv.ParseUint(r.GetGt(), 10, bitSize)
-		if err != nil {
-			return fmt.Errorf("invalid [gt] value: %w", err)
-		}
-		gte, err := strconv.ParseUint(r.GetGte(), 10, bitSize)
-		if err != nil {
-			return fmt.Errorf("invalid [gte] value: %w", err)
-		}
-		lt, err := strconv.ParseUint(r.GetLt(), 10, bitSize)
-		if err != nil {
-			return fmt.Errorf("invalid [lt] value: %w", err)
-		}
-		lte, err := strconv.ParseUint(r.GetLte(), 10, bitSize)
-		if err != nil {
-			return fmt.Errorf("invalid [lte] value: %w", err)
-		}
-		lowerBound := max(gt, gte)
-		upperBound := max(lt, lte)
-		if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
-			return errors.New("upper bound must be larger than lower bound")
-		}
-	}
-	return nil
+	return convertedRanges, nil
 }
 
 func validateIdentity(identity string) error {
@@ -166,4 +156,65 @@ func validateDigest(digest string, isLowerCase bool) error {
 		return fmt.Errorf("original id string %s does not match expected %s", digest, id.String())
 	}
 	return nil
+}
+
+func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
+	var ranges []*entities.Range
+	var err error
+	var lowerBound uint64
+	var upperBound uint64
+	switch r.GetLowerBound().(type) {
+	case *api.Range_Gt:
+		lowerBound, err = strconv.ParseUint(r.GetGt(), 10, bitSize)
+		if err != nil {
+			return nil, fmt.Errorf("invalid [gt] value: %w", err)
+		}
+		ranges = append(ranges, &entities.Range{
+			Operation: "gt",
+			Value:     r.GetGt(),
+		})
+	case *api.Range_Gte:
+		lowerBound, err = strconv.ParseUint(r.GetGte(), 10, bitSize)
+		if err != nil {
+			return nil, fmt.Errorf("invalid [gte] value: %w", err)
+		}
+		ranges = append(ranges, &entities.Range{
+			Operation: "gte",
+			Value:     r.GetGte(),
+		})
+	}
+
+	switch r.GetUpperBound().(type) {
+	case *api.Range_Lt:
+		upperBound, err = strconv.ParseUint(r.GetLt(), 10, bitSize)
+		if err != nil {
+			return nil, fmt.Errorf("invalid [lt] value: %w", err)
+		}
+		ranges = append(ranges, &entities.Range{
+			Operation: "lt",
+			Value:     r.GetLt(),
+		})
+	case *api.Range_Lte:
+		upperBound, err = strconv.ParseUint(r.GetLte(), 10, bitSize)
+		if err != nil {
+			return nil, fmt.Errorf("invalid [lte] value: %w", err)
+		}
+		ranges = append(ranges, &entities.Range{
+			Operation: "lte",
+			Value:     r.GetLte(),
+		})
+	}
+
+	if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
+		return nil, errors.New("upper bound must be larger than lower bound")
+	}
+	return ranges, nil
+}
+
+func If[T any](condition bool, trueValue, falseValue T) T {
+	if condition {
+		return trueValue
+	} else {
+		return falseValue
+	}
 }
