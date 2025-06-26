@@ -40,25 +40,17 @@ message TickData {
 // aggregations
 
 message RangeUint64 {
-    oneof lower_bound {
-        uint64 gt = 1;
-        uint64 gte = 2;
-    }
-    oneof upper_bound {
-        uint64 lt = 3;
-        uint64 lte = 4;
-    }
+    optional uint64 gt = 1;
+    optional uint64 gte = 2;
+    optional uint64 lt = 3;
+    optional uint64 lte = 4;
 }
 
 message RangeUint32 {
-    oneof lower_bound {
-        uint32 gt = 1;
-        uint32 gte = 2;
-    }
-    oneof upper_bound {
-        uint32 lt = 3;
-        uint32 lte = 4;
-    }
+    optional uint32 gt = 1;
+    optional uint32 gte = 2;
+    optional uint32 lt = 3;
+    optional uint32 lte = 4;
 }
 
 // paging
@@ -86,30 +78,64 @@ message GetTransactionsForTickResponse {
     repeated Transaction transactions = 1;
 }
 
-message GetTransactionsForIdentityFilters {
-    optional string destination = 1;
-    optional uint64 amount = 3;
-    optional uint32 input_type = 4;
-    optional uint32 tick_number = 5;
-    optional uint64 timestamp = 6;
+//message GetTransactionsForIdentityFilters {
+//    optional string destination = 1;
+//    optional string source = 2;
+//    optional uint64 amount = 3;
+//    optional uint32 input_type = 4;
+//    optional uint32 tick_number = 5;
+//    optional uint64 timestamp = 6;
+//}
+//
+//message GetTransactionsForIdentityRanges {
+//    optional RangeUint64 amount = 1;
+//    optional RangeUint32 input_type = 2;
+//    optional RangeUint32 tick_number = 3;
+//    optional RangeUint64 timestamp = 4;
+//}
+
+message Filter {
+    string property = 1;
+    string value = 2;
 }
 
-message GetTransactionsForIdentityAggregations {
-    optional RangeUint64 amount = 3;
-    optional RangeUint32 input_type = 4;
-    optional RangeUint32 tick_number = 5;
-    optional RangeUint64 timestamp = 6;
+message Range {
+    oneof lower_bound {
+        string gt = 1;
+        string gte = 2;
+    }
+    oneof upper_bound {
+        string lt = 3;
+        string lte = 4;
+    }
 }
 
 message GetTransactionsForIdentityRequest {
     string identity = 1;
-    optional GetTransactionsForIdentityFilters filters = 2;
-    optional GetTransactionsForIdentityAggregations aggregations = 3;
+    map<string, string> filters = 2;
+    map<string, Range> ranges = 3;
     optional Page page = 4;
+}
+//
+//message Pagination {
+//    uint32 total_hits = 1;
+//    uint32 current_page = 2;
+//    uint32 page_size = 3;
+//}
+
+
+message Pagination {
+    message hits {
+        uint32 total = 1;
+        string relation = 2;
+    }
+    uint32 current_page = 1;
+    uint32 page_size = 2;
 }
 
 message GetTransactionsForIdentityResponse {
-    repeated Transaction transactions = 1;
+    Pagination pagination = 1;
+    repeated Transaction transactions = 2;
 }
 
 message GetTickDataRequest {

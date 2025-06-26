@@ -1,8 +1,11 @@
 package grpc
 
 import (
+	"errors"
 	"fmt"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/go-node-connector/types"
+	"strconv"
 )
 
 const maxPageSize uint32 = 1024
@@ -18,40 +21,149 @@ func validatePage(page *api.Page) error {
 	return nil
 }
 
-func validateTransactionFilters(filters *api.GetTransactionsForIdentityFilters) error {
-	var err error
-	if filters == nil {
+func validateIdentityTransactionQueryFilters(filters map[string]string) error {
+	if len(filters) == 0 {
 		return nil
 	}
-	if filters.Destination != nil {
-		err = validateIdentity(filters.GetDestination())
+	allowedFilters := [6]string{"source", "destination", "amount", "tickNumber", "inputType", "timestamp"}
+	if len(filters) > len(allowedFilters) {
+		return errors.New("too many filters")
 	}
-	return err
+	for key, value := range filters {
+		switch key {
+		case "source":
+			err := validateIdentity(value)
+			if err != nil {
+				return fmt.Errorf("invalid source filter: [%w]", err)
+			}
+		case "destination":
+			err := validateIdentity(value)
+			if err != nil {
+				return fmt.Errorf("invalid destination filter: [%w]", err)
+			}
+		case "amount":
+			_, err := strconv.ParseUint(value, 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid amount filter: [%w]", err)
+			}
+		case "tickNumber":
+			// max allowed tick number is already validated in middleware
+			_, err := strconv.ParseUint(value, 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid tickNumber filter: [%w]", err)
+			}
+		case "inputType":
+			_, err := strconv.ParseUint(value, 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid inputType filter: [%w]", err)
+			}
+		case "timestamp":
+			_, err := strconv.ParseUint(value, 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid timestamp filter: [%w]", err)
+			}
+		default:
+			return fmt.Errorf("unsupported filter: [%s]", key)
+		}
+	}
+	return nil
 }
 
-func validateTransactionAggregations(filters *api.GetTransactionsForIdentityFilters, aggregations *api.GetTransactionsForIdentityAggregations) error {
-	var err error
-	if aggregations == nil {
+func validateIdentityTransactionQueryRanges(filters map[string]string, ranges map[string]*api.Range) error {
+	if len(ranges) == 0 {
 		return nil
 	}
-	if filters != nil {
-		if aggregations.Amount != nil && filters.Amount != nil {
-			return fmt.Errorf("only one of filter or aggregation must be specified for [amount]")
-		}
-		if aggregations.TickNumber != nil && filters.TickNumber != nil {
-			return fmt.Errorf("only one of filter or aggregation must be specified for [tickNumber]")
-		}
-		if aggregations.InputType != nil && filters.InputType != nil {
-			return fmt.Errorf("only one of filter or aggregation must be specified for [inputType]")
-		}
-		if aggregations.Timestamp != nil && filters.Timestamp != nil {
-			return fmt.Errorf("only one of filter or aggregation must be specified for [timestamp]")
+	allowedRanges := [4]string{"amount", "tickNumber", "inputType", "timestamp"}
+	if len(ranges) > len(allowedRanges) {
+		return errors.New("too many ranges")
+	}
+
+	for key, value := range ranges {
+		switch key {
+		case "amount":
+			err := validateRange(value, 64)
+			if err != nil {
+				return fmt.Errorf("invalid amount range: [%w]", err)
+			}
+		case "tickNumber":
+			err := validateRange(value, 32)
+			if err != nil {
+				return fmt.Errorf("invalid tickNumber range: [%w]", err)
+			}
+		case "inputType":
+			err := validateRange(value, 32)
+			if err != nil {
+				return fmt.Errorf("invalid inputType range: [%w]", err)
+			}
+		case "timestamp":
+			err := validateRange(value, 64)
+			if err != nil {
+				return fmt.Errorf("invalid timestamp range: [%w]", err)
+			}
+		default:
+			return fmt.Errorf("unsupported range: [%s]", key)
 		}
 	}
-	return err
+
+	if filters != nil {
+		// check for ranges that are already declared as filter
+		for key := range ranges {
+			_, ok := filters[key]
+			if ok {
+				return fmt.Errorf("range [%s] is already declared as filter", key)
+			}
+		}
+	}
+	return nil
+}
+
+func validateRange(r *api.Range, bitSize int) error {
+	if r != nil {
+		gt, err := strconv.ParseUint(r.GetGt(), 10, bitSize)
+		if err != nil {
+			return fmt.Errorf("invalid [gt] value: %w", err)
+		}
+		gte, err := strconv.ParseUint(r.GetGte(), 10, bitSize)
+		if err != nil {
+			return fmt.Errorf("invalid [gte] value: %w", err)
+		}
+		lt, err := strconv.ParseUint(r.GetLt(), 10, bitSize)
+		if err != nil {
+			return fmt.Errorf("invalid [lt] value: %w", err)
+		}
+		lte, err := strconv.ParseUint(r.GetLte(), 10, bitSize)
+		if err != nil {
+			return fmt.Errorf("invalid [lte] value: %w", err)
+		}
+		lowerBound := max(gt, gte)
+		upperBound := max(lt, lte)
+		if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
+			return errors.New("upper bound must be larger than lower bound")
+		}
+	}
+	return nil
 }
 
 func validateIdentity(identity string) error {
-	// FIXME implement - move validation code from middleware.go
+	return validateDigest(identity, false)
+}
+
+func validateDigest(digest string, isLowerCase bool) error {
+	id := types.Identity(digest)
+	pubKey, err := id.ToPubKey(isLowerCase)
+	if err != nil {
+		return fmt.Errorf("converting id to pubkey: %w", err)
+	}
+
+	var pubkeyFixed [32]byte
+	copy(pubkeyFixed[:], pubKey[:32])
+	id, err = id.FromPubKey(pubkeyFixed, isLowerCase)
+	if err != nil {
+		return fmt.Errorf("converting pubkey back to id: %w", err)
+	}
+
+	if id.String() != digest {
+		return fmt.Errorf("original id string %s does not match expected %s", digest, id.String())
+	}
 	return nil
 }

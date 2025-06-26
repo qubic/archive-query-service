@@ -1,176 +1,146 @@
 package elastic
 
 import (
-	"bytes"
-	"context"
-	"encoding/base64"
-	"encoding/json"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go"
-	tcelastic "github.com/testcontainers/testcontainers-go/modules/elasticsearch"
-	"github.com/testcontainers/testcontainers-go/wait"
-	"strings"
+	"google.golang.org/protobuf/encoding/protojson"
+	"log"
 	"testing"
-	"time"
 )
 
-var testTx1 = transaction{
-	Hash:        "zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalwvk",
-	Source:      "ENYTRGQOXEUCDFYZUSJTKTKJIZJABAHZQQANAQCPDBKJRDAZQIFMGIRDWGPO",
-	Destination: "KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
-	Amount:      10,
-	TickNumber:  15,
-	InputType:   1,
-	InputSize:   0,
-	InputData:   base64.StdEncoding.EncodeToString([]byte("test input data")),
-	Signature:   base64.StdEncoding.EncodeToString([]byte("test signature")),
-	Timestamp:   uint64(time.Now().Unix()),
-	MoneyFlew:   true,
-}
+func TestTransactionElasticRepository_createIdentitiesQueryString_returnQuery(t *testing.T) {
+	//var filters map[string]string
+	//var ranges map[string]*api.Range
 
-type elasticsearchTestResponse struct {
-	Name        string `json:"name"`
-	ClusterName string `json:"cluster_name"`
-	ClusterUUID string `json:"cluster_uuid"`
-	Version     struct {
-		Number string `json:"number"`
-	} `json:"version"`
-	Tagline string `json:"tagline"`
-}
-
-type transactionsSuite struct {
-	suite.Suite
-	repo      *Repository
-	ctx       context.Context
-	container testcontainers.Container
-}
-
-func TestTransactionsRepository(t *testing.T) {
-	suite.Run(t, new(transactionsSuite))
-}
-
-func (t *transactionsSuite) TearDownSuite() {
-	t.container.Terminate(t.ctx)
-}
-
-func (t *transactionsSuite) SetupSuite() {
-	t.ctx = context.Background()
-
-	container, err := tcelastic.Run(
-		t.ctx,
-		"docker.elastic.co/elasticsearch/elasticsearch:8.10.2",
-		tcelastic.WithPassword("password"),
-		testcontainers.WithWaitStrategy(wait.ForLog("\"message\":\"started").WithStartupTimeout(1*time.Minute)),
-	)
-	require.NoError(t.T(), err)
-	t.container = container
-
-	elsCfg := elasticsearch.Config{
-		Addresses: []string{container.Settings.Address},
-		Username:  "elastic",
-		Password:  "password",
-		CACert:    container.Settings.CACert,
-	}
-
-	esClient, err := elasticsearch.NewClient(elsCfg)
-	require.NoError(t.T(), err, "creating elasticsearch client")
-
-	resp, err := esClient.Info()
-	require.NoError(t.T(), err, "getting elastic info")
-	defer resp.Body.Close()
-
-	var esResp elasticsearchTestResponse
-	err = json.NewDecoder(resp.Body).Decode(&esResp)
-	require.NoError(t.T(), err, "decoding elasticsearch response")
-	require.Equal(t.T(), "You Know, for Search", esResp.Tagline)
-
-	transactionsMapping := `
-	{
-		"settings": {
-			"number_of_shards": 1,
-			"number_of_replicas": 0
-		},
-		"mappings": {
-		  "dynamic": "strict",
-		  "properties": {
-			"amount": {
-			  "type": "unsigned_long"
-			},
-			"destination": {
-			  "type": "keyword",
-			  "ignore_above": 60
-			},
-			"hash": {
-			  "type": "keyword",
-			  "ignore_above": 60
-			},
-			"inputData": {
-			  "type": "keyword",
-			  "index": false,
-			  "doc_values": false
-			},
-			"inputSize": {
-			  "type": "unsigned_long",
-			  "index": false
-			},
-			"inputType": {
-			  "type": "unsigned_long"
-			},
-			"moneyFlew": {
-			  "type": "boolean"
-			},
-			"signature": {
-			  "type": "keyword",
-			  "index": false,
-			  "doc_values": false
-			},
-			"source": {
-			  "type": "keyword",
-			  "ignore_above": 60
-			},
-			"tickNumber": {
-			  "type": "unsigned_long"
-			},
-			"timestamp": {
-			  "type": "unsigned_long"
-			}
-		  }
+	expectedQuery := `{ 
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [{"range":{"tickNumber":{"lte":"12345"}}}]
 		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 0,
+	  "size": 10,
+	  "track_total_hits": 10000
 	}`
 
-	res, err := esClient.Indices.Create(
-		"transactions",
-		esClient.Indices.Create.WithBody(strings.NewReader(transactionsMapping)),
-	)
-	require.NoError(t.T(), err, "creating transactions index")
-	defer res.Body.Close()
-	require.False(t.T(), res.IsError(), "creating transactions index should be successful")
+	identity := "some-identity"
+	query, err := createIdentitiesQueryString(identity, nil, nil, 0, 10, 12345)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
 
-	var buf bytes.Buffer
-	err = json.NewEncoder(&buf).Encode(testTx1)
-	require.NoError(t.T(), err, "encoding test transaction")
-	res, err = esClient.Index(
-		"transactions",
-		&buf,
-		esClient.Index.WithDocumentID("zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalwvk"),
-		esClient.Index.WithRefresh("true"),
-	)
-	require.NoError(t.T(), err, "indexing test transaction")
-	defer res.Body.Close()
-	require.Falsef(t.T(), res.IsError(), "indexing test transaction should be successful, got err: %s", res.String())
-
-	t.repo = NewRepository("transactions", "tick-data", esClient)
+	require.JSONEq(t, expectedQuery, query)
 }
 
-func (t *transactionsSuite) Test_GetTransactionByHash() {
-	tx, err := t.repo.GetTransactionByHash(t.ctx, testTx1.Hash)
-	require.NoError(t.T(), err, "getting transaction by hash")
-	expected := transactionToApiTransaction(testTx1)
-	diff := cmp.Diff(expected, tx, cmpopts.IgnoreUnexported(api.Transaction{}))
-	require.Empty(t.T(), diff, "transaction received should match the one inserted, diff: %s", diff)
+func TestTransactionElasticRepository_createIdentitiesQueryString_givenFilters_returnQueryWithFilters(t *testing.T) {
+	expectedQuery := `{ 
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [
+            {"range":{"tickNumber":{"lte":"1000000"}}},
+			{"term":{"some-value":"42"}},
+			{"term":{"another-value":"foo"}}
+          ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 0,
+	  "size": 5,
+	  "track_total_hits": 10000
+	}`
+
+	filters := map[string]string{"some-value": "42", "another-value": "foo"}
+	identity := "some-identity"
+	query, err := createIdentitiesQueryString(identity, filters, nil, 0, 5, 1000000)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
+
+	require.JSONEq(t, expectedQuery, query)
+}
+
+func TestTransactionElasticRepository_createIdentitiesQueryString_givenRanges_returnQueryWithFilters(t *testing.T) {
+	expectedQuery := `{ 
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [
+            {"range":{"tickNumber":{"lte":"1000000"}}},
+			{"range":{"some-value":{ "lt": "42" }}},
+			{"range":{"another-value":{ "lte": "43", "gte": "12"  }}},
+			{"range":{"third-value":{ "gt": "44"}}}
+          ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 0,
+	  "size": 5,
+	  "track_total_hits": 10000
+	}`
+
+	range1 := api.Range{}
+	err := protojson.Unmarshal([]byte(`{ "lt": "42" }`), &range1)
+	require.NoError(t, err)
+	range2 := api.Range{}
+	err = protojson.Unmarshal([]byte(`{ "gte": "12", "lte": "43" }`), &range2)
+	range3 := api.Range{}
+	err = protojson.Unmarshal([]byte(`{ "gt": "44" }`), &range3)
+	ranges := map[string]*api.Range{"some-value": &range1, "another-value": &range2, "third-value": &range3}
+	identity := "some-identity"
+	query, err := createIdentitiesQueryString(identity, nil, ranges, 0, 5, 1000000)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
+
+	log.Println(query)
+	require.JSONEq(t, expectedQuery, query)
+}
+
+func TestTransactionElasticRepository_createIdentitiesQueryString_givenRangesAndFilters_returnQueryWithAllFilters(t *testing.T) {
+	expectedQuery := `{ 
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [
+            {"range":{"tickNumber":{"lte":"1000000"}}},
+		    {"term":{"some-value":"42"}},
+			{"term":{"another-value":"foo"}},
+			{"range":{"range-value":{ "gt": "0", "lte": "42" }}}
+          ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 200,
+	  "size": 100,
+	  "track_total_hits": 10000
+	}`
+
+	range1 := api.Range{}
+	err := protojson.Unmarshal([]byte(`{ "lte": "42", "gt": "0" }`), &range1)
+	require.NoError(t, err)
+	ranges := map[string]*api.Range{"range-value": &range1}
+	filters := map[string]string{"some-value": "42", "another-value": "foo"}
+	identity := "some-identity"
+	query, err := createIdentitiesQueryString(identity, filters, ranges, 200, 100, 1000000)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
+
+	log.Println(query)
+	require.JSONEq(t, expectedQuery, query)
 }

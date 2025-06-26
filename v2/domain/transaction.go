@@ -9,7 +9,7 @@ import (
 type TransactionRepository interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string]*api.Range, page *api.Page) ([]*api.Transaction, error)
 }
 
 type MaxTickFetcherFunc func(ctx context.Context) (uint32, error)
@@ -34,11 +34,13 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters *api.GetTransactionsForIdentityFilters, aggregations *api.GetTransactionsForIdentityAggregations, page *api.Page) ([]*api.Transaction, error) {
+func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string]*api.Range, page *api.Page) ([]*api.Transaction, error) {
 	maxTick, err := s.maxTickFetcher(ctx)
 	if err != nil || maxTick < 1 {
 		return nil, err
 	}
-	// TODO implement
-	return s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, int(page.GetSize()), int(page.GetNumber()), false)
+
+	// FIXME check if tickNumber filter or range is correct
+
+	return s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, page)
 }

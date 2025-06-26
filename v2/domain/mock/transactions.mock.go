@@ -57,18 +57,18 @@ func (mr *MockTransactionRepositoryMockRecorder) GetTransactionByHash(ctx, hash 
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
+func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string]*api.Range, page *api.Page) ([]*api.Transaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, maxTick, pageSize, pageNumber, desc)
+	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, maxTick, filters, ranges, page)
 	ret0, _ := ret[0].([]*api.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTransactionsForIdentity indicates an expected call of GetTransactionsForIdentity.
-func (mr *MockTransactionRepositoryMockRecorder) GetTransactionsForIdentity(ctx, identity, maxTick, pageSize, pageNumber, desc any) *gomock.Call {
+func (mr *MockTransactionRepositoryMockRecorder) GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, page any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionRepository)(nil).GetTransactionsForIdentity), ctx, identity, maxTick, pageSize, pageNumber, desc)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionRepository)(nil).GetTransactionsForIdentity), ctx, identity, maxTick, filters, ranges, page)
 }
 
 // GetTransactionsForTickNumber mocks base method.

@@ -12,7 +12,7 @@ var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, filters *api.GetTransactionsForIdentityFilters, aggregations *api.GetTransactionsForIdentityAggregations, page *api.Page) ([]*api.Transaction, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string]*api.Range, page *api.Page) ([]*api.Transaction, error)
 }
 
 type TickDataService interface {
@@ -61,24 +61,38 @@ func (s *ArchiveQueryService) GetTickData(ctx context.Context, req *api.GetTickD
 }
 
 func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, request *api.GetTransactionsForIdentityRequest) (*api.GetTransactionsForIdentityResponse, error) {
-	//TODO: Implement pagination and sorting logic request
 	err := validateIdentity(request.GetIdentity())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid identity: %v", err)
 	}
-	err = validateTransactionFilters(request.GetFilters())
+
+	// TODO convert page information (maybe two uint), filters and rages to domain objects
+
+	err = validateIdentityTransactionQueryFilters(request.GetFilters())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
 	}
-	err = validateTransactionAggregations(request.GetFilters(), request.GetAggregations())
+	err = validateIdentityTransactionQueryRanges(request.GetFilters(), request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid aggregations: %v", err)
 	}
-	err = validatePage(request.GetPage())
+	page := request.GetPage()
+	err = validatePage(page)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page parameter: %v", err)
 	}
-	txs, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), request.GetAggregations(), request.GetPage())
+	if page == nil || page.Size == nil {
+		//goland:noinspection ALL
+		var defaultSize = max(10, page.GetSize()) // it's ok if page is nil here
+		//goland:noinspection ALL
+		var pageNumber = page.GetNumber() // it's ok if page is nil here
+		page = &api.Page{
+			Number: &pageNumber,
+			Size:   &defaultSize,
+		}
+	}
+
+	txs, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), request.GetRanges(), page)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get transactions for identity: %v", err)
 	}

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain"
+	"log"
+	"strings"
 )
 
 type transactionGetResponse struct {
@@ -37,7 +39,7 @@ type transaction struct {
 	Hash        string `json:"hash"`
 	Source      string `json:"source"`
 	Destination string `json:"destination"`
-	Amount      int64  `json:"amount"`
+	Amount      uint64 `json:"amount"`
 	TickNumber  uint32 `json:"tickNumber"`
 	InputType   uint32 `json:"inputType"`
 	InputSize   uint32 `json:"inputSize"`
@@ -46,6 +48,8 @@ type transaction struct {
 	Timestamp   uint64 `json:"timestamp"`
 	MoneyFlew   bool   `json:"moneyFlew"`
 }
+
+const maxTrackTotalHits int = 10000 // limit for better performance
 
 func (r *Repository) GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error) {
 	res, err := r.esClient.Get(r.txIndex, hash)
@@ -59,7 +63,7 @@ func (r *Repository) GetTransactionByHash(ctx context.Context, hash string) (*ap
 	}
 
 	if res.IsError() {
-		return nil, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
+		return nil, fmt.Errorf("got error response from data store: %s", res.String())
 	}
 
 	var result transactionGetResponse
@@ -88,7 +92,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
+		return nil, fmt.Errorf("got error response from data store: %s", res.String())
 	}
 
 	var result transactionsSearchResponse
@@ -99,9 +103,9 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	return transactionHitsToApiTransactions(result.Hits.Hits), nil
 }
 
-// GetTransactionsForIdentity - method interface is subject to change after changing pagination logic
-func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
-	query, err := createIdentitiesQuery(identity, pageSize, pageNumber, desc, maxTick)
+func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string]*api.Range, page *api.Page) ([]*api.Transaction, error) {
+	from := page.GetNumber() * page.GetSize() // skip previous pages
+	query, err := createIdentitiesQueryString(identity, filters, ranges, from, page.GetSize(), maxTick)
 	if err != nil {
 		return nil, fmt.Errorf("creating query: %w", err)
 	}
@@ -109,7 +113,7 @@ func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity st
 	res, err := r.esClient.Search(
 		r.esClient.Search.WithContext(ctx),
 		r.esClient.Search.WithIndex(r.txIndex),
-		r.esClient.Search.WithBody(&query),
+		r.esClient.Search.WithBody(strings.NewReader(query)),
 		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
@@ -118,7 +122,7 @@ func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity st
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("error response from Elasticsearch: %s", res.String())
+		return nil, fmt.Errorf("error response from data store: %s", res.String())
 	}
 
 	var result transactionsSearchResponse
@@ -148,60 +152,71 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
-func createIdentitiesQuery(identity string, pageSize, pageNumber int, desc bool, maxTick uint32) (bytes.Buffer, error) {
-	from := pageNumber * pageSize
-	querySort := "asc"
-	if desc {
-		querySort = "desc"
+func createIdentitiesQueryString(identity string, filters map[string]string, ranges map[string]*api.Range, from, size, maxTick uint32) (string, error) {
+	var query string
+
+	filterStrings := make([]string, 0, len(filters)+len(ranges)+1)
+
+	// restrict to max tick (we don't care about potential duplicate tickNumber range filter)
+	filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
+
+	for k, v := range filters {
+		filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, v))
 	}
 
-	tickNumberRangeFilter := map[string]interface{}{
-		"lte": maxTick,
-		//"gte": 10000000, // min tick can also be implemented if needed
+	for k, v := range ranges {
+		rangeString, err := createRangeFilter(k, v)
+		if err != nil {
+			log.Printf("error computing range filter [%s]: %v", k, v)
+			return "", fmt.Errorf("creating filter: %w", err)
+		}
+		if len(rangeString) > 0 {
+			filterStrings = append(filterStrings, rangeString)
+		}
 	}
-	if maxTick <= 0 {
-		delete(tickNumberRangeFilter, "lte")
+	filterBlock := strings.Join(filterStrings, ",")
+
+	// in case we have source or destination filter the should clause still works
+	query = `{ 
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"%s"} },
+			{ "term":{"destination":"%s"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [ %s ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": %d,
+	  "size": %d,
+	  "track_total_hits": %d
+	}`
+
+	query = fmt.Sprintf(query, identity, identity, filterBlock, from, size, maxTrackTotalHits)
+	return query, nil
+}
+
+func createRangeFilter(property string, r *api.Range) (string, error) {
+	var rangeStrings []string
+	switch r.GetLowerBound().(type) {
+	case *api.Range_Gt:
+		rangeStrings = append(rangeStrings, fmt.Sprintf(`"gt":"%s"`, r.GetGt()))
+	case *api.Range_Gte:
+		rangeStrings = append(rangeStrings, fmt.Sprintf(`"gte":"%s"`, r.GetGte()))
 	}
 
-	query := map[string]interface{}{
-		"track_total_hits": "10000", // limit to max page size for better performance
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"source": identity,
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"destination": identity,
-						},
-					},
-				},
-				"filter": []interface{}{
-					map[string]interface{}{
-						"range": map[string]interface{}{
-							"tickNumber": tickNumberRangeFilter,
-						},
-					},
-				},
-				"minimum_should_match": 1,
-			},
-		},
-		"size": pageSize,
-		"from": from,
-		"sort": []interface{}{
-			map[string]interface{}{
-				"timestamp": querySort,
-			},
-		},
+	switch r.GetUpperBound().(type) {
+	case *api.Range_Lt:
+		rangeStrings = append(rangeStrings, fmt.Sprintf(`"lt":"%s"`, r.GetLt()))
+	case *api.Range_Lte:
+		rangeStrings = append(rangeStrings, fmt.Sprintf(`"lte":"%s"`, r.GetLte()))
 	}
 
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %v", err)
+	if len(rangeStrings) > 0 {
+		return fmt.Sprintf(`{"range":{"%s":{%s}}}`, property, strings.Join(rangeStrings, ",")), nil
+	} else {
+		return "", fmt.Errorf("computing range for [%s]", property)
 	}
-
-	return buf, nil
 }
