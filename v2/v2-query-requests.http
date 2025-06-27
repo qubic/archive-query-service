@@ -1,0 +1,33 @@
+### Get transactions for one identity
+
+POST http://localhost:8000/getTransactionsForIdentity
+Accept: application/json
+
+{
+    "identity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+    "filters": {
+           "inputType": "0"
+    },
+    "ranges": {
+        "amount": {
+            "gt": "1000000"
+        },
+        "tickNumber": {
+            "gte": "25563104"
+        }
+    },
+    "pagination": {
+      "size": 1
+    }
+}
+
+### Get transaction
+
+POST http://localhost:8000/getTransactionByHash
+Accept: application/json
+
+{
+    "hash": "wnkujtaavborugjhgudeimborfpgyudnuekalkbsjeaxiejvvdgahdrerajo"
+}
+
+###
