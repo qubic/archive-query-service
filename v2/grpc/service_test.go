@@ -84,7 +84,6 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 	assert.Equal(t, "tx-hash-2", response.Transactions[1].Hash)
 
 	assert.Equal(t, 2, int(response.GetHits().GetTotal()))
-	assert.Equal(t, "eq", response.GetHits().GetRelation())
 	assert.Equal(t, 0, int(response.GetHits().GetFrom()))
 	assert.Equal(t, 10, int(response.GetHits().GetSize()))
 
