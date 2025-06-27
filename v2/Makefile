@@ -2,7 +2,7 @@
 PROTO_DIR := $(shell pwd)/api/archive-query-service/v2
 
 # Apple arm64 specific
-OPT_ARGS := $(shell [[ "$$(uname -s)" == "Darwin" && "$$(uname -m)" == "arm64" ]] && echo "--proto_path=/opt/homebrew/Cellar/protobuf/25.3_1/include")
+OPT_ARGS := $(shell [ "$$(uname -s)" = "Darwin" ] && [ "$$(uname -m)" = "arm64" ] && echo "--proto_path=/opt/homebrew/Cellar/protobuf/25.3_1/include")
 
 # Tasks
 .PHONY: all mock-gen proto-gen proto-clean swagger-gen test-cover

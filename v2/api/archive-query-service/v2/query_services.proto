@@ -28,7 +28,7 @@ service ArchiveQueryService {
         option (google.api.http) = {
             post: "/getTransactionsForIdentity"
             body: "*"
-            response_body: "transactions"
+//            response_body: "transactions"
         };
     }
 
