@@ -89,10 +89,9 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 
 	// paging information
 	apiHits := &api.Hits{
-		Total:    uint32(hits.GetTotal()),
-		Relation: hits.GetRelation(),
-		From:     from,
-		Size:     size,
+		Total: uint32(hits.GetTotal()),
+		From:  from,
+		Size:  size,
 	}
 
 	return &api.GetTransactionsForIdentityResponse{

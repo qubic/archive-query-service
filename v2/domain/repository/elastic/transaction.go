@@ -153,7 +153,7 @@ func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity st
 
 	hits := &entities.Hits{
 		Total:    result.Hits.Total.Value,
-		Relation: "",
+		Relation: result.Hits.Total.Relation,
 	}
 
 	return transactionHitsToApiTransactions(result.Hits.Hits), hits, nil

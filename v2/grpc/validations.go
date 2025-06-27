@@ -38,33 +38,33 @@ func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 		case "source":
 			err := validateIdentity(value)
 			if err != nil {
-				return fmt.Errorf("invalid source filter: [%w]", err)
+				return fmt.Errorf("invalid source filter: %w", err)
 			}
 		case "destination":
 			err := validateIdentity(value)
 			if err != nil {
-				return fmt.Errorf("invalid destination filter: [%w]", err)
+				return fmt.Errorf("invalid destination filter: %w", err)
 			}
 		case "amount":
 			_, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid amount filter: [%w]", err)
+				return fmt.Errorf("invalid amount filter: %w", err)
 			}
 		case "tickNumber":
 			// max allowed tick number is already validated in middleware
 			_, err := strconv.ParseUint(value, 10, 32)
 			if err != nil {
-				return fmt.Errorf("invalid tickNumber filter: [%w]", err)
+				return fmt.Errorf("invalid tickNumber filter: %w", err)
 			}
 		case "inputType":
 			_, err := strconv.ParseUint(value, 10, 32)
 			if err != nil {
-				return fmt.Errorf("invalid inputType filter: [%w]", err)
+				return fmt.Errorf("invalid inputType filter: %w", err)
 			}
 		case "timestamp":
 			_, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid timestamp filter: [%w]", err)
+				return fmt.Errorf("invalid timestamp filter: %w", err)
 			}
 		default:
 			return fmt.Errorf("unsupported filter: [%s]", key)
@@ -88,7 +88,7 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 		case "amount":
 			r, err := validateRange(value, 64)
 			if err != nil {
-				return nil, fmt.Errorf("invalid amount range: [%w]", err)
+				return nil, fmt.Errorf("invalid amount range: %w", err)
 			}
 			if len(r) > 0 {
 				convertedRanges[key] = r
@@ -96,7 +96,7 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 		case "tickNumber":
 			r, err := validateRange(value, 32)
 			if err != nil {
-				return nil, fmt.Errorf("invalid tickNumber range: [%w]", err)
+				return nil, fmt.Errorf("invalid tickNumber range: %w", err)
 			}
 			if len(r) > 0 {
 				convertedRanges[key] = r
@@ -104,7 +104,7 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 		case "inputType":
 			r, err := validateRange(value, 32)
 			if err != nil {
-				return nil, fmt.Errorf("invalid inputType range: [%w]", err)
+				return nil, fmt.Errorf("invalid inputType range: %w", err)
 			}
 			if len(r) > 0 {
 				convertedRanges[key] = r
@@ -112,7 +112,7 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 		case "timestamp":
 			r, err := validateRange(value, 64)
 			if err != nil {
-				return nil, fmt.Errorf("invalid timestamp range: [%w]", err)
+				return nil, fmt.Errorf("invalid timestamp range: %w", err)
 			}
 			if len(r) > 0 {
 				convertedRanges[key] = r
@@ -153,7 +153,7 @@ func validateDigest(digest string, isLowerCase bool) error {
 	}
 
 	if id.String() != digest {
-		return fmt.Errorf("original id string %s does not match expected %s", digest, id.String())
+		return fmt.Errorf("invalid %s [%s]", If(isLowerCase, "hash", "identity"), digest)
 	}
 	return nil
 }
@@ -166,6 +166,7 @@ func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 	switch r.GetLowerBound().(type) {
 	case *api.Range_Gt:
 		lowerBound, err = strconv.ParseUint(r.GetGt(), 10, bitSize)
+		lowerBound = lowerBound + 1
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
 		}
@@ -187,6 +188,7 @@ func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 	switch r.GetUpperBound().(type) {
 	case *api.Range_Lt:
 		upperBound, err = strconv.ParseUint(r.GetLt(), 10, bitSize)
+		upperBound = upperBound - 1
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
 		}

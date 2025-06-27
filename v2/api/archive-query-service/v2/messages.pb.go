@@ -956,9 +956,8 @@ func (x *GetTransactionsForIdentityRequest) GetPagination() *Pagination {
 type Hits struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         uint32                 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	Relation      string                 `protobuf:"bytes,2,opt,name=relation,proto3" json:"relation,omitempty"`
-	From          uint32                 `protobuf:"varint,3,opt,name=from,proto3" json:"from,omitempty"`
-	Size          uint32                 `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
+	From          uint32                 `protobuf:"varint,2,opt,name=from,proto3" json:"from,omitempty"`
+	Size          uint32                 `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -998,13 +997,6 @@ func (x *Hits) GetTotal() uint32 {
 		return x.Total
 	}
 	return 0
-}
-
-func (x *Hits) GetRelation() string {
-	if x != nil {
-		return x.Relation
-	}
-	return ""
 }
 
 func (x *Hits) GetFrom() uint32 {
@@ -1256,12 +1248,11 @@ const file_messages_proto_rawDesc = "" +
 	"\vRangesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
 	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01B\r\n" +
-	"\v_pagination\"`\n" +
+	"\v_pagination\"D\n" +
 	"\x04Hits\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\rR\x05total\x12\x1a\n" +
-	"\brelation\x18\x02 \x01(\tR\brelation\x12\x12\n" +
-	"\x04from\x18\x03 \x01(\rR\x04from\x12\x12\n" +
-	"\x04size\x18\x04 \x01(\rR\x04size\"\x99\x01\n" +
+	"\x05total\x18\x01 \x01(\rR\x05total\x12\x12\n" +
+	"\x04from\x18\x02 \x01(\rR\x04from\x12\x12\n" +
+	"\x04size\x18\x03 \x01(\rR\x04size\"\x99\x01\n" +
 	"\"GetTransactionsForIdentityResponse\x12-\n" +
 	"\x04hits\x18\x01 \x01(\v2\x19.qubic.v2.archive.pb.HitsR\x04hits\x12D\n" +
 	"\ftransactions\x18\x02 \x03(\v2 .qubic.v2.archive.pb.TransactionR\ftransactions\"5\n" +

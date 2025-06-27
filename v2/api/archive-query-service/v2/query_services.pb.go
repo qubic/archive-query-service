@@ -26,11 +26,11 @@ var File_query_services_proto protoreflect.FileDescriptor
 
 const file_query_services_proto_rawDesc = "" +
 	"\n" +
-	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2\xb9\x05\n" +
+	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2\xab\x05\n" +
 	"\x13ArchiveQueryService\x12\xaa\x01\n" +
 	"\x14GetTransactionByHash\x120.qubic.v2.archive.pb.GetTransactionByHashRequest\x1a1.qubic.v2.archive.pb.GetTransactionByHashResponse\"-\x82\xd3\xe4\x93\x02':\x01*b\vtransaction\"\x15/getTransactionByHash\x12\xb3\x01\n" +
-	"\x16GetTransactionsForTick\x122.qubic.v2.archive.pb.GetTransactionsForTickRequest\x1a3.qubic.v2.archive.pb.GetTransactionsForTickResponse\"0\x82\xd3\xe4\x93\x02*:\x01*b\ftransactions\"\x17/getTransactionsForTick\x12\xc3\x01\n" +
-	"\x1aGetTransactionsForIdentity\x126.qubic.v2.archive.pb.GetTransactionsForIdentityRequest\x1a7.qubic.v2.archive.pb.GetTransactionsForIdentityResponse\"4\x82\xd3\xe4\x93\x02.:\x01*b\ftransactions\"\x1b/getTransactionsForIdentity\x12y\n" +
+	"\x16GetTransactionsForTick\x122.qubic.v2.archive.pb.GetTransactionsForTickRequest\x1a3.qubic.v2.archive.pb.GetTransactionsForTickResponse\"0\x82\xd3\xe4\x93\x02*:\x01*b\ftransactions\"\x17/getTransactionsForTick\x12\xb5\x01\n" +
+	"\x1aGetTransactionsForIdentity\x126.qubic.v2.archive.pb.GetTransactionsForIdentityRequest\x1a7.qubic.v2.archive.pb.GetTransactionsForIdentityResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/getTransactionsForIdentity\x12y\n" +
 	"\vGetTickData\x12'.qubic.v2.archive.pb.GetTickDataRequest\x1a(.qubic.v2.archive.pb.GetTickDataResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/getTickDataB,Z*github.com/qubic/archive-query-service/apib\x06proto3"
 
 var file_query_services_proto_goTypes = []any{

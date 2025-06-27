@@ -103,9 +103,8 @@ message GetTransactionsForIdentityRequest {
 
 message Hits {
     uint32 total = 1;
-    string relation = 2;
-    uint32 from = 3;
-    uint32 size = 4;
+    uint32 from = 2;
+    uint32 size = 3;
 }
 
 message GetTransactionsForIdentityResponse {

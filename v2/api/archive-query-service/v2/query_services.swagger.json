@@ -85,13 +85,9 @@
         "operationId": "ArchiveQueryService_GetTransactionsForIdentity",
         "responses": {
           "200": {
-            "description": "",
+            "description": "A successful response.",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "$ref": "#/definitions/pbTransaction"
-              }
+              "$ref": "#/definitions/pbGetTransactionsForIdentityResponse"
             }
           },
           "default": {
@@ -252,9 +248,6 @@
         "total": {
           "type": "integer",
           "format": "int64"
-        },
-        "relation": {
-          "type": "string"
         },
         "from": {
           "type": "integer",
