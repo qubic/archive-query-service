@@ -44,8 +44,8 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenFilters_r
 		  "minimum_should_match": 1,
 		  "filter": [
             {"range":{"tickNumber":{"lte":"1000000"}}},
-			{"term":{"some-value":"42"}},
-			{"term":{"another-value":"foo"}}
+			{"term":{"another-value":"foo"}},
+			{"term":{"some-value":"42"}}
           ]
 		}
 	  },
@@ -75,8 +75,8 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenRanges_re
 		  "minimum_should_match": 1,
 		  "filter": [
             {"range":{"tickNumber":{"lte":"1000000"}}},
-			{"range":{"some-value":{ "lt": "42" }}},
 			{"range":{"another-value":{ "lte": "43", "gte": "12"  }}},
+			{"range":{"some-value":{ "lt": "42" }}},
 			{"range":{"third-value":{ "gt": "44"}}}
           ]
 		}
@@ -111,8 +111,8 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenRangesAnd
 		  "minimum_should_match": 1,
 		  "filter": [
             {"range":{"tickNumber":{"lte":"1000000"}}},
-		    {"term":{"some-value":"42"}},
 			{"term":{"another-value":"foo"}},
+		    {"term":{"some-value":"42"}},
 			{"range":{"range-value":{ "gt": "0", "lte": "42" }}}
           ]
 		}

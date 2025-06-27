@@ -9,6 +9,7 @@ import (
 	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
 	"log"
+	"sort"
 	"strings"
 )
 
@@ -136,6 +137,7 @@ func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity st
 		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
+		log.Printf("calling es client search with query: %v", query)
 		return nil, nil, fmt.Errorf("performing search: %w", err)
 	}
 	defer res.Body.Close()
@@ -164,22 +166,12 @@ func createIdentitiesQueryString(identity string, filters map[string]string, ran
 
 	// restrict to max tick (we don't care about potential duplicate tickNumber range filter)
 	filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
-
-	for k, v := range filters {
-		filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, v))
+	filterStrings = append(filterStrings, getFilterStrings(filters)...)
+	rangeFilterStrings, err := getRangeFilterStrings(ranges)
+	if err != nil {
+		return "", err
 	}
-
-	for k, v := range ranges {
-		rangeString, err := createRangeFilter(k, v)
-		if err != nil {
-			log.Printf("error computing range filter [%s]: %v", k, v)
-			return "", fmt.Errorf("creating filter: %w", err)
-		}
-		if len(rangeString) > 0 {
-			filterStrings = append(filterStrings, rangeString)
-		}
-	}
-	filterBlock := strings.Join(filterStrings, ",")
+	filterStrings = append(filterStrings, rangeFilterStrings...)
 
 	// in case we have source or destination filter the should clause still works
 	query = `{ 
@@ -199,8 +191,32 @@ func createIdentitiesQueryString(identity string, filters map[string]string, ran
 	  "track_total_hits": %d
 	}`
 
-	query = fmt.Sprintf(query, identity, identity, filterBlock, from, size, maxTrackTotalHits)
+	query = fmt.Sprintf(query, identity, identity, strings.Join(filterStrings, ","), from, size, maxTrackTotalHits)
 	return query, nil
+}
+
+func getFilterStrings(filters map[string]string) []string {
+	keys := getSortedKeys(filters) // sort for a deterministic filter order
+
+	filterStrings := make([]string, 0, len(filters))
+	for _, k := range keys {
+		filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, filters[k]))
+	}
+	return filterStrings
+}
+
+func getRangeFilterStrings(ranges map[string][]*entities.Range) ([]string, error) {
+	keys := getSortedKeys(ranges) // sort for a deterministic filter order
+	filterStrings := make([]string, 0, len(ranges))
+	for _, k := range keys {
+		rangeString, err := createRangeFilter(k, ranges[k])
+		if err != nil {
+			log.Printf("error computing range filter [%s]: %v", k, ranges[k])
+			return nil, fmt.Errorf("creating range filter: %w", err)
+		}
+		filterStrings = append(filterStrings, rangeString)
+	}
+	return filterStrings, nil
 }
 
 func createRangeFilter(property string, r []*entities.Range) (string, error) {
@@ -213,4 +229,13 @@ func createRangeFilter(property string, r []*entities.Range) (string, error) {
 	} else {
 		return "", fmt.Errorf("computing range for [%s]", property)
 	}
+}
+
+func getSortedKeys[T any](m map[string]T) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
