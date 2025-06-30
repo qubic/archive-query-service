@@ -3,10 +3,14 @@ package grpc
 import (
 	"context"
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"net"
 )
+
+//go:generate go tool go.uber.org/mock/mockgen -destination=mock/services.mock.go -package=mock -source service.go
 
 var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 
@@ -21,11 +25,13 @@ type TickDataService interface {
 }
 
 type StatusService interface {
-	GetLastProcessedTick(ctx context.Context) (*api.GetLastProcessedTickResponse, error)
-	GetProcessedTickIntervals(ctx context.Context) (*api.GetProcessedTicksIntervalsResponse, error)
+	GetLastProcessedTick(ctx context.Context) (*api.LastProcessedTick, error)
+	GetProcessedTickIntervals(ctx context.Context) ([]*api.ProcessedTickInterval, error)
 }
 
 type ArchiveQueryService struct {
+	srv            *grpc.Server
+	grpcListenAddr net.Addr
 	api.UnimplementedArchiveQueryServiceServer
 	txService     TransactionsService
 	tdService     TickDataService
@@ -82,14 +88,14 @@ func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, req *emp
 		return nil, status.Errorf(codes.Internal, "failed to get last processed tick: %v", err)
 	}
 
-	return lpt, nil
+	return &api.GetLastProcessedTickResponse{TickNumber: lpt.TickNumber}, nil
 }
 
-func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, req *emptypb.Empty) (*api.GetProcessedTicksIntervalsResponse, error) {
+func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *emptypb.Empty) (*api.GetProcessedTicksIntervalsResponse, error) {
 	intervals, err := s.statusService.GetProcessedTickIntervals(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get processed tick intervals: %v", err)
 	}
 
-	return intervals, nil
+	return &api.GetProcessedTicksIntervalsResponse{ProcessedTicksIntervals: intervals}, nil
 }

@@ -4,7 +4,7 @@ package qubic.v2.archive.pb;
 option go_package = "github.com/qubic/archive-query-service/api";
 
 message LastProcessedTick {
-    uint32 last_processed_tick = 1;
+    uint32 tick_number = 1;
 }
 
 message NextAvailableTick {

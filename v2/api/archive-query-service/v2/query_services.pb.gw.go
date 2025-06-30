@@ -186,20 +186,20 @@ func local_request_ArchiveQueryService_GetLastProcessedTick_0(ctx context.Contex
 
 }
 
-func request_ArchiveQueryService_GetProcessedTicksIntervals_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_ArchiveQueryService_GetProcessedTickIntervals_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
-	msg, err := client.GetProcessedTicksIntervals(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetProcessedTickIntervals(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_ArchiveQueryService_GetProcessedTicksIntervals_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_ArchiveQueryService_GetProcessedTickIntervals_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
-	msg, err := server.GetProcessedTicksIntervals(ctx, &protoReq)
+	msg, err := server.GetProcessedTickIntervals(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -335,7 +335,7 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 
 	})
 
-	mux.Handle("GET", pattern_ArchiveQueryService_GetProcessedTicksIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ArchiveQueryService_GetProcessedTickIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -343,12 +343,12 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTicksIntervals", runtime.WithHTTPPathPattern("/getProcessedTicksIntervals"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTicksIntervals"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ArchiveQueryService_GetProcessedTicksIntervals_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -356,7 +356,7 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			return
 		}
 
-		forward_ArchiveQueryService_GetProcessedTicksIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTicksIntervals_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp}, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -511,25 +511,25 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 
 	})
 
-	mux.Handle("GET", pattern_ArchiveQueryService_GetProcessedTicksIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ArchiveQueryService_GetProcessedTickIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTicksIntervals", runtime.WithHTTPPathPattern("/getProcessedTicksIntervals"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTicksIntervals"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ArchiveQueryService_GetProcessedTicksIntervals_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ArchiveQueryService_GetProcessedTicksIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTicksIntervals_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp}, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -572,11 +572,11 @@ func (m response_ArchiveQueryService_GetTickData_0) XXX_ResponseBody() interface
 	return response.TickData
 }
 
-type response_ArchiveQueryService_GetProcessedTicksIntervals_0 struct {
+type response_ArchiveQueryService_GetProcessedTickIntervals_0 struct {
 	proto.Message
 }
 
-func (m response_ArchiveQueryService_GetProcessedTicksIntervals_0) XXX_ResponseBody() interface{} {
+func (m response_ArchiveQueryService_GetProcessedTickIntervals_0) XXX_ResponseBody() interface{} {
 	response := m.Message.(*GetProcessedTicksIntervalsResponse)
 	return response.ProcessedTicksIntervals
 }
@@ -592,7 +592,7 @@ var (
 
 	pattern_ArchiveQueryService_GetLastProcessedTick_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getLastProcessedTick"}, ""))
 
-	pattern_ArchiveQueryService_GetProcessedTicksIntervals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTicksIntervals"}, ""))
+	pattern_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTicksIntervals"}, ""))
 )
 
 var (
@@ -606,5 +606,5 @@ var (
 
 	forward_ArchiveQueryService_GetLastProcessedTick_0 = runtime.ForwardResponseMessage
 
-	forward_ArchiveQueryService_GetProcessedTicksIntervals_0 = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.ForwardResponseMessage
 )

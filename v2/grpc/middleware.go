@@ -103,7 +103,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 
 	if tickNumber > lastProcessedTick {
 		st := status.Newf(codes.FailedPrecondition, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)
-		st, err = st.WithDetails(&api.LastProcessedTick{LastProcessedTick: lastProcessedTick})
+		st, err = st.WithDetails(&api.LastProcessedTick{TickNumber: lastProcessedTick})
 		if err != nil {
 			return status.Errorf(codes.Internal, "creating custom status")
 		}
@@ -111,7 +111,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 	}
 
 	processedTickIntervalsPerEpoch := tickIntervals
-	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch.ProcessedTicksIntervals)
+	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch)
 	if wasSkipped == true {
 		st := status.Newf(codes.OutOfRange, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
 		st, err = st.WithDetails(&api.NextAvailableTick{NextTickNumber: nextAvailableTick})
