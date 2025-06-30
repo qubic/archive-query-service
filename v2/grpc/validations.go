@@ -25,12 +25,14 @@ func validatePagination(page *api.Pagination) (from uint32, size uint32, err err
 	return from, If(size > 0, size, defaultPageSize), nil
 }
 
+var allowedTermFilters = [4]string{"source", "destination", "amount", "inputType"}
+
 func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	if len(filters) == 0 {
 		return nil
 	}
-	allowedFilters := [4]string{"source", "destination", "amount", "inputType"}
-	if len(filters) > len(allowedFilters) {
+
+	if len(filters) > len(allowedTermFilters) {
 		return errors.New("too many filters")
 	}
 	for key, value := range filters {
@@ -62,12 +64,13 @@ func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	return nil
 }
 
+var allowedRanges = [4]string{"amount", "tickNumber", "inputType", "timestamp"}
+
 func validateIdentityTransactionQueryRanges(filters map[string]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
 	convertedRanges := map[string][]*entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
 	}
-	allowedRanges := [4]string{"amount", "tickNumber", "inputType", "timestamp"}
 	if len(ranges) > len(allowedRanges) {
 		return nil, errors.New("too many ranges")
 	}
