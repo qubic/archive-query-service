@@ -39,7 +39,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./v1
-          file: ./v1/Dockerfile
+          context: ./v2
+          file: ./v2/Dockerfile
           push: true
           tags: ghcr.io/qubic/archive-query-service-v2:${{ steps.extract.outputs.version }}
