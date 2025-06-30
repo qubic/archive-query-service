@@ -39,4 +39,17 @@ service ArchiveQueryService {
             //response_body: "tick_data"
         };
     }
+
+    rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
+        option (google.api.http) = {
+            get: "/getLastProcessedTick"
+        };
+    }
+
+    rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTicksIntervalsResponse) {
+        option (google.api.http) = {
+            get: "/getProcessedTicksIntervals"
+            response_body: "processed_ticks_intervals"
+        };
+    }
 }
