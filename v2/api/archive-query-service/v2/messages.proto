@@ -108,8 +108,9 @@ message Hits {
 }
 
 message GetTransactionsForIdentityResponse {
-    Hits hits = 1;
-    repeated Transaction transactions = 2;
+    uint32 valid_for_tick = 1;
+    Hits hits = 2;
+    repeated Transaction transactions = 3;
 }
 
 message GetTickDataRequest {

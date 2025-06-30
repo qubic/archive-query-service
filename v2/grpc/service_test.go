@@ -26,12 +26,12 @@ func (t *TransactionServiceStub) GetTransactionsForTickNumber(context.Context, u
 	panic("implement me")
 }
 
-func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) ([]*api.Transaction, *entities.Hits, error) {
+func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) (uint32, []*api.Transaction, *entities.Hits, error) {
 	t.ctx = ctx
 	t.identity = identity
 	t.filters = filters
 	t.ranges = ranges
-	return t.transactions, t.hits, nil
+	return 42, t.transactions, t.hits, nil
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
@@ -86,6 +86,8 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 	assert.Equal(t, 2, int(response.GetHits().GetTotal()))
 	assert.Equal(t, 0, int(response.GetHits().GetFrom()))
 	assert.Equal(t, 10, int(response.GetHits().GetSize()))
+
+	assert.Equal(t, 42, int(response.GetValidForTick()))
 
 	// verify tx service call
 	assert.Equal(t, ctx, txService.ctx)

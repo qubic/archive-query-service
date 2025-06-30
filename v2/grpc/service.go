@@ -13,7 +13,7 @@ var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (uint32, []*api.Transaction, *entities.Hits, error)
 }
 
 type TickDataService interface {
@@ -82,7 +82,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page: %v", err)
 	}
 
-	txs, hits, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
+	latestTick, txs, hits, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get transactions for identity: %v", err)
 	}
@@ -95,6 +95,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 	}
 
 	return &api.GetTransactionsForIdentityResponse{
+		ValidForTick: latestTick,
 		Hits:         apiHits,
 		Transactions: txs,
 	}, nil

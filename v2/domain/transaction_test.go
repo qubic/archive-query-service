@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func maxTickFetcherFunc(ctx context.Context) (uint32, error) {
+func maxTickFetcherFunc(_ context.Context) (uint32, error) {
 	return 10, nil
 }
 
@@ -43,10 +43,11 @@ func TestTransactionService_GetTransactionByIdentity(t *testing.T) {
 	ctx := context.Background()
 	repo.EXPECT().GetTransactionsForIdentity(ctx, "test-identity", uint32(10), nil, nil, uint32(0), uint32(2)).Return(apiTransactions, entityHits, nil)
 
-	txs, hits, err := service.GetTransactionsForIdentity(ctx, "test-identity", nil, nil, 0, 2)
+	maxTick, txs, hits, err := service.GetTransactionsForIdentity(ctx, "test-identity", nil, nil, 0, 2)
 	require.NoError(t, err)
 
 	require.Len(t, txs, 2)
+	require.Equal(t, 10, int(maxTick))
 	assert.Equal(t, apiTransactions, txs)
 	assert.Equal(t, entityHits, hits)
 }

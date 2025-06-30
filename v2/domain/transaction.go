@@ -35,10 +35,11 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (uint32, []*api.Transaction, *entities.Hits, error) {
 	maxTick, err := s.maxTickFetcher(ctx)
 	if err != nil || maxTick < 1 {
-		return nil, nil, err
+		return 0, nil, nil, err
 	}
-	return s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, from, size)
+	txs, hits, err := s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, from, size)
+	return maxTick, txs, hits, err
 }

@@ -209,6 +209,10 @@
     "pbGetTransactionsForIdentityResponse": {
       "type": "object",
       "properties": {
+        "validForTick": {
+          "type": "integer",
+          "format": "int64"
+        },
         "hits": {
           "$ref": "#/definitions/pbHits"
         },

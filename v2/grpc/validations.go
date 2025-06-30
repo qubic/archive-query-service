@@ -25,7 +25,6 @@ func validatePagination(page *api.Pagination) (from uint32, size uint32, err err
 	return from, If(size > 0, size, defaultPageSize), nil
 }
 
-// FIXME
 func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	if len(filters) == 0 {
 		return nil

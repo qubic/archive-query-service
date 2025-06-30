@@ -1015,8 +1015,9 @@ func (x *Hits) GetSize() uint32 {
 
 type GetTransactionsForIdentityResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Hits          *Hits                  `protobuf:"bytes,1,opt,name=hits,proto3" json:"hits,omitempty"`
-	Transactions  []*Transaction         `protobuf:"bytes,2,rep,name=transactions,proto3" json:"transactions,omitempty"`
+	ValidForTick  uint32                 `protobuf:"varint,1,opt,name=valid_for_tick,json=validForTick,proto3" json:"valid_for_tick,omitempty"`
+	Hits          *Hits                  `protobuf:"bytes,2,opt,name=hits,proto3" json:"hits,omitempty"`
+	Transactions  []*Transaction         `protobuf:"bytes,3,rep,name=transactions,proto3" json:"transactions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1049,6 +1050,13 @@ func (x *GetTransactionsForIdentityResponse) ProtoReflect() protoreflect.Message
 // Deprecated: Use GetTransactionsForIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionsForIdentityResponse) Descriptor() ([]byte, []int) {
 	return file_messages_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetTransactionsForIdentityResponse) GetValidForTick() uint32 {
+	if x != nil {
+		return x.ValidForTick
+	}
+	return 0
 }
 
 func (x *GetTransactionsForIdentityResponse) GetHits() *Hits {
@@ -1252,10 +1260,11 @@ const file_messages_proto_rawDesc = "" +
 	"\x04Hits\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\rR\x05total\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\rR\x04from\x12\x12\n" +
-	"\x04size\x18\x03 \x01(\rR\x04size\"\x99\x01\n" +
-	"\"GetTransactionsForIdentityResponse\x12-\n" +
-	"\x04hits\x18\x01 \x01(\v2\x19.qubic.v2.archive.pb.HitsR\x04hits\x12D\n" +
-	"\ftransactions\x18\x02 \x03(\v2 .qubic.v2.archive.pb.TransactionR\ftransactions\"5\n" +
+	"\x04size\x18\x03 \x01(\rR\x04size\"\xbf\x01\n" +
+	"\"GetTransactionsForIdentityResponse\x12$\n" +
+	"\x0evalid_for_tick\x18\x01 \x01(\rR\fvalidForTick\x12-\n" +
+	"\x04hits\x18\x02 \x01(\v2\x19.qubic.v2.archive.pb.HitsR\x04hits\x12D\n" +
+	"\ftransactions\x18\x03 \x03(\v2 .qubic.v2.archive.pb.TransactionR\ftransactions\"5\n" +
 	"\x12GetTickDataRequest\x12\x1f\n" +
 	"\vtick_number\x18\x01 \x01(\rR\n" +
 	"tickNumber\"Q\n" +
