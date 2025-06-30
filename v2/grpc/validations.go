@@ -25,11 +25,12 @@ func validatePagination(page *api.Pagination) (from uint32, size uint32, err err
 	return from, If(size > 0, size, defaultPageSize), nil
 }
 
+// FIXME
 func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	if len(filters) == 0 {
 		return nil
 	}
-	allowedFilters := [6]string{"source", "destination", "amount", "tickNumber", "inputType", "timestamp"}
+	allowedFilters := [4]string{"source", "destination", "amount", "inputType"}
 	if len(filters) > len(allowedFilters) {
 		return errors.New("too many filters")
 	}
@@ -50,21 +51,10 @@ func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 			if err != nil {
 				return fmt.Errorf("invalid amount filter: %w", err)
 			}
-		case "tickNumber":
-			// max allowed tick number is already validated in middleware
-			_, err := strconv.ParseUint(value, 10, 32)
-			if err != nil {
-				return fmt.Errorf("invalid tickNumber filter: %w", err)
-			}
 		case "inputType":
 			_, err := strconv.ParseUint(value, 10, 32)
 			if err != nil {
 				return fmt.Errorf("invalid inputType filter: %w", err)
-			}
-		case "timestamp":
-			_, err := strconv.ParseUint(value, 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid timestamp filter: %w", err)
 			}
 		default:
 			return fmt.Errorf("unsupported filter: [%s]", key)
@@ -81,6 +71,16 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 	allowedRanges := [4]string{"amount", "tickNumber", "inputType", "timestamp"}
 	if len(ranges) > len(allowedRanges) {
 		return nil, errors.New("too many ranges")
+	}
+
+	if filters != nil {
+		// check for ranges that are already declared as filter
+		for key := range ranges {
+			_, ok := filters[key]
+			if ok {
+				return nil, fmt.Errorf("range [%s] is already declared as filter", key)
+			}
+		}
 	}
 
 	for key, value := range ranges {
@@ -122,15 +122,6 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 		}
 	}
 
-	if filters != nil {
-		// check for ranges that are already declared as filter
-		for key := range ranges {
-			_, ok := filters[key]
-			if ok {
-				return nil, fmt.Errorf("range [%s] is already declared as filter", key)
-			}
-		}
-	}
 	return convertedRanges, nil
 }
 
@@ -207,9 +198,14 @@ func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 		})
 	}
 
-	if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
-		return nil, errors.New("upper bound must be larger than lower bound")
+	if len(ranges) == 0 {
+		return nil, errors.New("invalid range: no bounds")
 	}
+
+	if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
+		return nil, fmt.Errorf("invalid range: [%d:%d]", lowerBound, upperBound)
+	}
+
 	return ranges, nil
 }
 
