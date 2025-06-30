@@ -89,7 +89,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("performing search: %v", err)
+		return nil, fmt.Errorf("performing search: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -118,7 +118,7 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %v", err)
+		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
 	}
 
 	return buf, nil

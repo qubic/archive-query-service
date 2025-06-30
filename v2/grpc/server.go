@@ -19,7 +19,6 @@ type StartConfig struct {
 }
 
 func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, interceptors ...grpc.UnaryServerInterceptor) error {
-
 	srv := grpc.NewServer(
 		grpc.MaxRecvMsgSize(600*1024*1024),
 		grpc.MaxSendMsgSize(600*1024*1024),
@@ -69,5 +68,18 @@ func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, intercept
 		}()
 	}
 
+	s.srv = srv
+	s.grpcListenAddr = lis.Addr()
+
 	return nil
+}
+
+func (s *ArchiveQueryService) Stop() {
+	if s.srv != nil {
+		s.srv.GracefulStop()
+	}
+}
+
+func (s *ArchiveQueryService) GetGRPCListenAddr() net.Addr {
+	return s.grpcListenAddr
 }

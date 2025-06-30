@@ -4,7 +4,7 @@ package qubic.v2.archive.pb;
 option go_package = "github.com/qubic/archive-query-service/api";
 
 message LastProcessedTick {
-    uint32 last_processed_tick = 1;
+    uint32 tick_number = 1;
 }
 
 message NextAvailableTick {
@@ -35,6 +35,12 @@ message TickData {
     repeated string transaction_hashes = 7;
     repeated int64 contract_fees = 8;
     string signature = 9;
+}
+
+message ProcessedTickInterval {
+    uint32 epoch = 1;
+    uint32 first_tick = 2;
+    uint32 last_tick = 3;
 }
 
 // aggregations
@@ -119,4 +125,12 @@ message GetTickDataRequest {
 
 message GetTickDataResponse {
     TickData tick_data = 1;
+}
+
+message GetProcessedTicksIntervalsResponse {
+    repeated ProcessedTickInterval processed_ticks_intervals = 1;
+}
+
+message GetLastProcessedTickResponse {
+    uint32 tick_number = 1;
 }
