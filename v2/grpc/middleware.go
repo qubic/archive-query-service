@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -125,17 +124,6 @@ func (twb *TickWithinBoundsInterceptor) GetInterceptor(ctx context.Context, req 
 		err = twb.checkTickWithinArchiverIntervals(ctx, request.TickNumber)
 	case *api.GetTransactionsForTickRequest:
 		err = twb.checkTickWithinArchiverIntervals(ctx, request.TickNumber)
-	case *api.GetTransactionsForIdentityRequest:
-		if request.GetFilters() != nil {
-			filterVal, ok := request.GetFilters()["tickNumber"]
-			if ok {
-				var tickNumber uint64
-				tickNumber, err = strconv.ParseUint(filterVal, 10, 32)
-				if err == nil {
-					err = twb.checkTickWithinArchiverIntervals(ctx, uint32(tickNumber))
-				}
-			}
-		}
 	default:
 		break
 	}
