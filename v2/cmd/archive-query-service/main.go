@@ -120,7 +120,7 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	cache := domain.NewStatusCache(statusServiceClient, cfg.Server.StatusDataCacheTTL)
+	cache := domain.NewStatusGetter(statusServiceClient, cfg.Server.StatusDataCacheTTL)
 
 	go cache.Start()
 	defer cache.Stop()

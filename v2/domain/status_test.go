@@ -20,7 +20,7 @@ func Test_StatusService(t *testing.T) {
 
 	statusServiceClient := mock.NewMockStatusServiceClient(ctrl)
 
-	sc := NewStatusCache(statusServiceClient, 1*time.Second)
+	sc := NewStatusGetter(statusServiceClient, 1*time.Second)
 	statusServiceClient.EXPECT().GetStatus(gomock.Any(), gomock.Any()).Return(&statusPb.GetStatusResponse{
 		LastProcessedTick: 12345,
 	}, nil)

@@ -15,50 +15,50 @@ import (
 const maxTickCacheKey = "max_tick"
 const tickIntervalsCacheKey = "tick_intervals"
 
-type StatusCache struct {
-	lastProcessedTickProvider *ttlcache.Cache[string, uint32]
-	tickIntervalsProvider     *ttlcache.Cache[string, []*statusPb.TickInterval]
-	StatusServiceClient       statusPb.StatusServiceClient
-	sfGroup                   *singleflight.Group
+type StatusGetter struct {
+	lptProviderCache    *ttlcache.Cache[string, uint32]
+	tiProviderCache     *ttlcache.Cache[string, []*statusPb.TickInterval]
+	StatusServiceClient statusPb.StatusServiceClient
+	sfGroup             *singleflight.Group
 }
 
-func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, ttl time.Duration) *StatusCache {
+func NewStatusGetter(statusServiceClient statusPb.StatusServiceClient, cacheTtl time.Duration) *StatusGetter {
 	lastProcessedTickProvider := ttlcache.New[string, uint32](
-		ttlcache.WithTTL[string, uint32](ttl),
-		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh ttl upon getting the item from cache
+		ttlcache.WithTTL[string, uint32](cacheTtl),
+		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh cacheTtl upon getting the item from getter
 	)
 
 	tickIntervalsProvider := ttlcache.New[string, []*statusPb.TickInterval](
-		ttlcache.WithTTL[string, []*statusPb.TickInterval](ttl),
-		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh ttl upon getting the item from cache
+		ttlcache.WithTTL[string, []*statusPb.TickInterval](cacheTtl),
+		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh cacheTtl upon getting the item from getter
 	)
-	return &StatusCache{
-		lastProcessedTickProvider: lastProcessedTickProvider,
-		tickIntervalsProvider:     tickIntervalsProvider,
-		StatusServiceClient:       statusServiceClient,
-		sfGroup:                   &singleflight.Group{},
+	return &StatusGetter{
+		lptProviderCache:    lastProcessedTickProvider,
+		tiProviderCache:     tickIntervalsProvider,
+		StatusServiceClient: statusServiceClient,
+		sfGroup:             &singleflight.Group{},
 	}
 }
 
-func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
+func (s *StatusGetter) GetMaxTick(ctx context.Context) (uint32, error) {
 	maxTick, err, _ := s.sfGroup.Do(maxTickCacheKey, func() (interface{}, error) {
 		// Check if the max tick is already cached
-		if item := s.lastProcessedTickProvider.Get(maxTickCacheKey); item != nil {
+		if item := s.lptProviderCache.Get(maxTickCacheKey); item != nil {
 			return item.Value(), nil
 		}
 
 		// If not cached, fetch from the status service
 		maxTick, err := s.fetchStatusMaxTick(ctx)
 		if err != nil {
-			return 0, fmt.Errorf("fetching status service max tick: %v", err)
+			return 0, fmt.Errorf("fetching status service max tick: %w", err)
 		}
 
 		// Cache the fetched max tick
-		s.lastProcessedTickProvider.Set(maxTickCacheKey, maxTick, ttlcache.DefaultTTL)
+		s.lptProviderCache.Set(maxTickCacheKey, maxTick, ttlcache.DefaultTTL)
 		return maxTick, nil
 	})
 	if err != nil {
-		return 0, fmt.Errorf("getting max tick from cache: %v", err)
+		return 0, fmt.Errorf("getting max tick from getter: %w", err)
 	}
 
 	// cast to uint32
@@ -70,23 +70,23 @@ func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
 	return maxTickUint32, nil
 }
 
-func (s *StatusCache) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
+func (s *StatusGetter) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
 	tickIntervals, err, _ := s.sfGroup.Do(tickIntervalsCacheKey, func() (interface{}, error) {
-		item := s.tickIntervalsProvider.Get(tickIntervalsCacheKey)
+		item := s.tiProviderCache.Get(tickIntervalsCacheKey)
 		if item != nil {
 			return item.Value(), nil
 		}
 
 		tickIntervals, err := s.fetchTickIntervals(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("fetching status service tick intervals: %v", err)
+			return nil, fmt.Errorf("fetching status service tick intervals: %w", err)
 		}
 
-		s.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+		s.tiProviderCache.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
 		return tickIntervals, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("getting tick intervals from cache: %v", err)
+		return nil, fmt.Errorf("getting tick intervals from getter: %w", err)
 	}
 
 	// cast to []*statusPb.TickInterval
@@ -98,29 +98,29 @@ func (s *StatusCache) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInt
 	return tickIntervalsSlice, nil
 }
 
-func (s *StatusCache) Start() {
-	s.lastProcessedTickProvider.Start()
-	s.tickIntervalsProvider.Start()
+func (s *StatusGetter) Start() {
+	s.lptProviderCache.Start()
+	s.tiProviderCache.Start()
 }
 
-func (s *StatusCache) Stop() {
-	s.lastProcessedTickProvider.Stop()
-	s.tickIntervalsProvider.Stop()
+func (s *StatusGetter) Stop() {
+	s.lptProviderCache.Stop()
+	s.tiProviderCache.Stop()
 }
 
-func (s *StatusCache) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
+func (s *StatusGetter) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
 	statusResponse, err := s.StatusServiceClient.GetStatus(ctx, nil)
 	if err != nil {
-		return 0, fmt.Errorf("fetching status service: %v", err)
+		return 0, fmt.Errorf("fetching status service from grpc service: %w", err)
 	}
 
 	return statusResponse.LastProcessedTick, nil
 }
 
-func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
+func (s *StatusGetter) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
 	tickIntervalsResponse, err := s.StatusServiceClient.GetTickIntervals(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("fetching tick intervals: %v", err)
+		return nil, fmt.Errorf("fetching tick intervals from grpc service: %w", err)
 	}
 
 	if len(tickIntervalsResponse.Intervals) == 0 {
@@ -131,28 +131,28 @@ func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickI
 }
 
 type StatusService struct {
-	cache *StatusCache
+	getter *StatusGetter
 }
 
-func NewStatusService(cache *StatusCache) *StatusService {
+func NewStatusService(getter *StatusGetter) *StatusService {
 	return &StatusService{
-		cache: cache,
+		getter: getter,
 	}
 }
 
 func (s *StatusService) GetLastProcessedTick(ctx context.Context) (*api.LastProcessedTick, error) {
-	maxTick, err := s.cache.GetMaxTick(ctx)
+	maxTick, err := s.getter.GetMaxTick(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting max tick from cache: %v", err)
+		return nil, fmt.Errorf("getting max tick: %w", err)
 	}
 
 	return &api.LastProcessedTick{TickNumber: maxTick}, nil
 }
 
 func (s *StatusService) GetProcessedTickIntervals(ctx context.Context) ([]*api.ProcessedTickInterval, error) {
-	tickIntervals, err := s.cache.GetTickIntervals(ctx)
+	tickIntervals, err := s.getter.GetTickIntervals(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting tick intervals: %v", err)
+		return nil, fmt.Errorf("getting tick intervals: %w", err)
 	}
 
 	return toApiProcessedTickIntervals(tickIntervals), nil
