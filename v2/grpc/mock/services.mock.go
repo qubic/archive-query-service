@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	entities "github.com/qubic/archive-query-service/v2/entities"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -57,18 +58,20 @@ func (mr *MockTransactionsServiceMockRecorder) GetTransactionByHash(ctx, hash an
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
+func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (uint32, []*api.Transaction, *entities.Hits, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, pageSize, pageNumber, desc)
-	ret0, _ := ret[0].([]*api.Transaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, filters, ranges, from, size)
+	ret0, _ := ret[0].(uint32)
+	ret1, _ := ret[1].([]*api.Transaction)
+	ret2, _ := ret[2].(*entities.Hits)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GetTransactionsForIdentity indicates an expected call of GetTransactionsForIdentity.
-func (mr *MockTransactionsServiceMockRecorder) GetTransactionsForIdentity(ctx, identity, pageSize, pageNumber, desc any) *gomock.Call {
+func (mr *MockTransactionsServiceMockRecorder) GetTransactionsForIdentity(ctx, identity, filters, ranges, from, size any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionsService)(nil).GetTransactionsForIdentity), ctx, identity, pageSize, pageNumber, desc)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionsService)(nil).GetTransactionsForIdentity), ctx, identity, filters, ranges, from, size)
 }
 
 // GetTransactionsForTickNumber mocks base method.

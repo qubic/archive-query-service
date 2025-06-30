@@ -50,7 +50,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 		},
 	}
 
-	service := NewArchiveQueryService(txService, nil)
+	service := NewArchiveQueryService(txService, nil, nil)
 
 	var from uint32 = 0
 	var size uint32 = 10

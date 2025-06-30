@@ -10,7 +10,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/emptypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -26,37 +26,46 @@ var File_query_services_proto protoreflect.FileDescriptor
 
 const file_query_services_proto_rawDesc = "" +
 	"\n" +
-	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2\xab\x05\n" +
+	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2\xdd\a\n" +
 	"\x13ArchiveQueryService\x12\xaa\x01\n" +
 	"\x14GetTransactionByHash\x120.qubic.v2.archive.pb.GetTransactionByHashRequest\x1a1.qubic.v2.archive.pb.GetTransactionByHashResponse\"-\x82\xd3\xe4\x93\x02':\x01*b\vtransaction\"\x15/getTransactionByHash\x12\xb3\x01\n" +
 	"\x16GetTransactionsForTick\x122.qubic.v2.archive.pb.GetTransactionsForTickRequest\x1a3.qubic.v2.archive.pb.GetTransactionsForTickResponse\"0\x82\xd3\xe4\x93\x02*:\x01*b\ftransactions\"\x17/getTransactionsForTick\x12\xb5\x01\n" +
 	"\x1aGetTransactionsForIdentity\x126.qubic.v2.archive.pb.GetTransactionsForIdentityRequest\x1a7.qubic.v2.archive.pb.GetTransactionsForIdentityResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/getTransactionsForIdentity\x12y\n" +
-	"\vGetTickData\x12'.qubic.v2.archive.pb.GetTickDataRequest\x1a(.qubic.v2.archive.pb.GetTickDataResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/getTickDataB,Z*github.com/qubic/archive-query-service/apib\x06proto3"
+	"\vGetTickData\x12'.qubic.v2.archive.pb.GetTickDataRequest\x1a(.qubic.v2.archive.pb.GetTickDataResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/getTickData\x12\x80\x01\n" +
+	"\x14GetLastProcessedTick\x12\x16.google.protobuf.Empty\x1a1.qubic.v2.archive.pb.GetLastProcessedTickResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/getLastProcessedTick\x12\xac\x01\n" +
+	"\x19GetProcessedTickIntervals\x12\x16.google.protobuf.Empty\x1a7.qubic.v2.archive.pb.GetProcessedTicksIntervalsResponse\">\x82\xd3\xe4\x93\x028b\x19processed_ticks_intervals\x12\x1b/getProcessedTicksIntervalsB,Z*github.com/qubic/archive-query-service/apib\x06proto3"
 
 var file_query_services_proto_goTypes = []any{
 	(*GetTransactionByHashRequest)(nil),        // 0: qubic.v2.archive.pb.GetTransactionByHashRequest
 	(*GetTransactionsForTickRequest)(nil),      // 1: qubic.v2.archive.pb.GetTransactionsForTickRequest
 	(*GetTransactionsForIdentityRequest)(nil),  // 2: qubic.v2.archive.pb.GetTransactionsForIdentityRequest
 	(*GetTickDataRequest)(nil),                 // 3: qubic.v2.archive.pb.GetTickDataRequest
-	(*GetTransactionByHashResponse)(nil),       // 4: qubic.v2.archive.pb.GetTransactionByHashResponse
-	(*GetTransactionsForTickResponse)(nil),     // 5: qubic.v2.archive.pb.GetTransactionsForTickResponse
-	(*GetTransactionsForIdentityResponse)(nil), // 6: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
-	(*GetTickDataResponse)(nil),                // 7: qubic.v2.archive.pb.GetTickDataResponse
+	(*emptypb.Empty)(nil),                      // 4: google.protobuf.Empty
+	(*GetTransactionByHashResponse)(nil),       // 5: qubic.v2.archive.pb.GetTransactionByHashResponse
+	(*GetTransactionsForTickResponse)(nil),     // 6: qubic.v2.archive.pb.GetTransactionsForTickResponse
+	(*GetTransactionsForIdentityResponse)(nil), // 7: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
+	(*GetTickDataResponse)(nil),                // 8: qubic.v2.archive.pb.GetTickDataResponse
+	(*GetLastProcessedTickResponse)(nil),       // 9: qubic.v2.archive.pb.GetLastProcessedTickResponse
+	(*GetProcessedTicksIntervalsResponse)(nil), // 10: qubic.v2.archive.pb.GetProcessedTicksIntervalsResponse
 }
 var file_query_services_proto_depIdxs = []int32{
-	0, // 0: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionByHash:input_type -> qubic.v2.archive.pb.GetTransactionByHashRequest
-	1, // 1: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForTick:input_type -> qubic.v2.archive.pb.GetTransactionsForTickRequest
-	2, // 2: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForIdentity:input_type -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest
-	3, // 3: qubic.v2.archive.pb.ArchiveQueryService.GetTickData:input_type -> qubic.v2.archive.pb.GetTickDataRequest
-	4, // 4: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionByHash:output_type -> qubic.v2.archive.pb.GetTransactionByHashResponse
-	5, // 5: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForTick:output_type -> qubic.v2.archive.pb.GetTransactionsForTickResponse
-	6, // 6: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForIdentity:output_type -> qubic.v2.archive.pb.GetTransactionsForIdentityResponse
-	7, // 7: qubic.v2.archive.pb.ArchiveQueryService.GetTickData:output_type -> qubic.v2.archive.pb.GetTickDataResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionByHash:input_type -> qubic.v2.archive.pb.GetTransactionByHashRequest
+	1,  // 1: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForTick:input_type -> qubic.v2.archive.pb.GetTransactionsForTickRequest
+	2,  // 2: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForIdentity:input_type -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest
+	3,  // 3: qubic.v2.archive.pb.ArchiveQueryService.GetTickData:input_type -> qubic.v2.archive.pb.GetTickDataRequest
+	4,  // 4: qubic.v2.archive.pb.ArchiveQueryService.GetLastProcessedTick:input_type -> google.protobuf.Empty
+	4,  // 5: qubic.v2.archive.pb.ArchiveQueryService.GetProcessedTickIntervals:input_type -> google.protobuf.Empty
+	5,  // 6: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionByHash:output_type -> qubic.v2.archive.pb.GetTransactionByHashResponse
+	6,  // 7: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForTick:output_type -> qubic.v2.archive.pb.GetTransactionsForTickResponse
+	7,  // 8: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForIdentity:output_type -> qubic.v2.archive.pb.GetTransactionsForIdentityResponse
+	8,  // 9: qubic.v2.archive.pb.ArchiveQueryService.GetTickData:output_type -> qubic.v2.archive.pb.GetTickDataResponse
+	9,  // 10: qubic.v2.archive.pb.ArchiveQueryService.GetLastProcessedTick:output_type -> qubic.v2.archive.pb.GetLastProcessedTickResponse
+	10, // 11: qubic.v2.archive.pb.ArchiveQueryService.GetProcessedTickIntervals:output_type -> qubic.v2.archive.pb.GetProcessedTicksIntervalsResponse
+	6,  // [6:12] is the sub-list for method output_type
+	0,  // [0:6] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_query_services_proto_init() }

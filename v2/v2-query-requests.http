@@ -17,7 +17,7 @@ Accept: application/json
         }
     },
     "pagination": {
-      "size": 1
+      "size": 3
     }
 }
 

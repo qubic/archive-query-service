@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/qubic/go-node-connector/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
