@@ -1,6 +1,6 @@
 ### Get transactions for one identity
 
-POST http://localhost:8000/getTransactionsForIdentity
+POST {{host}}/getTransactionsForIdentity
 Accept: application/json
 
 {
@@ -23,7 +23,7 @@ Accept: application/json
 
 ### Get transaction
 
-POST http://localhost:8000/getTransactionByHash
+POST {{host}}/getTransactionByHash
 Accept: application/json
 
 {

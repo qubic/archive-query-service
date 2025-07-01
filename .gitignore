@@ -6,3 +6,5 @@
 vendor/
 certs/
 http_ca.crt
+
+http-client.private.env.json
