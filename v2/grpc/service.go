@@ -15,30 +15,10 @@ import (
 
 var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 
-type TransactionsResult struct {
-	LastProcessedTick uint32
-	Hits              *entities.Hits
-	Transactions      []*api.Transaction
-}
-
-func (t *TransactionsResult) GetHits() *entities.Hits {
-	if t == nil || t.Hits == nil {
-		return &entities.Hits{}
-	}
-	return t.Hits
-}
-
-func (t *TransactionsResult) GetTransactions() []*api.Transaction {
-	if t == nil || t.Transactions == nil {
-		return make([]*api.Transaction, 0)
-	}
-	return t.Transactions
-}
-
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*TransactionsResult, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error)
 }
 
 type TickDataService interface {
@@ -135,7 +115,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 	}, nil
 }
 
-func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, req *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
+func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
 	lpt, err := s.statusService.GetLastProcessedTick(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get last processed tick: %v", err)

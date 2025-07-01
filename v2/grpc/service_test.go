@@ -18,20 +18,20 @@ type TransactionServiceStub struct {
 	hits         *entities.Hits
 }
 
-func (t *TransactionServiceStub) GetTransactionByHash(context.Context, string) (*api.Transaction, error) {
+func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, _ string) (*api.Transaction, error) {
 	panic("implement me")
 }
 
-func (t *TransactionServiceStub) GetTransactionsForTickNumber(context.Context, uint32) ([]*api.Transaction, error) {
+func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, _ uint32) ([]*api.Transaction, error) {
 	panic("implement me")
 }
 
-func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) (*TransactionsResult, error) {
+func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) (*entities.TransactionsResult, error) {
 	t.ctx = ctx
 	t.identity = identity
 	t.filters = filters
 	t.ranges = ranges
-	return &TransactionsResult{42, t.hits, t.transactions}, nil
+	return &entities.TransactionsResult{LastProcessedTick: 42, Hits: t.hits, Transactions: t.transactions}, nil
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
