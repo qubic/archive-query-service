@@ -8,15 +8,13 @@ type Hits struct {
 func (h *Hits) GetTotal() int {
 	if h != nil {
 		return h.Total
-	} else {
-		return 0
 	}
+	return 0
 }
 
 func (h *Hits) GetRelation() string {
 	if h != nil {
 		return h.Relation
-	} else {
-		return ""
 	}
+	return ""
 }
