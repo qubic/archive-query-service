@@ -13,7 +13,7 @@ Accept: application/json
             "gt": "1000000"
         },
         "tickNumber": {
-            "gte": "25563104"
+            "gte": "25563000"
         }
     },
     "pagination": {
