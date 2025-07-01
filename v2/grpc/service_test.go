@@ -26,28 +26,18 @@ func (t *TransactionServiceStub) GetTransactionsForTickNumber(context.Context, u
 	panic("implement me")
 }
 
-func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) (uint32, []*api.Transaction, *entities.Hits, error) {
+func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) (*TransactionsResult, error) {
 	t.ctx = ctx
 	t.identity = identity
 	t.filters = filters
 	t.ranges = ranges
-	return 42, t.transactions, t.hits, nil
+	return &TransactionsResult{42, t.hits, t.transactions}, nil
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 	txService := &TransactionServiceStub{
-		transactions: []*api.Transaction{
-			{
-				Hash: "tx-hash-1",
-			},
-			{
-				Hash: "tx-hash-2",
-			},
-		},
-		hits: &entities.Hits{
-			Total:    2,
-			Relation: "eq",
-		},
+		transactions: []*api.Transaction{{Hash: "tx-hash-1"}, {Hash: "tx-hash-2"}},
+		hits:         &entities.Hits{Total: 2, Relation: "eq"},
 	}
 
 	service := NewArchiveQueryService(txService, nil, nil)
@@ -61,18 +51,11 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 		Filters:  map[string]string{"inputType": "1"},
 		Ranges: map[string]*api.Range{
 			"amount": {
-				LowerBound: &api.Range_Gte{
-					Gte: "1",
-				},
-				UpperBound: &api.Range_Lt{
-					Lt: "10000",
-				},
+				LowerBound: &api.Range_Gte{Gte: "1"},
+				UpperBound: &api.Range_Lt{Lt: "10000"},
 			},
 		},
-		Pagination: &api.Pagination{
-			Offset: &from,
-			Size:   &size,
-		},
+		Pagination: &api.Pagination{Offset: &from, Size: &size},
 	}
 
 	response, err := service.GetTransactionsForIdentity(ctx, request)

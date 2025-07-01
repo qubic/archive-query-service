@@ -43,11 +43,11 @@ func TestTransactionService_GetTransactionByIdentity(t *testing.T) {
 	ctx := context.Background()
 	repo.EXPECT().GetTransactionsForIdentity(ctx, "test-identity", uint32(10), nil, nil, uint32(0), uint32(2)).Return(apiTransactions, entityHits, nil)
 
-	maxTick, txs, hits, err := service.GetTransactionsForIdentity(ctx, "test-identity", nil, nil, 0, 2)
+	result, err := service.GetTransactionsForIdentity(ctx, "test-identity", nil, nil, 0, 2)
 	require.NoError(t, err)
 
-	require.Len(t, txs, 2)
-	require.Equal(t, 10, int(maxTick))
-	assert.Equal(t, apiTransactions, txs)
-	assert.Equal(t, entityHits, hits)
+	require.Len(t, result.GetTransactions(), 2)
+	require.Equal(t, 10, int(result.LastProcessedTick))
+	assert.Equal(t, apiTransactions, result.GetTransactions())
+	assert.Equal(t, entityHits, result.GetHits())
 }

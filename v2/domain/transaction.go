@@ -4,6 +4,7 @@ import (
 	"context"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/qubic/archive-query-service/v2/grpc"
 )
 
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/transactions.mock.go -package=mock -source transaction.go
@@ -35,11 +36,11 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (uint32, []*api.Transaction, *entities.Hits, error) {
+func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*grpc.TransactionsResult, error) {
 	maxTick, err := s.maxTickFetcher(ctx)
 	if err != nil || maxTick < 1 {
-		return 0, nil, nil, err
+		return nil, err
 	}
 	txs, hits, err := s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, from, size)
-	return maxTick, txs, hits, err
+	return &grpc.TransactionsResult{LastProcessedTick: maxTick, Hits: hits, Transactions: txs}, err
 }

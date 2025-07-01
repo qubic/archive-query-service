@@ -15,6 +15,7 @@ import (
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	entities "github.com/qubic/archive-query-service/v2/entities"
+	grpc "github.com/qubic/archive-query-service/v2/grpc"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -58,14 +59,12 @@ func (mr *MockTransactionsServiceMockRecorder) GetTransactionByHash(ctx, hash an
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (uint32, []*api.Transaction, *entities.Hits, error) {
+func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*grpc.TransactionsResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, filters, ranges, from, size)
-	ret0, _ := ret[0].(uint32)
-	ret1, _ := ret[1].([]*api.Transaction)
-	ret2, _ := ret[2].(*entities.Hits)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret0, _ := ret[0].(*grpc.TransactionsResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetTransactionsForIdentity indicates an expected call of GetTransactionsForIdentity.
