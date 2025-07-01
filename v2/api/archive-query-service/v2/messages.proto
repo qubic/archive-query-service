@@ -84,11 +84,6 @@ message GetTransactionsForTickResponse {
     repeated Transaction transactions = 1;
 }
 
-message Filter {
-    string property = 1;
-    string value = 2;
-}
-
 message Range {
     oneof lower_bound {
         string gt = 1;

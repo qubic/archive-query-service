@@ -765,58 +765,6 @@ func (x *GetTransactionsForTickResponse) GetTransactions() []*Transaction {
 	return nil
 }
 
-type Filter struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Property      string                 `protobuf:"bytes,1,opt,name=property,proto3" json:"property,omitempty"`
-	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Filter) Reset() {
-	*x = Filter{}
-	mi := &file_messages_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Filter) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Filter) ProtoMessage() {}
-
-func (x *Filter) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Filter.ProtoReflect.Descriptor instead.
-func (*Filter) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *Filter) GetProperty() string {
-	if x != nil {
-		return x.Property
-	}
-	return ""
-}
-
-func (x *Filter) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
-}
-
 type Range struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to LowerBound:
@@ -835,7 +783,7 @@ type Range struct {
 
 func (x *Range) Reset() {
 	*x = Range{}
-	mi := &file_messages_proto_msgTypes[13]
+	mi := &file_messages_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +795,7 @@ func (x *Range) String() string {
 func (*Range) ProtoMessage() {}
 
 func (x *Range) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[13]
+	mi := &file_messages_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -860,7 +808,7 @@ func (x *Range) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Range.ProtoReflect.Descriptor instead.
 func (*Range) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{13}
+	return file_messages_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Range) GetLowerBound() isRange_LowerBound {
@@ -957,7 +905,7 @@ type GetTransactionsForIdentityRequest struct {
 
 func (x *GetTransactionsForIdentityRequest) Reset() {
 	*x = GetTransactionsForIdentityRequest{}
-	mi := &file_messages_proto_msgTypes[14]
+	mi := &file_messages_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -969,7 +917,7 @@ func (x *GetTransactionsForIdentityRequest) String() string {
 func (*GetTransactionsForIdentityRequest) ProtoMessage() {}
 
 func (x *GetTransactionsForIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[14]
+	mi := &file_messages_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -982,7 +930,7 @@ func (x *GetTransactionsForIdentityRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetTransactionsForIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionsForIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{14}
+	return file_messages_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetTransactionsForIdentityRequest) GetIdentity() string {
@@ -1024,7 +972,7 @@ type Hits struct {
 
 func (x *Hits) Reset() {
 	*x = Hits{}
-	mi := &file_messages_proto_msgTypes[15]
+	mi := &file_messages_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1036,7 +984,7 @@ func (x *Hits) String() string {
 func (*Hits) ProtoMessage() {}
 
 func (x *Hits) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[15]
+	mi := &file_messages_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1049,7 +997,7 @@ func (x *Hits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hits.ProtoReflect.Descriptor instead.
 func (*Hits) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{15}
+	return file_messages_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Hits) GetTotal() uint32 {
@@ -1084,7 +1032,7 @@ type GetTransactionsForIdentityResponse struct {
 
 func (x *GetTransactionsForIdentityResponse) Reset() {
 	*x = GetTransactionsForIdentityResponse{}
-	mi := &file_messages_proto_msgTypes[16]
+	mi := &file_messages_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1096,7 +1044,7 @@ func (x *GetTransactionsForIdentityResponse) String() string {
 func (*GetTransactionsForIdentityResponse) ProtoMessage() {}
 
 func (x *GetTransactionsForIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[16]
+	mi := &file_messages_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1109,7 +1057,7 @@ func (x *GetTransactionsForIdentityResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetTransactionsForIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionsForIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{16}
+	return file_messages_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetTransactionsForIdentityResponse) GetValidForTick() uint32 {
@@ -1142,7 +1090,7 @@ type GetTickDataRequest struct {
 
 func (x *GetTickDataRequest) Reset() {
 	*x = GetTickDataRequest{}
-	mi := &file_messages_proto_msgTypes[17]
+	mi := &file_messages_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1154,7 +1102,7 @@ func (x *GetTickDataRequest) String() string {
 func (*GetTickDataRequest) ProtoMessage() {}
 
 func (x *GetTickDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[17]
+	mi := &file_messages_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1167,7 +1115,7 @@ func (x *GetTickDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTickDataRequest.ProtoReflect.Descriptor instead.
 func (*GetTickDataRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{17}
+	return file_messages_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetTickDataRequest) GetTickNumber() uint32 {
@@ -1186,7 +1134,7 @@ type GetTickDataResponse struct {
 
 func (x *GetTickDataResponse) Reset() {
 	*x = GetTickDataResponse{}
-	mi := &file_messages_proto_msgTypes[18]
+	mi := &file_messages_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1198,7 +1146,7 @@ func (x *GetTickDataResponse) String() string {
 func (*GetTickDataResponse) ProtoMessage() {}
 
 func (x *GetTickDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[18]
+	mi := &file_messages_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1211,7 +1159,7 @@ func (x *GetTickDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTickDataResponse.ProtoReflect.Descriptor instead.
 func (*GetTickDataResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{18}
+	return file_messages_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetTickDataResponse) GetTickData() *TickData {
@@ -1230,7 +1178,7 @@ type GetProcessedTicksIntervalsResponse struct {
 
 func (x *GetProcessedTicksIntervalsResponse) Reset() {
 	*x = GetProcessedTicksIntervalsResponse{}
-	mi := &file_messages_proto_msgTypes[19]
+	mi := &file_messages_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1242,7 +1190,7 @@ func (x *GetProcessedTicksIntervalsResponse) String() string {
 func (*GetProcessedTicksIntervalsResponse) ProtoMessage() {}
 
 func (x *GetProcessedTicksIntervalsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[19]
+	mi := &file_messages_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1255,7 +1203,7 @@ func (x *GetProcessedTicksIntervalsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetProcessedTicksIntervalsResponse.ProtoReflect.Descriptor instead.
 func (*GetProcessedTicksIntervalsResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{19}
+	return file_messages_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetProcessedTicksIntervalsResponse) GetProcessedTicksIntervals() []*ProcessedTickInterval {
@@ -1274,7 +1222,7 @@ type GetLastProcessedTickResponse struct {
 
 func (x *GetLastProcessedTickResponse) Reset() {
 	*x = GetLastProcessedTickResponse{}
-	mi := &file_messages_proto_msgTypes[20]
+	mi := &file_messages_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1286,7 +1234,7 @@ func (x *GetLastProcessedTickResponse) String() string {
 func (*GetLastProcessedTickResponse) ProtoMessage() {}
 
 func (x *GetLastProcessedTickResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[20]
+	mi := &file_messages_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1299,7 +1247,7 @@ func (x *GetLastProcessedTickResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLastProcessedTickResponse.ProtoReflect.Descriptor instead.
 func (*GetLastProcessedTickResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{20}
+	return file_messages_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetLastProcessedTickResponse) GetTickNumber() uint32 {
@@ -1386,10 +1334,7 @@ const file_messages_proto_rawDesc = "" +
 	"\vtick_number\x18\x01 \x01(\rR\n" +
 	"tickNumber\"f\n" +
 	"\x1eGetTransactionsForTickResponse\x12D\n" +
-	"\ftransactions\x18\x01 \x03(\v2 .qubic.v2.archive.pb.TransactionR\ftransactions\":\n" +
-	"\x06Filter\x12\x1a\n" +
-	"\bproperty\x18\x01 \x01(\tR\bproperty\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"q\n" +
+	"\ftransactions\x18\x01 \x03(\v2 .qubic.v2.archive.pb.TransactionR\ftransactions\"q\n" +
 	"\x05Range\x12\x10\n" +
 	"\x02gt\x18\x01 \x01(\tH\x00R\x02gt\x12\x12\n" +
 	"\x03gte\x18\x02 \x01(\tH\x00R\x03gte\x12\x10\n" +
@@ -1442,7 +1387,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_messages_proto_goTypes = []any{
 	(*LastProcessedTick)(nil),                  // 0: qubic.v2.archive.pb.LastProcessedTick
 	(*NextAvailableTick)(nil),                  // 1: qubic.v2.archive.pb.NextAvailableTick
@@ -1456,29 +1401,28 @@ var file_messages_proto_goTypes = []any{
 	(*GetTransactionByHashResponse)(nil),       // 9: qubic.v2.archive.pb.GetTransactionByHashResponse
 	(*GetTransactionsForTickRequest)(nil),      // 10: qubic.v2.archive.pb.GetTransactionsForTickRequest
 	(*GetTransactionsForTickResponse)(nil),     // 11: qubic.v2.archive.pb.GetTransactionsForTickResponse
-	(*Filter)(nil),                             // 12: qubic.v2.archive.pb.Filter
-	(*Range)(nil),                              // 13: qubic.v2.archive.pb.Range
-	(*GetTransactionsForIdentityRequest)(nil),  // 14: qubic.v2.archive.pb.GetTransactionsForIdentityRequest
-	(*Hits)(nil),                               // 15: qubic.v2.archive.pb.Hits
-	(*GetTransactionsForIdentityResponse)(nil), // 16: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
-	(*GetTickDataRequest)(nil),                 // 17: qubic.v2.archive.pb.GetTickDataRequest
-	(*GetTickDataResponse)(nil),                // 18: qubic.v2.archive.pb.GetTickDataResponse
-	(*GetProcessedTicksIntervalsResponse)(nil), // 19: qubic.v2.archive.pb.GetProcessedTicksIntervalsResponse
-	(*GetLastProcessedTickResponse)(nil),       // 20: qubic.v2.archive.pb.GetLastProcessedTickResponse
-	nil,                                        // 21: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	nil,                                        // 22: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	(*Range)(nil),                              // 12: qubic.v2.archive.pb.Range
+	(*GetTransactionsForIdentityRequest)(nil),  // 13: qubic.v2.archive.pb.GetTransactionsForIdentityRequest
+	(*Hits)(nil),                               // 14: qubic.v2.archive.pb.Hits
+	(*GetTransactionsForIdentityResponse)(nil), // 15: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
+	(*GetTickDataRequest)(nil),                 // 16: qubic.v2.archive.pb.GetTickDataRequest
+	(*GetTickDataResponse)(nil),                // 17: qubic.v2.archive.pb.GetTickDataResponse
+	(*GetProcessedTicksIntervalsResponse)(nil), // 18: qubic.v2.archive.pb.GetProcessedTicksIntervalsResponse
+	(*GetLastProcessedTickResponse)(nil),       // 19: qubic.v2.archive.pb.GetLastProcessedTickResponse
+	nil,                                        // 20: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	nil,                                        // 21: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
 	2,  // 1: qubic.v2.archive.pb.GetTransactionsForTickResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	21, // 2: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	22, // 3: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	20, // 2: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	21, // 3: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
 	7,  // 4: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	15, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	14, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
 	2,  // 6: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
 	3,  // 7: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
 	4,  // 8: qubic.v2.archive.pb.GetProcessedTicksIntervalsResponse.processed_ticks_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
-	13, // 9: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	12, // 9: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
 	10, // [10:10] is the sub-list for method output_type
 	10, // [10:10] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
@@ -1494,20 +1438,20 @@ func file_messages_proto_init() {
 	file_messages_proto_msgTypes[5].OneofWrappers = []any{}
 	file_messages_proto_msgTypes[6].OneofWrappers = []any{}
 	file_messages_proto_msgTypes[7].OneofWrappers = []any{}
-	file_messages_proto_msgTypes[13].OneofWrappers = []any{
+	file_messages_proto_msgTypes[12].OneofWrappers = []any{
 		(*Range_Gt)(nil),
 		(*Range_Gte)(nil),
 		(*Range_Lt)(nil),
 		(*Range_Lte)(nil),
 	}
-	file_messages_proto_msgTypes[14].OneofWrappers = []any{}
+	file_messages_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messages_proto_rawDesc), len(file_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
