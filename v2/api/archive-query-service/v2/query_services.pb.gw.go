@@ -36,11 +36,7 @@ func request_ArchiveQueryService_GetTransactionByHash_0(ctx context.Context, mar
 	var protoReq GetTransactionByHashRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -53,11 +49,7 @@ func local_request_ArchiveQueryService_GetTransactionByHash_0(ctx context.Contex
 	var protoReq GetTransactionByHashRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -70,11 +62,7 @@ func request_ArchiveQueryService_GetTransactionsForTick_0(ctx context.Context, m
 	var protoReq GetTransactionsForTickRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -87,11 +75,7 @@ func local_request_ArchiveQueryService_GetTransactionsForTick_0(ctx context.Cont
 	var protoReq GetTransactionsForTickRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -104,11 +88,7 @@ func request_ArchiveQueryService_GetTransactionsForIdentity_0(ctx context.Contex
 	var protoReq GetTransactionsForIdentityRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -121,11 +101,7 @@ func local_request_ArchiveQueryService_GetTransactionsForIdentity_0(ctx context.
 	var protoReq GetTransactionsForIdentityRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -138,11 +114,7 @@ func request_ArchiveQueryService_GetTickData_0(ctx context.Context, marshaler ru
 	var protoReq GetTickDataRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -155,11 +127,7 @@ func local_request_ArchiveQueryService_GetTickData_0(ctx context.Context, marsha
 	var protoReq GetTickDataRequest
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -281,7 +249,7 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			return
 		}
 
-		forward_ArchiveQueryService_GetTransactionsForIdentity_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionsForIdentity_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_ArchiveQueryService_GetTransactionsForIdentity_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -463,7 +431,7 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			return
 		}
 
-		forward_ArchiveQueryService_GetTransactionsForIdentity_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionsForIdentity_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_ArchiveQueryService_GetTransactionsForIdentity_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -551,15 +519,6 @@ type response_ArchiveQueryService_GetTransactionsForTick_0 struct {
 
 func (m response_ArchiveQueryService_GetTransactionsForTick_0) XXX_ResponseBody() interface{} {
 	response := m.Message.(*GetTransactionsForTickResponse)
-	return response.Transactions
-}
-
-type response_ArchiveQueryService_GetTransactionsForIdentity_0 struct {
-	proto.Message
-}
-
-func (m response_ArchiveQueryService_GetTransactionsForIdentity_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*GetTransactionsForIdentityResponse)
 	return response.Transactions
 }
 

@@ -13,7 +13,7 @@ message NextAvailableTick {
 
 message Transaction {
     string hash = 1;
-    int64 amount = 2;
+    uint64 amount = 2;
     string source = 3;
     string destination = 4;
     uint32 tick_number = 5;
@@ -43,6 +43,31 @@ message ProcessedTickInterval {
     uint32 last_tick = 3;
 }
 
+// aggregations
+
+message RangeUint64 {
+    optional uint64 gt = 1;
+    optional uint64 gte = 2;
+    optional uint64 lt = 3;
+    optional uint64 lte = 4;
+}
+
+message RangeUint32 {
+    optional uint32 gt = 1;
+    optional uint32 gte = 2;
+    optional uint32 lt = 3;
+    optional uint32 lte = 4;
+}
+
+// paging
+
+message Pagination {
+    optional uint32 offset = 1;
+    optional uint32 size = 2;
+}
+
+// requests and responses
+
 message GetTransactionByHashRequest {
     string hash = 1;
 }
@@ -59,12 +84,39 @@ message GetTransactionsForTickResponse {
     repeated Transaction transactions = 1;
 }
 
+message Filter {
+    string property = 1;
+    string value = 2;
+}
+
+message Range {
+    oneof lower_bound {
+        string gt = 1;
+        string gte = 2;
+    }
+    oneof upper_bound {
+        string lt = 3;
+        string lte = 4;
+    }
+}
+
 message GetTransactionsForIdentityRequest {
     string identity = 1;
+    map<string, string> filters = 2;
+    map<string, Range> ranges = 3;
+    optional Pagination pagination = 4;
+}
+
+message Hits {
+    uint32 total = 1;
+    uint32 from = 2;
+    uint32 size = 3;
 }
 
 message GetTransactionsForIdentityResponse {
-    repeated Transaction transactions = 1;
+    uint32 valid_for_tick = 1;
+    Hits hits = 2;
+    repeated Transaction transactions = 3;
 }
 
 message GetTickDataRequest {

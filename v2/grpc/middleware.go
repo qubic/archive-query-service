@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/qubic/go-node-connector/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -68,24 +67,7 @@ func (i *IdentitiesValidatorInterceptor) GetInterceptor(ctx context.Context, req
 }
 
 func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase bool) error {
-	id := types.Identity(idStr)
-	pubKey, err := id.ToPubKey(isLowercase)
-	if err != nil {
-		return fmt.Errorf("converting id to pubkey: %w", err)
-	}
-
-	var pubkeyFixed [32]byte
-	copy(pubkeyFixed[:], pubKey[:32])
-	id, err = id.FromPubKey(pubkeyFixed, isLowercase)
-	if err != nil {
-		return fmt.Errorf("converting pubkey back to id: %w", err)
-	}
-
-	if id.String() != idStr {
-		return fmt.Errorf("original id string %s does not match expected %s", idStr, id.String())
-	}
-
-	return nil
+	return validateDigest(idStr, isLowercase)
 }
 
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {

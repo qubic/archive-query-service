@@ -28,7 +28,6 @@ service ArchiveQueryService {
         option (google.api.http) = {
             post: "/getTransactionsForIdentity"
             body: "*"
-            response_body: "transactions"
         };
     }
 
@@ -36,7 +35,6 @@ service ArchiveQueryService {
         option (google.api.http) = {
             post: "/getTickData"
             body: "*"
-            //response_body: "tick_data"
         };
     }
 

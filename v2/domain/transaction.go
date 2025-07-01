@@ -2,15 +2,15 @@ package domain
 
 import (
 	"context"
-	"errors"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/entities"
 )
 
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/transactions.mock.go -package=mock -source transaction.go
 type TransactionRepository interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error)
 }
 
 type MaxTickFetcherFunc func(ctx context.Context) (uint32, error)
@@ -35,23 +35,11 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
+func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error) {
 	maxTick, err := s.maxTickFetcher(ctx)
-	if err != nil {
+	if err != nil || maxTick < 1 {
 		return nil, err
 	}
-
-	if maxTick < 1 {
-		return nil, nil // No transactions available
-	}
-
-	if pageNumber < 0 || pageSize <= 0 {
-		return nil, errors.New("pageNumber and pageSize must be greater than 0")
-	}
-
-	if pageNumber*pageSize > int(maxTick) {
-		return nil, errors.New("pageNumber and pageSize must be greater than or equal to maxTick")
-	}
-
-	return s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, pageSize, pageNumber, desc)
+	txs, hits, err := s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, from, size)
+	return &entities.TransactionsResult{LastProcessedTick: maxTick, Hits: hits, Transactions: txs}, err
 }

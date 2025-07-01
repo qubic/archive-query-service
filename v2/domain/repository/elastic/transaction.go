@@ -7,6 +7,10 @@ import (
 	"fmt"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain"
+	"github.com/qubic/archive-query-service/v2/entities"
+	"log"
+	"sort"
+	"strings"
 )
 
 type transactionGetResponse struct {
@@ -37,7 +41,7 @@ type transaction struct {
 	Hash        string `json:"hash"`
 	Source      string `json:"source"`
 	Destination string `json:"destination"`
-	Amount      int64  `json:"amount"`
+	Amount      uint64 `json:"amount"`
 	TickNumber  uint32 `json:"tickNumber"`
 	InputType   uint32 `json:"inputType"`
 	InputSize   uint32 `json:"inputSize"`
@@ -46,6 +50,8 @@ type transaction struct {
 	Timestamp   uint64 `json:"timestamp"`
 	MoneyFlew   bool   `json:"moneyFlew"`
 }
+
+const maxTrackTotalHits int = 10000 // limit for better performance
 
 func (r *Repository) GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error) {
 	res, err := r.esClient.Get(r.txIndex, hash)
@@ -59,7 +65,7 @@ func (r *Repository) GetTransactionByHash(ctx context.Context, hash string) (*ap
 	}
 
 	if res.IsError() {
-		return nil, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
+		return nil, fmt.Errorf("got error response from data store: %s", res.String())
 	}
 
 	var result transactionGetResponse
@@ -88,37 +94,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
-	}
-
-	var result transactionsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return transactionHitsToApiTransactions(result.Hits.Hits), nil
-}
-
-// GetTransactionsForIdentity - method interface is subject to change after changing pagination logic
-func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, pageSize, pageNumber int, desc bool) ([]*api.Transaction, error) {
-	query, err := createIdentitiesQuery(identity, pageSize, pageNumber, desc, maxTick)
-	if err != nil {
-		return nil, fmt.Errorf("creating query: %w", err)
-	}
-
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.txIndex),
-		r.esClient.Search.WithBody(&query),
-		r.esClient.Search.WithPretty(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, fmt.Errorf("error response from Elasticsearch: %s", res.String())
+		return nil, fmt.Errorf("got error response from data store: %s", res.String())
 	}
 
 	var result transactionsSearchResponse
@@ -148,60 +124,118 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
-func createIdentitiesQuery(identity string, pageSize, pageNumber int, desc bool, maxTick uint32) (bytes.Buffer, error) {
-	from := pageNumber * pageSize
-	querySort := "asc"
-	if desc {
-		querySort = "desc"
+func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+	query, err := createIdentitiesQueryString(identity, filters, ranges, from, size, maxTick)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating query: %w", err)
 	}
 
-	tickNumberRangeFilter := map[string]interface{}{
-		"lte": maxTick,
-		//"gte": 10000000, // min tick can also be implemented if needed
+	res, err := r.esClient.Search(
+		r.esClient.Search.WithContext(ctx),
+		r.esClient.Search.WithIndex(r.txIndex),
+		r.esClient.Search.WithBody(strings.NewReader(query)),
+		r.esClient.Search.WithPretty(),
+	)
+	if err != nil {
+		log.Printf("calling es client search with query: %v", query)
+		return nil, nil, fmt.Errorf("performing search: %w", err)
 	}
-	if maxTick <= 0 {
-		delete(tickNumberRangeFilter, "lte")
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return nil, nil, fmt.Errorf("error response from data store: %s", res.String())
 	}
 
-	query := map[string]interface{}{
-		"track_total_hits": "10000", // limit to max page size for better performance
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"source": identity,
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"destination": identity,
-						},
-					},
-				},
-				"filter": []interface{}{
-					map[string]interface{}{
-						"range": map[string]interface{}{
-							"tickNumber": tickNumberRangeFilter,
-						},
-					},
-				},
-				"minimum_should_match": 1,
-			},
-		},
-		"size": pageSize,
-		"from": from,
-		"sort": []interface{}{
-			map[string]interface{}{
-				"timestamp": querySort,
-			},
-		},
+	var result transactionsSearchResponse
+	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, nil, fmt.Errorf("decoding response: %w", err)
 	}
 
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
+	hits := &entities.Hits{
+		Total:    result.Hits.Total.Value,
+		Relation: result.Hits.Total.Relation,
 	}
 
-	return buf, nil
+	return transactionHitsToApiTransactions(result.Hits.Hits), hits, nil
+}
+
+func createIdentitiesQueryString(identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+	var query string
+
+	filterStrings := make([]string, 0, len(filters)+len(ranges)+1)
+
+	// restrict to max tick (we don't care about potential duplicate tickNumber range filter)
+	filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
+	filterStrings = append(filterStrings, getFilterStrings(filters)...)
+	rangeFilterStrings, err := getRangeFilterStrings(ranges)
+	if err != nil {
+		return "", err
+	}
+	filterStrings = append(filterStrings, rangeFilterStrings...)
+
+	// in case we have source or destination filter the should clause still works
+	query = `{ 
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"%s"} },
+			{ "term":{"destination":"%s"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [ %s ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": %d,
+	  "size": %d,
+	  "track_total_hits": %d
+	}`
+
+	query = fmt.Sprintf(query, identity, identity, strings.Join(filterStrings, ","), from, size, maxTrackTotalHits)
+	return query, nil
+}
+
+func getFilterStrings(filters map[string]string) []string {
+	keys := getSortedKeys(filters) // sort for a deterministic filter order
+
+	filterStrings := make([]string, 0, len(filters))
+	for _, k := range keys {
+		filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, filters[k]))
+	}
+	return filterStrings
+}
+
+func getRangeFilterStrings(ranges map[string][]*entities.Range) ([]string, error) {
+	keys := getSortedKeys(ranges) // sort for a deterministic filter order
+	filterStrings := make([]string, 0, len(ranges))
+	for _, k := range keys {
+		rangeString, err := createRangeFilter(k, ranges[k])
+		if err != nil {
+			log.Printf("error computing range filter [%s]: %v", k, ranges[k])
+			return nil, fmt.Errorf("creating range filter: %w", err)
+		}
+		filterStrings = append(filterStrings, rangeString)
+	}
+	return filterStrings, nil
+}
+
+func createRangeFilter(property string, r []*entities.Range) (string, error) {
+	var rangeStrings []string
+	for _, v := range r {
+		rangeStrings = append(rangeStrings, fmt.Sprintf(`"%s":"%s"`, v.Operation, v.Value))
+	}
+	if len(rangeStrings) > 0 {
+		return fmt.Sprintf(`{"range":{"%s":{%s}}}`, property, strings.Join(rangeStrings, ",")), nil
+	} else {
+		return "", fmt.Errorf("computing range for [%s]", property)
+	}
+}
+
+func getSortedKeys[T any](m map[string]T) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
