@@ -32,13 +32,13 @@ _GetTransactionsForIdentityRequest_
 
 _Range_
 
-| Name    | Type   | Necessity | Description                               | 
-|---------|--------|-----------|-------------------------------------------|
-| <field> | string | required  | Name of the field you wish to search for. |
-| gt      | string | optional  | Greater than.                             |
-| gte     | string | optional  | Greater than or equal to.                 |
-| lt      | string | optional  | Less than.                                |
-| lte     | string | optional  | Less than or equal to.                    |
+| Name      | Type   | Necessity | Description                               | 
+|-----------|--------|-----------|-------------------------------------------|
+| `<field>` | string | required  | Name of the field you wish to search for. |
+| gt        | string | optional  | Greater than.                             |
+| gte       | string | optional  | Greater than or equal to.                 |
+| lt        | string | optional  | Less than.                                |
+| lte       | string | optional  | Less than or equal to.                    |
 
 Only one lower bound (`gt` or `gte`) and one upper bound (`lt` or `lte`) can be specified.
 
