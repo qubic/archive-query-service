@@ -21,6 +21,15 @@ Accept: application/json
     }
 }
 
+### Get tickData
+
+POST {{host}}/getTickData
+Accept: application/json
+
+{
+    "tickNumber": 28361691
+}
+
 ### Get transaction
 
 POST {{host}}/getTransactionByHash
