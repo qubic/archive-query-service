@@ -25,3 +25,18 @@ jobs:
         run: docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.2
       - run: go test -p 1 ./...
         working-directory: v2
+  lint:
+    name: Lint v2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24.x
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: v2
+          config: v2/golangci-lint.yaml
