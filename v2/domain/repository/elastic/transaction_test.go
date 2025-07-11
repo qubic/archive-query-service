@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+var testIdentity = "some-identity"
+
 func TestTransactionElasticRepository_createIdentitiesQueryString_returnQuery(t *testing.T) {
 	expectedQuery := `{ 
       "query": {
@@ -25,8 +27,7 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_returnQuery(t 
 	  "track_total_hits": 10000
 	}`
 
-	identity := "some-identity"
-	query, err := createIdentitiesQueryString(identity, nil, nil, 0, 10, 12345)
+	query, err := createIdentitiesQueryString(testIdentity, nil, nil, 0, 10, 12345)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -56,8 +57,7 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenFilters_r
 	}`
 
 	filters := map[string]string{"some-value": "42", "another-value": "foo"}
-	identity := "some-identity"
-	query, err := createIdentitiesQueryString(identity, filters, nil, 0, 5, 1000000)
+	query, err := createIdentitiesQueryString(testIdentity, filters, nil, 0, 5, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -91,8 +91,7 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenRanges_re
 	range2 := []*entities.Range{{Operation: "gte", Value: "12"}, {Operation: "lte", Value: "43"}}
 	range3 := []*entities.Range{{Operation: "gt", Value: "44"}}
 	ranges := map[string][]*entities.Range{"some-value": range1, "another-value": range2, "third-value": range3}
-	identity := "some-identity"
-	query, err := createIdentitiesQueryString(identity, nil, ranges, 0, 5, 1000000)
+	query, err := createIdentitiesQueryString(testIdentity, nil, ranges, 0, 5, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -126,8 +125,7 @@ func TestTransactionElasticRepository_createIdentitiesQueryString_givenRangesAnd
 	range1 := []*entities.Range{{Operation: "lte", Value: "42"}, {Operation: "gt", Value: "0"}}
 	ranges := map[string][]*entities.Range{"range-value": range1}
 	filters := map[string]string{"some-value": "42", "another-value": "foo"}
-	identity := "some-identity"
-	query, err := createIdentitiesQueryString(identity, filters, ranges, 200, 100, 1000000)
+	query, err := createIdentitiesQueryString(testIdentity, filters, ranges, 200, 100, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 

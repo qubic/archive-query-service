@@ -15,7 +15,7 @@ import (
 
 type transactionGetResponse struct {
 	Index       string      `json:"_index"`
-	Id          string      `json:"_id"`
+	ID          string      `json:"id"`
 	Version     int         `json:"_version"`
 	SeqNo       int         `json:"_seq_no"`
 	PrimaryTerm int         `json:"_primary_term"`
@@ -53,7 +53,7 @@ type transaction struct {
 
 const maxTrackTotalHits int = 10000 // limit for better performance
 
-func (r *Repository) GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error) {
+func (r *Repository) GetTransactionByHash(_ context.Context, hash string) (*api.Transaction, error) {
 	res, err := r.esClient.Get(r.txIndex, hash)
 	if err != nil {
 		return nil, fmt.Errorf("calling es client get with: %w", err)
@@ -73,7 +73,7 @@ func (r *Repository) GetTransactionByHash(ctx context.Context, hash string) (*ap
 		return nil, fmt.Errorf("decoding json response: %w", err)
 	}
 
-	return transactionToApiTransaction(result.Source), nil
+	return transactionToAPITransaction(result.Source), nil
 }
 
 func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error) {
@@ -102,7 +102,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 		return nil, fmt.Errorf("decoding response: %w", err)
 	}
 
-	return transactionHitsToApiTransactions(result.Hits.Hits), nil
+	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
 
 func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
@@ -124,7 +124,14 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
-func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+func (r *Repository) GetTransactionsForIdentity(
+	ctx context.Context,
+	identity string,
+	maxTick uint32,
+	filters map[string]string,
+	ranges map[string][]*entities.Range,
+	from, size uint32,
+) ([]*api.Transaction, *entities.Hits, error) {
 	query, err := createIdentitiesQueryString(identity, filters, ranges, from, size, maxTick)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating query: %w", err)
@@ -156,10 +163,15 @@ func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity st
 		Relation: result.Hits.Total.Relation,
 	}
 
-	return transactionHitsToApiTransactions(result.Hits.Hits), hits, nil
+	return transactionHitsToAPITransactions(result.Hits.Hits), hits, nil
 }
 
-func createIdentitiesQueryString(identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+func createIdentitiesQueryString(
+	identity string,
+	filters map[string]string,
+	ranges map[string][]*entities.Range,
+	from, size, maxTick uint32,
+) (string, error) {
 	var query string
 
 	filterStrings := make([]string, 0, len(filters)+len(ranges)+1)
@@ -226,9 +238,9 @@ func createRangeFilter(property string, r []*entities.Range) (string, error) {
 	}
 	if len(rangeStrings) > 0 {
 		return fmt.Sprintf(`{"range":{"%s":{%s}}}`, property, strings.Join(rangeStrings, ",")), nil
-	} else {
-		return "", fmt.Errorf("computing range for [%s]", property)
 	}
+
+	return "", fmt.Errorf("computing range for [%s]", property)
 }
 
 func getSortedKeys[T any](m map[string]T) []string {

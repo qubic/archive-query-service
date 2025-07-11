@@ -46,7 +46,7 @@ func TestTickDataRepository(t *testing.T) {
 }
 
 func (t *tickDataSuite) TearDownSuite() {
-	t.container.Terminate(t.ctx)
+	t.container.Terminate(t.ctx) //nolint: errcheck
 }
 
 func (t *tickDataSuite) SetupSuite() {
@@ -155,7 +155,7 @@ func (t *tickDataSuite) Test_GetTickData() {
 
 	td, err := t.repo.GetTickData(t.ctx, testTickData1.TickNumber)
 	require.NoError(t.T(), err, "getting tick data")
-	expected := tickDataToApiTickData(testTickData1)
+	expected := tickDataToAPITickData(testTickData1)
 	diff := cmp.Diff(expected, td, cmpopts.IgnoreUnexported(api.TickData{}))
 	require.Empty(t.T(), diff, "tick data received should match the one inserted, diff: %s", diff)
 }

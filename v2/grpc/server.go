@@ -61,7 +61,7 @@ func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, intercept
 				return
 			}
 
-			if err := http.ListenAndServe(cfg.ListenAddrHTTP, mux); err != nil {
+			if err := http.ListenAndServe(cfg.ListenAddrHTTP, mux); err != nil { // nolint: gosec
 				errCh <- fmt.Errorf("listening in http port: %w", err)
 				return
 			}

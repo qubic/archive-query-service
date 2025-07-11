@@ -4,7 +4,7 @@ import (
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 )
 
-func transactionToApiTransaction(tx transaction) *api.Transaction {
+func transactionToAPITransaction(tx transaction) *api.Transaction {
 	return &api.Transaction{
 		Source:      tx.Source,
 		Destination: tx.Destination,
@@ -20,16 +20,16 @@ func transactionToApiTransaction(tx transaction) *api.Transaction {
 	}
 }
 
-func transactionHitsToApiTransactions(hits []transactionHit) []*api.Transaction {
+func transactionHitsToAPITransactions(hits []transactionHit) []*api.Transaction {
 	apiTransactions := make([]*api.Transaction, len(hits))
 	for i, hit := range hits {
-		apiTransactions[i] = transactionToApiTransaction(hit.Source)
+		apiTransactions[i] = transactionToAPITransaction(hit.Source)
 	}
 
 	return apiTransactions
 }
 
-func tickDataToApiTickData(tickData tickData) *api.TickData {
+func tickDataToAPITickData(tickData tickData) *api.TickData {
 	return &api.TickData{
 		ComputorIndex:     tickData.ComputorIndex,
 		Epoch:             tickData.Epoch,

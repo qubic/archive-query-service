@@ -159,7 +159,7 @@ func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 	switch r.GetLowerBound().(type) {
 	case *api.Range_Gt:
 		lowerBound, err = strconv.ParseUint(r.GetGt(), 10, bitSize)
-		lowerBound = lowerBound + 1
+		lowerBound++
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
 		}
@@ -181,7 +181,7 @@ func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 	switch r.GetUpperBound().(type) {
 	case *api.Range_Lt:
 		upperBound, err = strconv.ParseUint(r.GetLt(), 10, bitSize)
-		upperBound = upperBound - 1
+		upperBound--
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
 		}
@@ -214,7 +214,7 @@ func validateRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 func If[T any](condition bool, trueValue, falseValue T) T {
 	if condition {
 		return trueValue
-	} else {
-		return falseValue
 	}
+
+	return falseValue
 }
