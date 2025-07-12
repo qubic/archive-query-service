@@ -18,7 +18,13 @@ var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error)
+	GetTransactionsForIdentity(
+		ctx context.Context,
+		identity string,
+		filters map[string]string,
+		ranges map[string][]*entities.Range,
+		from, size uint32,
+	) (*entities.TransactionsResult, error)
 }
 
 type TickDataService interface {
@@ -103,7 +109,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 
 	// paging information
 	apiHits := &api.Hits{
-		Total: uint32(result.GetHits().GetTotal()),
+		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
 		From:  from,
 		Size:  size,
 	}

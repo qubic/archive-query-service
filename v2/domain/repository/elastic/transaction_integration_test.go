@@ -104,7 +104,7 @@ func TestTransactionsRepository(t *testing.T) {
 }
 
 func (t *transactionsSuite) TearDownSuite() {
-	t.container.Terminate(t.ctx)
+	t.container.Terminate(t.ctx) //nolint: errcheck
 }
 
 func (t *transactionsSuite) SetupSuite() {
@@ -225,7 +225,7 @@ func (t *transactionsSuite) indexTransaction(esClient *elasticsearch.Client, tx 
 func (t *transactionsSuite) Test_GetTransactionByHash() {
 	tx, err := t.repo.GetTransactionByHash(t.ctx, testTx1.Hash)
 	require.NoError(t.T(), err, "getting transaction by hash")
-	expected := transactionToApiTransaction(testTx1)
+	expected := transactionToAPITransaction(testTx1)
 	diff := cmp.Diff(expected, tx, cmpopts.IgnoreUnexported(api.Transaction{}))
 	require.Empty(t.T(), diff, "transaction received should match the one inserted, diff: %s", diff)
 }
@@ -246,8 +246,8 @@ func (t *transactionsSuite) Test_GetIdentityTransactions() {
 	}, hits)
 
 	// sorted by tick number desc
-	diff1 := cmp.Diff(transactionToApiTransaction(testTx2), txs[0], cmpopts.IgnoreUnexported(api.Transaction{}))
+	diff1 := cmp.Diff(transactionToAPITransaction(testTx2), txs[0], cmpopts.IgnoreUnexported(api.Transaction{}))
 	assert.Empty(t.T(), diff1, "queried transaction 1 should match. diff: %s", diff1)
-	diff2 := cmp.Diff(transactionToApiTransaction(testTx1), txs[1], cmpopts.IgnoreUnexported(api.Transaction{}))
+	diff2 := cmp.Diff(transactionToAPITransaction(testTx1), txs[1], cmpopts.IgnoreUnexported(api.Transaction{}))
 	assert.Empty(t.T(), diff2, "queried transaction 1 should match. diff: %s", diff2)
 }

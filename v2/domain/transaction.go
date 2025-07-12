@@ -10,7 +10,14 @@ import (
 type TransactionRepository interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
 	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error)
+	GetTransactionsForIdentity(
+		ctx context.Context,
+		identity string,
+		maxTick uint32,
+		filters map[string]string,
+		ranges map[string][]*entities.Range,
+		from, size uint32,
+	) ([]*api.Transaction, *entities.Hits, error)
 }
 
 type MaxTickFetcherFunc func(ctx context.Context) (uint32, error)
@@ -35,7 +42,13 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error) {
+func (s *TransactionService) GetTransactionsForIdentity(
+	ctx context.Context,
+	identity string,
+	filters map[string]string,
+	ranges map[string][]*entities.Range,
+	from, size uint32,
+) (*entities.TransactionsResult, error) {
 	maxTick, err := s.maxTickFetcher(ctx)
 	if err != nil || maxTick < 1 {
 		return nil, err

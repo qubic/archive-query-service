@@ -22,15 +22,15 @@ type StatusGetter struct {
 	sfGroup             *singleflight.Group
 }
 
-func NewStatusGetter(statusServiceClient statusPb.StatusServiceClient, cacheTtl time.Duration) *StatusGetter {
+func NewStatusGetter(statusServiceClient statusPb.StatusServiceClient, cacheTTL time.Duration) *StatusGetter {
 	lastProcessedTickProvider := ttlcache.New[string, uint32](
-		ttlcache.WithTTL[string, uint32](cacheTtl),
-		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh cacheTtl upon getting the item from getter
+		ttlcache.WithTTL[string, uint32](cacheTTL),
+		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh cacheTTL upon getting the item from getter
 	)
 
 	tickIntervalsProvider := ttlcache.New[string, []*statusPb.TickInterval](
-		ttlcache.WithTTL[string, []*statusPb.TickInterval](cacheTtl),
-		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh cacheTtl upon getting the item from getter
+		ttlcache.WithTTL[string, []*statusPb.TickInterval](cacheTTL),
+		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh cacheTTL upon getting the item from getter
 	)
 	return &StatusGetter{
 		lptProviderCache:    lastProcessedTickProvider,
@@ -155,10 +155,10 @@ func (s *StatusService) GetProcessedTickIntervals(ctx context.Context) ([]*api.P
 		return nil, fmt.Errorf("getting tick intervals: %w", err)
 	}
 
-	return toApiProcessedTickIntervals(tickIntervals), nil
+	return toAPIProcessedTickIntervals(tickIntervals), nil
 }
 
-func toApiProcessedTickIntervals(source []*statusPb.TickInterval) []*api.ProcessedTickInterval {
+func toAPIProcessedTickIntervals(source []*statusPb.TickInterval) []*api.ProcessedTickInterval {
 	intervals := make([]*api.ProcessedTickInterval, 0, len(source))
 
 	for _, interval := range source {

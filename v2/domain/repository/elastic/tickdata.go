@@ -11,7 +11,7 @@ import (
 
 type tickDataGetResponse struct {
 	Index       string   `json:"_index"`
-	Id          string   `json:"_id"`
+	ID          string   `json:"_id"`
 	Version     int      `json:"_version"`
 	SeqNo       int      `json:"_seq_no"`
 	PrimaryTerm int      `json:"_primary_term"`
@@ -51,5 +51,5 @@ func (r *Repository) GetTickData(_ context.Context, tickNumber uint32) (*api.Tic
 		return nil, fmt.Errorf("decoding response: %w", err)
 	}
 
-	return tickDataToApiTickData(result.Source), nil
+	return tickDataToAPITickData(result.Source), nil
 }

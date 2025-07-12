@@ -43,7 +43,12 @@ func TestValidations_validatePagination_defaultPageSize(t *testing.T) {
 }
 
 func TestValidations_validateFilters_givenAllValid(t *testing.T) {
-	filters := map[string]string{"source": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "amount": "100", "inputType": "42"}
+	filters := map[string]string{
+		"source":      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		"amount":      "100",
+		"inputType":   "42",
+	}
 	err := validateIdentityTransactionQueryFilters(filters)
 	require.NoError(t, err)
 }

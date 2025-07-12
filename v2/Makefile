@@ -39,3 +39,7 @@ swagger-gen:
 test-cover:
 	@echo "Performing Go cover test..."
 	go test ./... -coverprofile=cover.out && go tool cover -html=cover.out
+
+lint:
+	@echo "Running Go linter..."
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.2.1 run --config .golangci.yml

@@ -1,0 +1,53 @@
+version: "2"
+run:
+  concurrency: 6
+linters:
+  enable:
+    - gocritic
+    - predeclared
+    - thelper
+    - dupl
+    - gosec
+    - unconvert
+    - revive
+    - makezero
+    - errorlint
+    - goconst
+    - lll
+    - gocyclo
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    errorlint:
+      errorf: true
+    gocyclo:
+      min-complexity: 20
+    lll:
+      line-length: 200
+    nakedret:
+      max-func-lines: 60
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+    unparam:
+      check-exported: true
+  exclusions:
+    generated: disable
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - .*mock.*\.go$
+      - api
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: disable
+    paths:
+      - .*mock.*\.go$
+      - api

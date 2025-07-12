@@ -26,7 +26,13 @@ func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context,
 	panic("implement me")
 }
 
-func (t *TransactionServiceStub) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, _, _ uint32) (*entities.TransactionsResult, error) {
+func (t *TransactionServiceStub) GetTransactionsForIdentity(
+	ctx context.Context,
+	identity string,
+	filters map[string]string,
+	ranges map[string][]*entities.Range,
+	_, _ uint32,
+) (*entities.TransactionsResult, error) {
 	t.ctx = ctx
 	t.identity = identity
 	t.filters = filters
@@ -42,8 +48,8 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 
 	service := NewArchiveQueryService(txService, nil, nil)
 
-	var from uint32 = 0
-	var size uint32 = 10
+	from := uint32(0)
+	size := uint32(10)
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
