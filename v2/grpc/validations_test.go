@@ -33,6 +33,14 @@ func TestValidations_validatePagination_largePageSize(t *testing.T) {
 	require.ErrorContains(t, err, "exceeds maximum [1024]")
 }
 
+func TestValidations_validatePagination_largetOffsetPlusPageSize(t *testing.T) {
+	_, _, err := validatePagination(&api.Pagination{
+		Offset: uint32Pointer(9990),
+		Size:   uint32Pointer(100),
+	})
+	require.ErrorContains(t, err, "exceeds maximum [10000]")
+}
+
 func TestValidations_validatePagination_defaultPageSize(t *testing.T) {
 	_, size, err := validatePagination(&api.Pagination{
 		Offset: uint32Pointer(13),
