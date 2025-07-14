@@ -22,10 +22,13 @@ func validatePagination(page *api.Pagination) (from uint32, size uint32, err err
 	if size > maxPageSize {
 		return 0, 0, fmt.Errorf("size [%d] exceeds maximum [%d]", size, maxPageSize)
 	}
+	if size == 0 {
+		size = defaultPageSize
+	}
 	if from+size > maxHitsSize {
 		return 0, 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum [%d]", from, size, maxHitsSize)
 	}
-	return from, If(size > 0, size, defaultPageSize), nil
+	return from, size, nil
 }
 
 var allowedTermFilters = [4]string{"source", "destination", "amount", "inputType"}
