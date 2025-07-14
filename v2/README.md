@@ -32,6 +32,8 @@ _GetTransactionsForIdentityRequest_
 
 _Range_
 
+A range with size of 0 or 1 is not allowed.
+
 | Name      | Type   | Necessity | Description                               | 
 |-----------|--------|-----------|-------------------------------------------|
 | `<field>` | string | required  | Name of the field you wish to search for. |
@@ -47,7 +49,7 @@ _Pagination_
 | Name   | Type   | Necessity | Description                                                                                         |
 |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
 | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-| size   | uint32 | optional  | Defaults to 10. Maximum size is 1000.                                                               |
+| size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default).                         |
 
 _Examples_
 
@@ -99,19 +101,19 @@ _Hits_
 
 _Transactions_
 
-| Name        | Type    | Description                                         |
-|-------------|---------|-----------------------------------------------------|
-| hash        | string  | Hash of the transaction.                            |
-| amount      | uint64  | Amount of the transaction.                          |
-| source      | string  | Source identity of the transaction (sender).        |
-| destination | string  | Destination identity of the transaction (receiver). |
-| tickNumber  | uint32  | Number of the tick the transaction was included in. |
-| timestamp   | uint64  | Timestamp of the transaction.                       |
-| inputType   | uint32  | Input type of the transaction.                      |
-| inputSize   | uint32  | Size of the transaction input in bytes.             |
-| inputData   | string  | Input data of the transaction in base64 format.     |
-| signature   | string  | Signature of the transaction in base64 format.      |
-| moneyFlew   | boolean | Transaction status / money flew flag. Deprecated.   |
+| Name        | Type    | Description                                                                                  |
+|-------------|---------|----------------------------------------------------------------------------------------------|
+| hash        | string  | Hash of the transaction.                                                                     |
+| amount      | uint64  | Amount of the transaction.                                                                   |
+| source      | string  | Source identity of the transaction (sender).                                                 |
+| destination | string  | Destination identity of the transaction (receiver).                                          |
+| tickNumber  | uint32  | Number of the tick the transaction was included in.                                          |
+| timestamp   | uint64  | Timestamp of the transaction. Unix timestamp in milliseconds (ms from 1970-01-01T00:00:00Z). |
+| inputType   | uint32  | Input type of the transaction.                                                               |
+| inputSize   | uint32  | Size of the transaction input in bytes.                                                      |
+| inputData   | string  | Input data of the transaction in base64 format.                                              |
+| signature   | string  | Signature of the transaction in base64 format.                                               |
+| moneyFlew   | boolean | Transaction status / money flew flag. Deprecated.                                            |
 
 _Example_
 
