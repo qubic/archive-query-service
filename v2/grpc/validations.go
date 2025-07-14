@@ -22,8 +22,8 @@ func validatePagination(page *api.Pagination) (from uint32, size uint32, err err
 	if size > maxPageSize {
 		return 0, 0, fmt.Errorf("size [%d] exceeds maximum [%d]", size, maxPageSize)
 	}
-	if from+size > maxPageSize {
-		return 0, 0, fmt.Errorf("offset + size [%d] exceeds maximum [%d]", from, maxHitsSize)
+	if from+size > maxHitsSize {
+		return 0, 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum [%d]", from, size, maxHitsSize)
 	}
 	return from, If(size > 0, size, defaultPageSize), nil
 }
