@@ -50,4 +50,11 @@ service ArchiveQueryService {
             response_body: "processed_ticks_intervals"
         };
     }
+
+    rpc GetComputorsListsForEpoch(GetComputorsListForEpochRequest) returns (GetComputorsListForEpochResponse){
+        option(google.api.http) = {
+            get: "/getComputorsListForEpoch"
+        };
+    }
+
 }

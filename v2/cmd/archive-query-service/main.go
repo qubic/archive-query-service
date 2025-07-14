@@ -52,6 +52,7 @@ func run() error {
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
 			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
 			TickDataIndex                         string        `conf:"default:qubic-tick-data-alias"`
+			ComputorsListIndex                    string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
 			Namespace string `conf:"default:qubic-query"`
@@ -125,12 +126,13 @@ func run() error {
 	go cache.Start()
 	defer cache.Stop()
 
-	repo := elastic.NewRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient)
+	repo := elastic.NewRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorsListIndex, esClient)
 
 	txService := domain.NewTransactionService(repo, cache.GetMaxTick)
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
-	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService)
+	clService := domain.NewComputorsListService(repo)
+	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor

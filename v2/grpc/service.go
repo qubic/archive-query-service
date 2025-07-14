@@ -36,6 +36,10 @@ type StatusService interface {
 	GetProcessedTickIntervals(ctx context.Context) ([]*api.ProcessedTickInterval, error)
 }
 
+type ComputorsListService interface {
+	GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error)
+}
+
 type ArchiveQueryService struct {
 	srv            *grpc.Server
 	grpcListenAddr net.Addr
@@ -43,13 +47,15 @@ type ArchiveQueryService struct {
 	txService     TransactionsService
 	tdService     TickDataService
 	statusService StatusService
+	clService     ComputorsListService
 }
 
-func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService) *ArchiveQueryService {
+func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService) *ArchiveQueryService {
 	return &ArchiveQueryService{
 		txService:     txService,
 		tdService:     tdService,
 		statusService: statusService,
+		clService:     clService,
 	}
 }
 
@@ -137,4 +143,14 @@ func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *
 	}
 
 	return &api.GetProcessedTicksIntervalsResponse{ProcessedTicksIntervals: intervals}, nil
+}
+func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, request *api.GetComputorsListForEpochRequest) (*api.GetComputorsListForEpochResponse, error) {
+	computorListsForEpoch, err := s.clService.GetComputorsListsForEpoch(ctx, request.Epoch)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get computors lists: %v", err)
+	}
+
+	return &api.GetComputorsListForEpochResponse{
+		ComputorsList: computorListsForEpoch,
+	}, nil
 }

@@ -172,6 +172,42 @@ func local_request_ArchiveQueryService_GetProcessedTickIntervals_0(ctx context.C
 
 }
 
+var (
+	filter_ArchiveQueryService_GetComputorsListsForEpoch_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetComputorsListForEpochRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ArchiveQueryService_GetComputorsListsForEpoch_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.GetComputorsListsForEpoch(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetComputorsListForEpochRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ArchiveQueryService_GetComputorsListsForEpoch_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.GetComputorsListsForEpoch(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterArchiveQueryServiceHandlerServer registers the http handlers for service ArchiveQueryService to "mux".
 // UnaryRPC     :call ArchiveQueryServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -325,6 +361,31 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 		}
 
 		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp}, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_ArchiveQueryService_GetComputorsListsForEpoch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorsListForEpoch"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ArchiveQueryService_GetComputorsListsForEpoch_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ArchiveQueryService_GetComputorsListsForEpoch_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -501,6 +562,28 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 
 	})
 
+	mux.Handle("GET", pattern_ArchiveQueryService_GetComputorsListsForEpoch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorsListForEpoch"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ArchiveQueryService_GetComputorsListsForEpoch_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ArchiveQueryService_GetComputorsListsForEpoch_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -543,6 +626,8 @@ var (
 	pattern_ArchiveQueryService_GetLastProcessedTick_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getLastProcessedTick"}, ""))
 
 	pattern_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTicksIntervals"}, ""))
+
+	pattern_ArchiveQueryService_GetComputorsListsForEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getComputorsListForEpoch"}, ""))
 )
 
 var (
@@ -557,4 +642,6 @@ var (
 	forward_ArchiveQueryService_GetLastProcessedTick_0 = runtime.ForwardResponseMessage
 
 	forward_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.ForwardResponseMessage
+
+	forward_ArchiveQueryService_GetComputorsListsForEpoch_0 = runtime.ForwardResponseMessage
 )

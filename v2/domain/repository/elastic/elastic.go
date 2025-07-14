@@ -11,12 +11,14 @@ type Repository struct {
 	TotalElasticErrorCount       atomic.Int32
 	txIndex                      string
 	tickDataIndex                string
+	clIndex                      string
 }
 
-func NewRepository(txIndex string, tickDataIndex string, esClient *elasticsearch.Client) *Repository {
+func NewRepository(txIndex, tickDataIndex, clIndex string, esClient *elasticsearch.Client) *Repository {
 	return &Repository{
 		txIndex:       txIndex,
 		tickDataIndex: tickDataIndex,
 		esClient:      esClient,
+		clIndex:       clIndex,
 	}
 }

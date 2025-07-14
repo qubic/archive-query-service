@@ -204,7 +204,7 @@ func (t *transactionsSuite) SetupSuite() {
 	t.indexTransaction(esClient, testTx2)
 	t.indexTransaction(esClient, testTx3)
 	t.indexTransaction(esClient, testTx4)
-	t.repo = NewRepository("transactions", "tick-data", esClient)
+	t.repo = NewRepository("transactions", "tick-data", "qubic-computors", esClient)
 }
 
 func (t *transactionsSuite) indexTransaction(esClient *elasticsearch.Client, tx transaction) {
