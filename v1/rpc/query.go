@@ -157,7 +157,6 @@ func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, 
 		qb.esClient.Search.WithContext(ctx),
 		qb.esClient.Search.WithIndex(qb.txIndex),
 		qb.esClient.Search.WithBody(&query),
-		qb.esClient.Search.WithPretty(),
 	)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
@@ -264,7 +263,6 @@ func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick u
 		qb.esClient.Search.WithContext(ctx),
 		qb.esClient.Search.WithIndex(qb.txIndex),
 		qb.esClient.Search.WithBody(&query),
-		qb.esClient.Search.WithPretty(),
 	)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)

@@ -254,7 +254,7 @@
     "pbGetComputorsListForEpochResponse": {
       "type": "object",
       "properties": {
-        "computorsList": {
+        "computorsLists": {
           "type": "array",
           "items": {
             "type": "object",

@@ -86,7 +86,6 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 		r.esClient.Search.WithContext(ctx),
 		r.esClient.Search.WithIndex(r.txIndex),
 		r.esClient.Search.WithBody(&query),
-		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("performing search: %w", err)
@@ -141,7 +140,6 @@ func (r *Repository) GetTransactionsForIdentity(
 		r.esClient.Search.WithContext(ctx),
 		r.esClient.Search.WithIndex(r.txIndex),
 		r.esClient.Search.WithBody(strings.NewReader(query)),
-		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
 		log.Printf("calling es client search with query: %v", query)

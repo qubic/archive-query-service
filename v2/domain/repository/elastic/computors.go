@@ -40,7 +40,6 @@ func (r *Repository) GetComputorsListsForEpoch(ctx context.Context, epoch uint32
 		r.esClient.Search.WithContext(ctx),
 		r.esClient.Search.WithIndex(r.clIndex),
 		r.esClient.Search.WithBody(&query),
-		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("performing search: %w", err)
