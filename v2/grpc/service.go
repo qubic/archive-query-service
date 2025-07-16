@@ -151,6 +151,6 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 	}
 
 	return &api.GetComputorsListForEpochResponse{
-		ComputorsList: computorListsForEpoch,
+		ComputorsLists: computorListsForEpoch,
 	}, nil
 }

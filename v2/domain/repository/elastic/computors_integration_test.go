@@ -80,7 +80,11 @@ func (s *computorsSuite) SetupSuite() {
 	{
 		"settings": {
 			"number_of_shards": 1,
-			"number_of_replicas": 0
+			"number_of_replicas": 0,
+			"index": {
+				"sort.field": "tickNumber",
+				"sort.order": "desc"
+			}
 		},
 		"mappings": {
             "dynamic": "strict",

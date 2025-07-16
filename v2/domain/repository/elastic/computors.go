@@ -64,7 +64,7 @@ func createComputorsListQuery(epoch uint32) (bytes.Buffer, error) {
 	query := map[string]interface{}{
 		"track_total_hits": "true",
 		"query": map[string]interface{}{
-			"match": map[string]interface{}{
+			"term": map[string]interface{}{
 				"epoch": epoch,
 			},
 		},

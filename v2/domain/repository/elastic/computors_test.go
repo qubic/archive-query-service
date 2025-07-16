@@ -12,7 +12,7 @@ func TestComputorsListElasticRepository_createComputorsListQuery(t *testing.T) {
 	expectedQuery := `{
 		"track_total_hits": "true",
 		"query": {
-			"match": {
+			"term": {
 				"epoch": 105
 			}
 		},
