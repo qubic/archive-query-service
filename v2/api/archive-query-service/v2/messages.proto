@@ -129,3 +129,18 @@ message GetProcessedTicksIntervalsResponse {
 message GetLastProcessedTickResponse {
     uint32 tick_number = 1;
 }
+
+message GetComputorsListForEpochRequest {
+    uint32 epoch = 1;
+}
+
+message ComputorsList {
+    uint32 epoch = 1;
+    uint32 tick_number = 2;
+    repeated string identities = 3;
+    string signature = 4;
+}
+
+message GetComputorsListForEpochResponse {
+    repeated ComputorsList computors_lists = 1;
+}

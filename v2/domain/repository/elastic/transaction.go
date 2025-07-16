@@ -82,26 +82,11 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 		return nil, fmt.Errorf("creating query: %w", err)
 	}
 
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.txIndex),
-		r.esClient.Search.WithBody(&query),
-		r.esClient.Search.WithPretty(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, fmt.Errorf("got error response from data store: %s", res.String())
-	}
-
 	var result transactionsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
+	err = r.performElasticSearch(ctx, r.clIndex, &query, &result)
+	if err != nil {
+		return nil, fmt.Errorf("performing elasting search: %w", err)
 	}
-
 	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
 
@@ -141,7 +126,6 @@ func (r *Repository) GetTransactionsForIdentity(
 		r.esClient.Search.WithContext(ctx),
 		r.esClient.Search.WithIndex(r.txIndex),
 		r.esClient.Search.WithBody(strings.NewReader(query)),
-		r.esClient.Search.WithPretty(),
 	)
 	if err != nil {
 		log.Printf("calling es client search with query: %v", query)

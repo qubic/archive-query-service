@@ -38,7 +38,7 @@ func (s *ServerTestSuite) SetupSuite() {
 
 	mockTxService := mock.NewMockTransactionsService(ctrl)
 	mockStatusService := mock.NewMockStatusService(ctrl)
-	rpcServer := rpc.NewArchiveQueryService(mockTxService, nil, mockStatusService)
+	rpcServer := rpc.NewArchiveQueryService(mockTxService, nil, mockStatusService, nil)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(mockStatusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor

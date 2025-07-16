@@ -46,7 +46,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 		hits:         &entities.Hits{Total: 2, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil)
+	service := NewArchiveQueryService(txService, nil, nil, nil)
 
 	from := uint32(0)
 	size := uint32(10)

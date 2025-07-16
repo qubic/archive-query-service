@@ -179,3 +179,42 @@ func (mr *MockStatusServiceMockRecorder) GetProcessedTickIntervals(ctx any) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProcessedTickIntervals", reflect.TypeOf((*MockStatusService)(nil).GetProcessedTickIntervals), ctx)
 }
+
+// MockComputorsListService is a mock of ComputorsListService interface.
+type MockComputorsListService struct {
+	ctrl     *gomock.Controller
+	recorder *MockComputorsListServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockComputorsListServiceMockRecorder is the mock recorder for MockComputorsListService.
+type MockComputorsListServiceMockRecorder struct {
+	mock *MockComputorsListService
+}
+
+// NewMockComputorsListService creates a new mock instance.
+func NewMockComputorsListService(ctrl *gomock.Controller) *MockComputorsListService {
+	mock := &MockComputorsListService{ctrl: ctrl}
+	mock.recorder = &MockComputorsListServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockComputorsListService) EXPECT() *MockComputorsListServiceMockRecorder {
+	return m.recorder
+}
+
+// GetComputorsListsForEpoch mocks base method.
+func (m *MockComputorsListService) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetComputorsListsForEpoch", ctx, epoch)
+	ret0, _ := ret[0].([]*api.ComputorsList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetComputorsListsForEpoch indicates an expected call of GetComputorsListsForEpoch.
+func (mr *MockComputorsListServiceMockRecorder) GetComputorsListsForEpoch(ctx, epoch any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetComputorsListsForEpoch", reflect.TypeOf((*MockComputorsListService)(nil).GetComputorsListsForEpoch), ctx, epoch)
+}
