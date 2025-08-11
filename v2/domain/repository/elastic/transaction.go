@@ -83,7 +83,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	}
 
 	var result transactionsSearchResponse
-	err = r.performElasticSearch(ctx, r.clIndex, &query, &result)
+	err = r.performElasticSearch(ctx, r.txIndex, &query, &result)
 	if err != nil {
 		return nil, fmt.Errorf("performing elasting search: %w", err)
 	}
