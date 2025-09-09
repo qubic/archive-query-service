@@ -11,7 +11,7 @@ Provides the following endpoints:
 * `/getLastProcessedTick`
 * `/getProcessedTicksIntervals`
 
-### Get transactions for Identity
+## Get transactions for Identity
 
 Returns the transactions for one identity sorted by tick number descending.
 
@@ -19,7 +19,7 @@ Method: `POST`
 Path: `/getTransactionsForIdentity`
 Accept: `application/json`
 
-#### Request
+### Request
 
 _GetTransactionsForIdentityRequest_
 
@@ -30,7 +30,45 @@ _GetTransactionsForIdentityRequest_
 | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
 | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
 
-_Range_
+Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned. 
+Data type for all values is `string`.
+
+#### Filters
+
+Filters restrict the results by single values.
+
+_Allowed properties_
+
+| Name        |  Type   | Format                 | Description                                                        |
+|-------------|---------|------------------------|--------------------------------------------------------------------|
+| source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
+| destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
+| amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
+| inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
+
+_Examples_
+
+```
+"source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
+"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+"amount": "1000000"
+"inputType": "0"
+```
+
+#### Ranges
+
+Ranges restrict the results by a range of values. On range per property is supported.
+
+_Allowed properties_
+
+| Name       | Type   | Format                                   | Description                                 |
+|------------|--------|------------------------------------------|---------------------------------------------|
+| amount     | string | Numeric                                  | Only find transactions in amount range.     |
+| tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
+| inputType  | string | Numeric                                  | Only find transactions in input type range. |
+| timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
+
+_Range definition_
 
 A range with size of 0 or 1 is not allowed.
 
@@ -44,14 +82,23 @@ A range with size of 0 or 1 is not allowed.
 
 Only one lower bound (`gt` or `gte`) and one upper bound (`lt` or `lte`) can be specified.
 
-_Pagination_
+_Examples_
+
+```
+"amount": { "gt": "1000000" }
+"tickNumber": { "gte": "25563000", "lte": "28300000" }
+"inputType": { "gt": "0" }
+"timestamp": { "lt": "1757376000000" }
+```
+
+#### Pagination
 
 | Name   | Type   | Necessity | Description                                                                                         |
 |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
 | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
 | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default).                         |
 
-_Examples_
+#### Request Example
 
 Show up to 10 qu burn transactions that are larger than one million and within tick range 25563000 and 28300000
 and that are sent from IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB.
@@ -81,7 +128,7 @@ and that are sent from IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJAR
 
 And see [request examples](v2-query-requests.http) for more.
 
-#### Response
+### Response
 
 _GetTransactionsForIdentityResponse_
 
@@ -101,21 +148,21 @@ _Hits_
 
 _Transactions_
 
-| Name        | Type    | Description                                                                                  |
-|-------------|---------|----------------------------------------------------------------------------------------------|
-| hash        | string  | Hash of the transaction.                                                                     |
-| amount      | uint64  | Amount of the transaction.                                                                   |
-| source      | string  | Source identity of the transaction (sender).                                                 |
-| destination | string  | Destination identity of the transaction (receiver).                                          |
-| tickNumber  | uint32  | Number of the tick the transaction was included in.                                          |
-| timestamp   | uint64  | Timestamp of the transaction. Unix timestamp in milliseconds (ms from 1970-01-01T00:00:00Z). |
-| inputType   | uint32  | Input type of the transaction.                                                               |
-| inputSize   | uint32  | Size of the transaction input in bytes.                                                      |
-| inputData   | string  | Input data of the transaction in base64 format.                                              |
-| signature   | string  | Signature of the transaction in base64 format.                                               |
-| moneyFlew   | boolean | Transaction status / money flew flag. Deprecated.                                            |
+| Name        | Type    | Description                                                    |
+|-------------|---------|----------------------------------------------------------------|
+| hash        | string  | Hash of the transaction.                                       |
+| amount      | uint64  | Amount of the transaction.                                     |
+| source      | string  | Source identity of the transaction (sender).                   |
+| destination | string  | Destination identity of the transaction (receiver).            |
+| tickNumber  | uint32  | Number of the tick the transaction was included in.            |
+| timestamp   | uint64  | Unix Timestamp in milliseconds (ms from 1970-01-01T00:00:00Z). |
+| inputType   | uint32  | Input type of the transaction.                                 |
+| inputSize   | uint32  | Size of the transaction input in bytes.                        |
+| inputData   | string  | Input data of the transaction in base64 format.                |
+| signature   | string  | Signature of the transaction in base64 format.                 |
+| moneyFlew   | boolean | Transaction status / money flew flag. Deprecated.              |
 
-_Example_
+#### Response Example
 
 ```json
 {
