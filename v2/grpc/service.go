@@ -2,13 +2,14 @@ package grpc
 
 import (
 	"context"
+	"net"
+
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"net"
 )
 
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/services.mock.go -package=mock -source service.go

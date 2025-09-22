@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"log"
+	"net"
+	"net/http"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
 	"github.com/qubic/archive-query-service/protobuf"
@@ -17,9 +21,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"log"
-	"net"
-	"net/http"
 )
 
 var ErrNotFound = errors.New("store resource not found")
@@ -370,6 +371,25 @@ func (s *Server) GetArchiverStatus(ctx context.Context, empty *emptypb.Empty) (*
 	}
 
 	return response, nil
+}
+
+func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputorsRequest) (*protobuf.GetComputorsResponse, error) {
+	response, err := s.qb.performComputorListByEpochQuery(ctx, req.Epoch)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "performing computors list query: %s", err.Error())
+	}
+
+	if response.Hits.Total.Value == 0 {
+		return nil, status.Errorf(codes.NotFound, "computors list for specified epoch not found")
+	}
+
+	hit := response.Hits.Hits[0]
+	computorsList, err := ComputorsListToArchiveFormat(hit.Source)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting computors list to archive format: %s", err.Error())
+	}
+
+	return &protobuf.GetComputorsResponse{Computors: computorsList}, nil
 }
 
 func convertArchiverStatus(source *statusPb.GetArchiverStatusResponse) (*protobuf.GetArchiverStatusResponse, error) {

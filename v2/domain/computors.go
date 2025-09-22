@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 )
 

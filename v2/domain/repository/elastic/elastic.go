@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/elastic/go-elasticsearch/v8"
 	"sync/atomic"
+
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 type Repository struct {
