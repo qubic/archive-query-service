@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/getComputorsListForEpoch": {
+    "/getComputorListsForEpoch": {
       "post": {
         "operationId": "ArchiveQueryService_GetComputorsListsForEpoch",
         "responses": {

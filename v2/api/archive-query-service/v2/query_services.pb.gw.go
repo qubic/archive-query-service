@@ -312,7 +312,7 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorsListForEpoch"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorListsForEpoch"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -514,7 +514,7 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorsListForEpoch"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorListsForEpoch"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -613,7 +613,7 @@ var (
 
 	pattern_ArchiveQueryService_GetTickData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTickData"}, ""))
 
-	pattern_ArchiveQueryService_GetComputorsListsForEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getComputorsListForEpoch"}, ""))
+	pattern_ArchiveQueryService_GetComputorsListsForEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getComputorListsForEpoch"}, ""))
 
 	pattern_ArchiveQueryService_GetLastProcessedTick_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getLastProcessedTick"}, ""))
 

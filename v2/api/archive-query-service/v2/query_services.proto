@@ -40,7 +40,7 @@ service ArchiveQueryService {
 
   rpc GetComputorsListsForEpoch(GetComputorsListForEpochRequest) returns (GetComputorsListForEpochResponse){
     option(google.api.http) = {
-      post: "/getComputorsListForEpoch"
+      post: "/getComputorListsForEpoch"
       body: "*"
     };
   }
