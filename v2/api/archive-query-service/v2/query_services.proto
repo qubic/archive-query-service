@@ -8,53 +8,54 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
 service ArchiveQueryService {
-    rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
-        option (google.api.http) = {
-            post: "/getTransactionByHash"
-            body: "*"
-            response_body: "transaction"
-        };
-    }
+  rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
+    option (google.api.http) = {
+      post: "/getTransactionByHash"
+      body: "*"
+      response_body: "transaction"
+    };
+  }
 
-    rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
-        option (google.api.http) = {
-            post: "/getTransactionsForTick"
-            body: "*"
-            response_body: "transactions"
-        };
-    }
+  rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
+    option (google.api.http) = {
+      post: "/getTransactionsForTick"
+      body: "*"
+      response_body: "transactions"
+    };
+  }
 
-    rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
-        option (google.api.http) = {
-            post: "/getTransactionsForIdentity"
-            body: "*"
-        };
-    }
+  rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
+    option (google.api.http) = {
+      post: "/getTransactionsForIdentity"
+      body: "*"
+    };
+  }
 
-    rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
-        option (google.api.http) = {
-            post: "/getTickData"
-            body: "*"
-        };
-    }
+  rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
+    option (google.api.http) = {
+      post: "/getTickData"
+      body: "*"
+    };
+  }
 
-    rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
-        option (google.api.http) = {
-            get: "/getLastProcessedTick"
-        };
-    }
+  rpc GetComputorsListsForEpoch(GetComputorsListForEpochRequest) returns (GetComputorsListForEpochResponse){
+    option(google.api.http) = {
+      post: "/getComputorListsForEpoch"
+      body: "*"
+    };
+  }
 
-    rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTicksIntervalsResponse) {
-        option (google.api.http) = {
-            get: "/getProcessedTicksIntervals"
-            response_body: "processed_ticks_intervals"
-        };
-    }
+  rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
+    option (google.api.http) = {
+      get: "/getLastProcessedTick"
+    };
+  }
 
-    rpc GetComputorsListsForEpoch(GetComputorsListForEpochRequest) returns (GetComputorsListForEpochResponse){
-        option(google.api.http) = {
-            get: "/getComputorsListForEpoch"
-        };
-    }
+  rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTicksIntervalsResponse) {
+    option (google.api.http) = {
+      get: "/getProcessedTicksIntervals"
+      response_body: "processed_ticks_intervals"
+    };
+  }
 
 }

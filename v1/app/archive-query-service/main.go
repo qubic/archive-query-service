@@ -3,6 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
 	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
@@ -12,12 +19,6 @@ import (
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 const prefix = "QUBIC_LTS_QUERY_SERVICE"
@@ -50,6 +51,7 @@ func run() error {
 			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
 			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
 			TickDataIndex                         string        `conf:"default:qubic-tick-data-alias"`
+			ComputorListIndex                     string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
 			Namespace string `conf:"default:qubic-query"`
@@ -123,7 +125,7 @@ func run() error {
 	go cache.Start()
 	defer cache.Stop()
 
-	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, esClient, cache)
+	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, esClient, cache)
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor

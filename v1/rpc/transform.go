@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/qubic/archive-query-service/protobuf"
 )
 
@@ -86,5 +87,19 @@ func TickDataToArchiveFormat(tickData TickData) (*protobuf.TickData, error) {
 		TransactionIds: tickData.TransactionHashes,
 		ContractFees:   tickData.ContractFees,
 		SignatureHex:   hex.EncodeToString(sigBytes),
+	}, nil
+}
+
+func ComputorsListToArchiveFormat(computorsList ComputorsList) (*protobuf.Computors, error) {
+
+	sigBytes, err := base64.StdEncoding.DecodeString(computorsList.Signature)
+	if err != nil {
+		return nil, fmt.Errorf("decoding base64 computor list signature for epoch with id %d: %w", computorsList.Epoch, err)
+	}
+
+	return &protobuf.Computors{
+		Epoch:        computorsList.Epoch,
+		Identities:   computorsList.Identities,
+		SignatureHex: hex.EncodeToString(sigBytes),
 	}, nil
 }

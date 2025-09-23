@@ -195,6 +195,21 @@ message SkippedTicksInterval {
 message SkippedTicksIntervalList {
   repeated SkippedTicksInterval skipped_ticks = 1;
 }
+
+message Computors {
+  uint32 epoch = 1;
+  repeated string identities = 2;
+  string signature_hex = 3;
+}
+
+message GetComputorsRequest {
+  uint32 epoch = 1;
+}
+
+message GetComputorsResponse {
+  Computors computors = 1;
+}
+
 // end of archiver compatible status response
 
 service TransactionsService {
@@ -257,6 +272,12 @@ service TransactionsService {
   rpc GetArchiverStatus(google.protobuf.Empty) returns (GetArchiverStatusResponse) {
     option (google.api.http) = {
       get: "/v1/status"
+    };
+  };
+
+  rpc GetComputorsList(GetComputorsRequest) returns (GetComputorsResponse) {
+    option (google.api.http) = {
+      get: "/v1/epochs/{epoch}/computors"
     };
   };
 
