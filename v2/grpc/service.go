@@ -155,3 +155,9 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 		ComputorsLists: computorListsForEpoch,
 	}, nil
 }
+
+func (s *ArchiveQueryService) GetHealth(context.Context, *emptypb.Empty) (*api.HealthResponse, error) {
+	return &api.HealthResponse{
+		Status: "UP",
+	}, nil
+}
