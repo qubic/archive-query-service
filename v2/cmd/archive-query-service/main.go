@@ -39,7 +39,7 @@ func run() error {
 			HttpHost              string        `conf:"default:0.0.0.0:8000"` //nolint:revive
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
-			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
+			StatusServiceGrpcHost string        `conf:"default:localhost:9901"`
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 		}
 		ElasticSearch struct {
@@ -55,7 +55,7 @@ func run() error {
 			ComputorsListIndex                    string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
-			Namespace string `conf:"default:qubic-query"`
+			Namespace string `conf:"default:query-service-v2"`
 			Port      int    `conf:"default:9999"`
 		}
 	}
@@ -110,7 +110,7 @@ func run() error {
 	}
 
 	srvMetrics := grpcProm.NewServerMetrics(
-		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": "query-service"})),
+		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": cfg.Metrics.Namespace})),
 	)
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(srvMetrics)

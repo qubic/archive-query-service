@@ -58,4 +58,10 @@ service ArchiveQueryService {
     };
   }
 
+  rpc GetHealth(google.protobuf.Empty) returns (HealthResponse) {
+    option (google.api.http) = {
+      get: "/health"
+    };
+  }
+
 }

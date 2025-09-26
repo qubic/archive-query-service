@@ -227,6 +227,28 @@
           "ArchiveQueryService"
         ]
       }
+    },
+    "/health": {
+      "get": {
+        "operationId": "ArchiveQueryService_GetHealth",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbHealthResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ArchiveQueryService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -387,6 +409,14 @@
             "type": "object",
             "$ref": "#/definitions/pbTransaction"
           }
+        }
+      }
+    },
+    "pbHealthResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
         }
       }
     },

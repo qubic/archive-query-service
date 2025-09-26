@@ -144,3 +144,7 @@ message ComputorsList {
 message GetComputorsListForEpochResponse {
     repeated ComputorsList computors_lists = 1;
 }
+
+message HealthResponse {
+    string status = 1;
+}
