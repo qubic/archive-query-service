@@ -54,7 +54,7 @@ func run() error {
 			ComputorListIndex                     string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
-			Namespace string `conf:"default:qubic-query"`
+			Namespace string `conf:"default:query-service-v1"`
 			Port      int    `conf:"default:9999"`
 		}
 	}
@@ -109,7 +109,7 @@ func run() error {
 	}
 
 	srvMetrics := grpcProm.NewServerMetrics(
-		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": "query-service"})),
+		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": cfg.Metrics.Namespace})),
 	)
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(srvMetrics)
