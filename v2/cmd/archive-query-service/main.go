@@ -3,6 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
 	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
@@ -14,12 +21,6 @@ import (
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 const prefix = "QUBIC_LTS_QUERY_SERVICE_V2"
@@ -55,7 +56,7 @@ func run() error {
 			ComputorsListIndex                    string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
-			Namespace string `conf:"default:query-service-v2"`
+			Namespace string `conf:"default:query_service_v2"`
 			Port      int    `conf:"default:9999"`
 		}
 	}

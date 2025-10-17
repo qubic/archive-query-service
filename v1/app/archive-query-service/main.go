@@ -54,7 +54,7 @@ func run() error {
 			ComputorListIndex                     string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
-			Namespace string `conf:"default:query-service-v1"`
+			Namespace string `conf:"default:query_service_v1"`
 			Port      int    `conf:"default:9999"`
 		}
 	}
