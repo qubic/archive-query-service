@@ -33,14 +33,16 @@ type Server struct {
 	listenAddrHTTP string
 	qb             *QueryBuilder
 	statusService  statusPb.StatusServiceClient
+	statusCache    *StatusCache
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryBuilder, statusClient statusPb.StatusServiceClient) *Server {
+func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryBuilder, statusClient statusPb.StatusServiceClient, statusCache *StatusCache) *Server {
 	return &Server{
 		listenAddrGRPC: listenAddrGRPC,
 		listenAddrHTTP: listenAddrHTTP,
 		qb:             qb,
 		statusService:  statusClient,
+		statusCache:    statusCache,
 	}
 }
 
@@ -390,6 +392,17 @@ func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputor
 	}
 
 	return &protobuf.GetComputorsResponse{Computors: computorsList}, nil
+}
+
+func (s *Server) GetLatestTick(ctx context.Context, _ *emptypb.Empty) (*protobuf.GetLatestTickResponse, error) {
+	maxTick, err := s.statusCache.fetchStatusMaxTick(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "fetching last processed tick: %s", err.Error())
+	}
+
+	return &protobuf.GetLatestTickResponse{
+		LatestTick: maxTick,
+	}, nil
 }
 
 func convertArchiverStatus(source *statusPb.GetArchiverStatusResponse) (*protobuf.GetArchiverStatusResponse, error) {

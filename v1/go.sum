@@ -66,8 +66,8 @@ github.com/prometheus/procfs v0.15.1 h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0leargg
 github.com/prometheus/procfs v0.15.1/go.mod h1:fB45yRUv8NstnjriLhBQLuOUt+WW4BsoGhij/e3PBqk=
 github.com/qubic/go-archiver v0.10.4 h1:EWl5AulvQ6k/XR2IOTHSfYaQ4fjk83onaamy6gj0bks=
 github.com/qubic/go-archiver v0.10.4/go.mod h1:a3OVEm6/kcJxElKTdlmbtQuYJ6r14Ubnps1+g1pXyDQ=
-github.com/qubic/go-data-publisher/status-service v0.6.1 h1:OMT4krUmGzQvblZCeDw1df9tUM70G6mB1Q/pTTPtSa0=
-github.com/qubic/go-data-publisher/status-service v0.6.1/go.mod h1:1bc1jf2GG83eetXExEFVp93QgMi8minw/2YIQUM5toY=
+github.com/qubic/go-data-publisher/status-service v0.7.0 h1:AR/faJx/FWIml1qLj3lGDmkZIQumSaYodsI3X6of4X0=
+github.com/qubic/go-data-publisher/status-service v0.7.0/go.mod h1:1bc1jf2GG83eetXExEFVp93QgMi8minw/2YIQUM5toY=
 github.com/qubic/go-node-connector v0.11.0 h1:7gNoMN1UnODiuLRs4fjdxS4/d3Qc3+FjJJKUByH1BP0=
 github.com/qubic/go-node-connector v0.11.0/go.mod h1:jLbmYx2GUh8Ctk5zULFepgho7yoGZXrU8/tMk+fcuEc=
 github.com/qubic/go-schnorrq v1.0.1 h1:F0R/BQVf+O7Bp57NGJmc3uXlqsaIzerg/1bmU4jMLLE=

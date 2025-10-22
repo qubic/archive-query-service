@@ -11,7 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/qubic/go-archiver v0.10.4
-	github.com/qubic/go-data-publisher/status-service v0.6.1
+	github.com/qubic/go-data-publisher/status-service v0.7.0
 	github.com/qubic/go-node-connector v0.11.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463

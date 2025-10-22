@@ -210,6 +210,10 @@ message GetComputorsResponse {
   Computors computors = 1;
 }
 
+message GetLatestTickResponse {
+  uint32 latest_tick = 1;
+}
+
 // end of archiver compatible status response
 
 service TransactionsService {
@@ -278,6 +282,12 @@ service TransactionsService {
   rpc GetComputorsList(GetComputorsRequest) returns (GetComputorsResponse) {
     option (google.api.http) = {
       get: "/v1/epochs/{epoch}/computors"
+    };
+  };
+
+  rpc GetLatestTick(google.protobuf.Empty) returns (GetLatestTickResponse) {
+    option (google.api.http) = {
+      get: "/v1/latestTick"
     };
   };
 
