@@ -1,93 +1,20 @@
 package rpc
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
+	"log"
+	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/jellydator/ttlcache/v3"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 )
 
 var ErrDocumentNotFound = errors.New("document not found")
 
-const maxTickCacheKey = "max_tick"
-const tickIntervalsCacheKey = "tick_intervals"
-
-type StatusCache struct {
-	lastProcessedTickProvider *ttlcache.Cache[string, uint32]
-	tickIntervalsProvider     *ttlcache.Cache[string, []*statusPb.TickInterval]
-	StatusServiceClient       statusPb.StatusServiceClient
-}
-
-func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, ttl time.Duration) *StatusCache {
-	lastProcessedTickProvider := ttlcache.New[string, uint32](
-		ttlcache.WithTTL[string, uint32](ttl),
-		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh ttl upon getting the item from cache
-	)
-
-	tickIntervalsProvider := ttlcache.New[string, []*statusPb.TickInterval](
-		ttlcache.WithTTL[string, []*statusPb.TickInterval](ttl),
-		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh ttl upon getting the item from cache
-	)
-	return &StatusCache{
-		lastProcessedTickProvider: lastProcessedTickProvider,
-		tickIntervalsProvider:     tickIntervalsProvider,
-		StatusServiceClient:       statusServiceClient,
-	}
-}
-
-func (s *StatusCache) GetMaxTick(ctx context.Context) (uint32, error) {
-	if s.lastProcessedTickProvider.Has(maxTickCacheKey) {
-		item := s.lastProcessedTickProvider.Get(maxTickCacheKey)
-		if item != nil {
-			return item.Value(), nil
-		}
-	}
-
-	maxTick, err := s.fetchStatusMaxTick(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("fetching status service max tick: %w", err)
-	}
-
-	s.lastProcessedTickProvider.Set(maxTickCacheKey, maxTick, ttlcache.DefaultTTL)
-	return maxTick, nil
-}
-
-func (s *StatusCache) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
-	if s.tickIntervalsProvider.Has(tickIntervalsCacheKey) {
-		item := s.tickIntervalsProvider.Get(tickIntervalsCacheKey)
-		if item != nil {
-			return item.Value(), nil
-		}
-	}
-
-	tickIntervals, err := s.fetchTickIntervals(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("fetching status service max tick: %w", err)
-	}
-
-	s.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
-	return tickIntervals, nil
-}
-
-func (s *StatusCache) Start() {
-	s.lastProcessedTickProvider.Start()
-	s.tickIntervalsProvider.Start()
-}
-
-func (s *StatusCache) Stop() {
-	s.lastProcessedTickProvider.Stop()
-	s.tickIntervalsProvider.Stop()
-}
-
-type QueryBuilder struct {
+type QueryService struct {
 	esClient                     *elasticsearch.Client
 	ConsecutiveElasticErrorCount atomic.Int32
 	TotalElasticErrorCount       atomic.Int32
@@ -95,10 +22,11 @@ type QueryBuilder struct {
 	txIndex                      string
 	tickDataIndex                string
 	computorListIndex            string
+	emptyTicksLock               sync.Mutex
 }
 
-func NewQueryBuilder(txIndex, tickDataIndex, computorListIndex string, esClient *elasticsearch.Client, cache *StatusCache) *QueryBuilder {
-	return &QueryBuilder{
+func NewQueryService(txIndex, tickDataIndex, computorListIndex string, esClient *elasticsearch.Client, cache *StatusCache) *QueryService {
+	return &QueryService{
 		txIndex:           txIndex,
 		tickDataIndex:     tickDataIndex,
 		esClient:          esClient,
@@ -107,400 +35,92 @@ func NewQueryBuilder(txIndex, tickDataIndex, computorListIndex string, esClient 
 	}
 }
 
-func (s *StatusCache) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
-	statusResponse, err := s.StatusServiceClient.GetStatus(ctx, nil)
-	if err != nil {
-		return 0, fmt.Errorf("fetching status service: %w", err)
+func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, intervals []*statusPb.TickInterval) (*EmptyTicks, error) {
+	qs.emptyTicksLock.Lock() // costly and not threadsafe in case of update
+	defer qs.emptyTicksLock.Unlock()
+
+	emptyTicks := qs.cache.GetEmptyTicks(epoch)
+
+	if emptyTicks != nil { // some sanity checks
+		if len(intervals) == 0 || intervals[0].Epoch != epoch || emptyTicks.Epoch != epoch || emptyTicks.StartTick != intervals[0].FirstTick {
+			log.Printf("[ERROR] Illegal argument. Empty ticks: %v", emptyTicks)
+			log.Printf("[ERROR] Illegal argument. Intervals: %v", intervals)
+			return nil, fmt.Errorf("illegal argument for epoch [%d]", epoch)
+		}
+		tick := uint32(0)
+		for _, interval := range intervals {
+			if interval.FirstTick < tick {
+				return nil, fmt.Errorf("unsorted intervals: %v", intervals)
+			}
+			tick = interval.FirstTick
+		}
 	}
 
-	return statusResponse.LastProcessedTick, nil
+	if emptyTicks == nil { // reload
+
+		var emptyTickList []uint32
+		var startTick uint32
+		var endTick uint32
+		for _, interval := range intervals {
+			if interval.Epoch == epoch {
+				if startTick == 0 {
+					startTick = interval.FirstTick
+				}
+				if endTick < interval.LastTick {
+					endTick = interval.LastTick
+				}
+				ticks, err := qs.queryEmptyTicks(ctx, interval.FirstTick, interval.LastTick, epoch)
+				if err != nil {
+					return nil, err
+				}
+				emptyTickList = append(emptyTickList, ticks...)
+			}
+		}
+		tickMap := make(map[uint32]bool, len(emptyTickList))
+		for _, tick := range emptyTickList {
+			tickMap[tick] = true
+		}
+		emptyTicks = &EmptyTicks{
+			Epoch:     epoch,
+			StartTick: startTick,
+			EndTick:   endTick,
+			Ticks:     tickMap,
+		}
+		qs.cache.SetEmptyTicks(emptyTicks)
+
+	} else { // add missing ticks if necessary. Needs lock as we operate on the cached value!
+
+		for _, interval := range intervals {
+			if interval.Epoch == epoch {
+				if emptyTicks.EndTick < interval.LastTick {
+					from := max(emptyTicks.EndTick+1, interval.FirstTick) // do no reload ticks we already have
+					ticks, err := qs.queryEmptyTicks(ctx, from, interval.LastTick, epoch)
+					if err != nil {
+						return nil, err
+					}
+					for _, tick := range ticks {
+						emptyTicks.Ticks[tick] = true
+					}
+					emptyTicks.EndTick = interval.LastTick
+				}
+			}
+		}
+		qs.cache.SetEmptyTicks(emptyTicks) // not sure if this is necessary (update ttl, ...)
+
+	}
+	return emptyTicks, nil
 }
 
-func (s *StatusCache) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
-	tickIntervalsResponse, err := s.StatusServiceClient.GetTickIntervals(ctx, nil)
+func (qs *QueryService) queryEmptyTicks(ctx context.Context, from, to uint32, epoch uint32) ([]uint32, error) {
+	log.Printf("[DEBUG] Query empty ticks: from [%d], to [%d], epoch [%d]", from, to, epoch)
+	ticks, err := qs.performGetEmptyTicksQuery(ctx, from, to, epoch)
 	if err != nil {
-		return nil, fmt.Errorf("fetching tick intervals: %w", err)
-	}
-
-	if len(tickIntervalsResponse.Intervals) == 0 {
-		return nil, fmt.Errorf("no tick intervals found")
-	}
-
-	return tickIntervalsResponse.Intervals, nil
-}
-
-func (qb *QueryBuilder) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, reqStartTick, reqEndTick uint32) (result TransactionsSearchResponse, err error) {
-	statusMaxTick, err := qb.cache.GetMaxTick(ctx)
-	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
-	}
-
-	var queryEndTick uint32
-	if reqEndTick != 0 && reqEndTick <= statusMaxTick {
-		queryEndTick = reqEndTick
+		qs.TotalElasticErrorCount.Add(1)
+		qs.ConsecutiveElasticErrorCount.Add(1)
+		return nil, fmt.Errorf("querying ticks from [%d] to [%d] in epoch [%d]: %w",
+			from, to, epoch, err)
 	} else {
-		queryEndTick = statusMaxTick
+		qs.ConsecutiveElasticErrorCount.Store(0)
 	}
-
-	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, queryEndTick)
-	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
-	}
-
-	defer func() {
-		if err != nil {
-			qb.TotalElasticErrorCount.Add(1)
-			qb.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qb.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qb.esClient.Search(
-		qb.esClient.Search.WithContext(ctx),
-		qb.esClient.Search.WithIndex(qb.txIndex),
-		qb.esClient.Search.WithBody(&query),
-	)
-	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return TransactionsSearchResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
-	}
-
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return result, nil
-}
-
-func (qb *QueryBuilder) performGetTxByIDQuery(_ context.Context, txID string) (result TransactionGetResponse, err error) {
-	defer func() {
-		if errors.Is(err, ErrDocumentNotFound) {
-			return
-		}
-
-		if err != nil {
-			qb.TotalElasticErrorCount.Add(1)
-			qb.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qb.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qb.esClient.Get(qb.txIndex, txID)
-	if err != nil {
-		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode == 404 {
-		return TransactionGetResponse{}, ErrDocumentNotFound
-	}
-
-	if res.IsError() {
-		return TransactionGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
-	}
-
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionGetResponse{}, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return result, nil
-}
-
-func (qb *QueryBuilder) performGetTickDataByTickNumberQuery(_ context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
-	defer func() {
-		if errors.Is(err, ErrDocumentNotFound) {
-			return
-		}
-
-		if err != nil {
-			qb.TotalElasticErrorCount.Add(1)
-			qb.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qb.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qb.esClient.Get(qb.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
-	if err != nil {
-		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode == 404 {
-		return TickDataGetResponse{}, ErrDocumentNotFound
-	}
-
-	if res.IsError() {
-		return TickDataGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
-	}
-
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TickDataGetResponse{}, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return result, nil
-}
-
-func (qb *QueryBuilder) performTickTransactionsQuery(ctx context.Context, tick uint32) (TransactionsSearchResponse, error) {
-	query, err := createTickTransactionsQuery(tick)
-	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
-	}
-
-	defer func() {
-		if err != nil {
-			qb.TotalElasticErrorCount.Add(1)
-			qb.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qb.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qb.esClient.Search(
-		qb.esClient.Search.WithContext(ctx),
-		qb.esClient.Search.WithIndex(qb.txIndex),
-		qb.esClient.Search.WithBody(&query),
-	)
-	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return TransactionsSearchResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
-	}
-
-	// Decode the response into a map.
-	var result TransactionsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return result, nil
-}
-
-func (qb *QueryBuilder) performComputorListByEpochQuery(ctx context.Context, epoch uint32) (result ComputorsListSearchResponse, err error) {
-
-	query, err := createComputorsListQuery(epoch)
-	if err != nil {
-		return ComputorsListSearchResponse{}, fmt.Errorf("creating query: %w", err)
-	}
-
-	defer func() {
-		if errors.Is(err, ErrDocumentNotFound) {
-			return
-		}
-
-		if err != nil {
-			qb.TotalElasticErrorCount.Add(1)
-			qb.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qb.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qb.esClient.Search(
-		qb.esClient.Search.WithContext(ctx),
-		qb.esClient.Search.WithIndex(qb.computorListIndex),
-		qb.esClient.Search.WithBody(&query),
-	)
-	if err != nil {
-		return ComputorsListSearchResponse{}, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return ComputorsListSearchResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
-	}
-
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return ComputorsListSearchResponse{}, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return result, nil
-}
-
-func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (bytes.Buffer, error) {
-	from := pageNumber * pageSize
-	querySort := "asc"
-	if desc {
-		querySort = "desc"
-	}
-
-	tickNumberRangeFilter := map[string]interface{}{
-		"lte": endTick,
-		"gte": startTick,
-	}
-	if endTick <= 0 {
-		delete(tickNumberRangeFilter, "lte")
-	}
-
-	query := map[string]interface{}{
-		"track_total_hits": "10000", // limit to max page size for better performance
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"source": ID,
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"destination": ID,
-						},
-					},
-				},
-				"filter": []interface{}{
-					map[string]interface{}{
-						"range": map[string]interface{}{
-							"tickNumber": tickNumberRangeFilter,
-						},
-					},
-				},
-				"minimum_should_match": 1,
-			},
-		},
-		"size": pageSize,
-		"from": from,
-		"sort": []interface{}{
-			map[string]interface{}{
-				"timestamp": querySort,
-			},
-		},
-	}
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
-	}
-
-	return buf, nil
-}
-
-func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
-	query := map[string]interface{}{
-		"track_total_hits": "true",
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"tickNumber": tick,
-			},
-		},
-		"size": 1024,
-	}
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
-	}
-
-	return buf, nil
-}
-
-func createComputorsListQuery(epoch uint32) (bytes.Buffer, error) {
-	query := map[string]interface{}{
-		"track_total_hits": "10000",
-		"query": map[string]interface{}{
-			"term": map[string]interface{}{
-				"epoch": epoch,
-			},
-		},
-		"sort": map[string]interface{}{
-			"tickNumber": "desc",
-		},
-		"size": 100,
-	}
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
-	}
-	return buf, nil
-}
-
-type TxHit struct {
-	Source Tx `json:"_source"`
-}
-
-type TransactionsSearchResponse struct {
-	Hits struct {
-		Total struct {
-			Value    int    `json:"value"`
-			Relation string `json:"relation"`
-		} `json:"total"`
-		Hits []TxHit `json:"hits"`
-	} `json:"hits"`
-}
-
-type TransactionGetResponse struct {
-	Index       string `json:"_index"`
-	Id          string `json:"_id"`
-	Version     int    `json:"_version"`
-	SeqNo       int    `json:"_seq_no"`
-	PrimaryTerm int    `json:"_primary_term"`
-	Found       bool   `json:"found"`
-	Source      Tx     `json:"_source"`
-}
-
-type TickDataGetResponse struct {
-	Index       string   `json:"_index"`
-	Id          string   `json:"_id"`
-	Version     int      `json:"_version"`
-	SeqNo       int      `json:"_seq_no"`
-	PrimaryTerm int      `json:"_primary_term"`
-	Found       bool     `json:"found"`
-	Source      TickData `json:"_source"`
-}
-
-type computorsListHit struct {
-	Source ComputorsList `json:"_source"`
-}
-
-type ComputorsListSearchResponse struct {
-	Hits struct {
-		Total struct {
-			Value    int    `json:"value"`
-			Relation string `json:"relation"`
-		} `json:"total"`
-		Hits []computorsListHit `json:"hits"`
-	} `json:"hits"`
-}
-
-type Tx struct {
-	Hash        string `json:"hash"`
-	Source      string `json:"source"`
-	Destination string `json:"destination"`
-	Amount      int64  `json:"amount"`
-	TickNumber  uint32 `json:"tickNumber"`
-	InputType   uint32 `json:"inputType"`
-	InputSize   uint32 `json:"inputSize"`
-	InputData   string `json:"inputData"`
-	Signature   string `json:"signature"`
-	Timestamp   uint64 `json:"timestamp"`
-	MoneyFlew   bool   `json:"moneyFlew"`
-}
-
-type TickData struct {
-	ComputorIndex     uint32   `json:"computorIndex"`
-	Epoch             uint32   `json:"epoch"`
-	TickNumber        uint32   `json:"tickNumber"`
-	Timestamp         uint64   `json:"timestamp"`
-	VarStruct         string   `json:"varStruct"`
-	Timelock          string   `json:"timeLock"`
-	TransactionHashes []string `json:"transactionHashes"`
-	ContractFees      []int64  `json:"contractFees"`
-	Signature         string   `json:"signature"`
-}
-
-type ComputorsList struct {
-	Epoch      uint32   `json:"epoch"`
-	TickNumber uint32   `json:"tickNumber"`
-	Identities []string `json:"identities"`
-	Signature  string   `json:"signature"`
+	return ticks, nil
 }

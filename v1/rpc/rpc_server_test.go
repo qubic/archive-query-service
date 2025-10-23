@@ -1,12 +1,13 @@
 package rpc
 
 import (
+	"testing"
+
 	"github.com/qubic/archive-query-service/protobuf"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
-	"testing"
 )
 
 func TestRpcServer_ConvertArchiverStatus(t *testing.T) {

@@ -214,9 +214,27 @@ message GetLatestTickResponse {
   uint32 latest_tick = 1;
 }
 
+message GetEpochTickListRequestV2 {
+  uint32 epoch = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  bool desc = 4;
+}
+
+message GetEpochTickListResponseV2 {
+  Pagination pagination = 1;
+  repeated Tick ticks = 2;
+}
+
+message Tick {
+  uint32 tick_number = 1;
+  bool is_empty = 2;
+}
+
 // end of archiver compatible status response
 
 service TransactionsService {
+
   rpc GetIdentityTransactions(GetIdentityTransactionsRequest) returns (GetIdentityTransactionsResponse) {
     option (google.api.http) = {
       get: "/v2/identities/{identity}/transactions"
@@ -288,6 +306,13 @@ service TransactionsService {
   rpc GetLatestTick(google.protobuf.Empty) returns (GetLatestTickResponse) {
     option (google.api.http) = {
       get: "/v1/latestTick"
+    };
+  };
+
+  // Deprecated. Will be removed soon.
+  rpc GetEpochTickListV2(GetEpochTickListRequestV2) returns (GetEpochTickListResponseV2) {
+    option (google.api.http) = {
+      get: "/v2/epochs/{epoch}/ticks"
     };
   };
 

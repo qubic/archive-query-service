@@ -72,7 +72,7 @@ func TickDataToArchiveFormat(tickData TickData) (*protobuf.TickData, error) {
 		return nil, fmt.Errorf("decoding base64 varStruct for tick data with number %d: %w", tickData.TickNumber, err)
 	}
 
-	timeLockBytes, err := base64.StdEncoding.DecodeString(tickData.Timelock)
+	timeLockBytes, err := base64.StdEncoding.DecodeString(tickData.TimeLock)
 	if err != nil {
 		return nil, fmt.Errorf("decoding base64 timelock for tick data with number %d: %w", tickData.TickNumber, err)
 	}
