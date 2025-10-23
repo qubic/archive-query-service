@@ -392,6 +392,17 @@ func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputor
 	return &protobuf.GetComputorsResponse{Computors: computorsList}, nil
 }
 
+func (s *Server) GetLatestTick(ctx context.Context, _ *emptypb.Empty) (*protobuf.GetLatestTickResponse, error) {
+	maxTick, err := s.qb.cache.GetMaxTick(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "fetching last processed tick: %s", err.Error())
+	}
+
+	return &protobuf.GetLatestTickResponse{
+		LatestTick: maxTick,
+	}, nil
+}
+
 func convertArchiverStatus(source *statusPb.GetArchiverStatusResponse) (*protobuf.GetArchiverStatusResponse, error) {
 	marshalled, err := proto.Marshal(source)
 	if err != nil {
