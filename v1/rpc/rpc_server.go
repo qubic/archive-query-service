@@ -7,9 +7,11 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"slices"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
+	"github.com/qubic/archive-query-service/elastic"
 	"github.com/qubic/archive-query-service/protobuf"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/qubic/go-node-connector/types"
@@ -31,11 +33,11 @@ type Server struct {
 	protobuf.UnimplementedTransactionsServiceServer
 	listenAddrGRPC string
 	listenAddrHTTP string
-	qb             *QueryBuilder
+	qb             *QueryService
 	statusService  statusPb.StatusServiceClient
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryBuilder, statusClient statusPb.StatusServiceClient) *Server {
+func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryService, statusClient statusPb.StatusServiceClient) *Server {
 	return &Server{
 		listenAddrGRPC: listenAddrGRPC,
 		listenAddrHTTP: listenAddrHTTP,
@@ -69,7 +71,7 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 
 	pagination, err := getPaginationInformation(response.Hits.Total.Value, pageNumber+1, int(pageSize))
 	if err != nil {
-		log.Printf("Error creating pagination info: %s", err.Error())
+		log.Printf("Error creating pagination info: %v", err)
 		return nil, status.Error(codes.Internal, "creating pagination info")
 	}
 
@@ -134,14 +136,14 @@ func (s *Server) GetTickTransactionsV2(ctx context.Context, req *protobuf.GetTic
 	}
 
 	if req.Approved {
-		return s.GetApprovedTickTransactionsV2(ctx, res)
+		return s.getApprovedTickTransactionsV2(ctx, res)
 	}
 
 	if req.Transfers {
-		return s.GetTransferTickTransactionsV2(ctx, res)
+		return s.getTransferTickTransactionsV2(ctx, res)
 	}
 
-	return s.GetAllTickTransactionsV2(ctx, res)
+	return s.getAllTickTransactionsV2(ctx, res)
 
 }
 
@@ -210,7 +212,7 @@ func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.
 func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionResponse, error) {
 	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
 	if err != nil {
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
 		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
@@ -227,7 +229,7 @@ func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactio
 func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionStatusResponse, error) {
 	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
 	if err != nil {
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
 		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
@@ -270,7 +272,7 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 func (s *Server) GetTransactionV2(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionResponseV2, error) {
 	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
 	if err != nil {
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
 		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
@@ -288,7 +290,7 @@ func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataReque
 	res, err := s.qb.performGetTickDataByTickNumberQuery(ctx, req.TickNumber)
 	if err != nil {
 		// empty tick condition
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return &protobuf.GetTickDataResponse{TickData: nil}, nil
 		}
 
@@ -303,7 +305,7 @@ func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataReque
 	return &protobuf.GetTickDataResponse{TickData: tickData}, nil
 }
 
-func (s *Server) GetApprovedTickTransactionsV2(ctx context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
+func (s *Server) getApprovedTickTransactionsV2(_ context.Context, res elastic.TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 	var transactions []*protobuf.TransactionData
 
 	for _, hit := range res.Hits.Hits {
@@ -323,7 +325,7 @@ func (s *Server) GetApprovedTickTransactionsV2(ctx context.Context, res Transact
 	return &protobuf.GetTickTransactionsResponseV2{Transactions: transactions}, nil
 }
 
-func (s *Server) GetTransferTickTransactionsV2(ctx context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
+func (s *Server) getTransferTickTransactionsV2(_ context.Context, res elastic.TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 	var transactions []*protobuf.TransactionData
 
 	for _, hit := range res.Hits.Hits {
@@ -343,7 +345,7 @@ func (s *Server) GetTransferTickTransactionsV2(ctx context.Context, res Transact
 	return &protobuf.GetTickTransactionsResponseV2{Transactions: transactions}, nil
 }
 
-func (s *Server) GetAllTickTransactionsV2(ctx context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
+func (s *Server) getAllTickTransactionsV2(_ context.Context, res elastic.TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 
 	var transactions []*protobuf.TransactionData
 
@@ -401,6 +403,110 @@ func (s *Server) GetLatestTick(ctx context.Context, _ *emptypb.Empty) (*protobuf
 	return &protobuf.GetLatestTickResponse{
 		LatestTick: maxTick,
 	}, nil
+}
+
+func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEpochTickListRequestV2) (*protobuf.GetEpochTickListResponseV2, error) {
+
+	maxSize := int32(1000)
+	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxSize) {
+		log.Printf("[DEBUG] Invalid page size: [%d]", request.PageSize)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10.  max: %d", maxSize)
+	}
+	page := max(1, request.Page)
+	pageSize := max(10, request.PageSize)
+
+	intervals, err := s.qb.cache.GetTickIntervals(ctx) // TODO get current epoch here via status service status
+	if err != nil {
+		log.Printf("[ERROR] getting tick intervals: %v", err)
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	if len(intervals) == 0 {
+		log.Println("[ERROR] no tick intervals found.")
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
+		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
+	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
+		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
+	}
+
+	var count uint32
+	filteredIntervals := make([]*statusPb.TickInterval, 0)
+	for _, interval := range intervals {
+		if request.Epoch == interval.Epoch {
+			count += (interval.LastTick + 1) - interval.FirstTick
+			filteredIntervals = append(filteredIntervals, interval)
+		}
+	}
+
+	emptyTicks, err := s.qb.GetEmptyTicks(ctx, request.Epoch, filteredIntervals)
+	if err != nil {
+		log.Printf("[ERROR] getting empty ticks for epoch [%d]: %v", request.Epoch, err)
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	start := uint32((page - 1) * pageSize)
+	end := min(start+uint32(pageSize), count)
+	ticks := make([]*protobuf.Tick, 0, pageSize)
+
+	if request.GetDesc() {
+		ticks = getReversedPageData(filteredIntervals, start, end, ticks, emptyTicks)
+	} else {
+		ticks = getPageData(filteredIntervals, start, end, ticks, emptyTicks)
+	}
+
+	pagination, err := getPaginationInformation(int(count), int(page), int(pageSize))
+	if err != nil {
+		log.Printf("Error creating pagination info: %v", err)
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	return &protobuf.GetEpochTickListResponseV2{
+		Pagination: pagination,
+		Ticks:      ticks,
+	}, nil
+
+}
+
+func getPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
+	processed := uint32(0)
+	for _, interval := range filteredIntervals {
+		for i := interval.FirstTick; i <= interval.LastTick; i++ {
+			if processed >= start && processed < end {
+				ticks = append(ticks, &protobuf.Tick{
+					TickNumber: i,
+					IsEmpty:    emptyTicks.Ticks[i],
+				})
+			}
+			processed++
+		}
+	}
+	return ticks
+}
+
+func getReversedPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
+	processed := uint32(0)
+	slices.Reverse(filteredIntervals)
+	for _, interval := range filteredIntervals {
+		for i := interval.LastTick; i >= interval.FirstTick; i-- {
+			if processed >= start && processed < end {
+				ticks = append(ticks, &protobuf.Tick{
+					TickNumber: i,
+					IsEmpty:    emptyTicks.Ticks[i],
+				})
+			}
+			processed++
+		}
+	}
+	return ticks
+}
+
+func internalErrorGettingTickIntervals() error {
+	return status.Error(codes.Internal, "getting tick intervals")
 }
 
 func convertArchiverStatus(source *statusPb.GetArchiverStatusResponse) (*protobuf.GetArchiverStatusResponse, error) {
@@ -464,13 +570,13 @@ func recomputeSendManyMoneyFlew(tx *protobuf.Transaction) (bool, error) {
 	if err != nil {
 		return false, status.Errorf(codes.Internal, "decoding tx input: %v", err)
 	}
-	var sendmanypayload types.SendManyTransferPayload
-	err = sendmanypayload.UnmarshallBinary(decodedInput)
+	var sendManyPayload types.SendManyTransferPayload
+	err = sendManyPayload.UnmarshallBinary(decodedInput)
 	if err != nil {
 		return false, status.Errorf(codes.Internal, "unmarshalling payload: %v", err)
 	}
 
-	if tx.Amount < sendmanypayload.GetTotalAmount() {
+	if tx.Amount < sendManyPayload.GetTotalAmount() {
 		return false, nil
 	}
 

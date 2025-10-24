@@ -15,6 +15,7 @@ import (
 	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/qubic/archive-query-service/elastic"
 	"github.com/qubic/archive-query-service/rpc"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
@@ -39,7 +40,8 @@ func run() error {
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
-			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
+			StatusDataCacheTtl    time.Duration `conf:"default:1s"`
+			EmptyTicksTtl         time.Duration `conf:"default:24h"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -102,11 +104,11 @@ func run() error {
 			ResponseHeaderTimeout: cfg.ElasticSearch.ReadTimeout,
 		},
 	}
-
 	esClient, err := elasticsearch.NewClient(elsCfg)
 	if err != nil {
 		return fmt.Errorf("creating elasticsearch client: %w", err)
 	}
+	elasticClient := elastic.NewElasticClient(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, esClient)
 
 	srvMetrics := grpcProm.NewServerMetrics(
 		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": cfg.Metrics.Namespace})),
@@ -120,13 +122,13 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.StatusDataCacheTTL)
+	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTtl, cfg.Server.StatusDataCacheTtl)
 
 	go cache.Start()
 	defer cache.Stop()
 
-	queryBuilder := rpc.NewQueryBuilder(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, esClient, cache)
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryBuilder, statusServiceClient)
+	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
@@ -153,7 +155,7 @@ func run() error {
 
 		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
 
-			consecutiveErrorCount := int(queryBuilder.ConsecutiveElasticErrorCount.Load())
+			consecutiveErrorCount := int(queryService.ConsecutiveElasticErrorCount.Load())
 
 			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveRequestErrorCountThreshold {
 				writer.WriteHeader(http.StatusInternalServerError)
