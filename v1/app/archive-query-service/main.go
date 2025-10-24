@@ -40,8 +40,8 @@ func run() error {
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
-			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
-			EmptyTicksTTL         time.Duration `conf:"default:1d"`
+			StatusDataCacheTtl    time.Duration `conf:"default:1s"`
+			EmptyTicksTtl         time.Duration `conf:"default:24h"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -122,7 +122,7 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTTL, cfg.Server.StatusDataCacheTTL)
+	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTtl, cfg.Server.StatusDataCacheTtl)
 
 	go cache.Start()
 	defer cache.Stop()
