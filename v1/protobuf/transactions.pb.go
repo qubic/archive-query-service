@@ -2105,11 +2105,14 @@ func (x *GetLatestTickResponse) GetLatestTick() uint32 {
 }
 
 type GetEpochTickListRequestV2 struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Epoch         uint32                 `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Desc          bool                   `protobuf:"varint,4,opt,name=desc,proto3" json:"desc,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// only the current and the previous epochs can be queried.
+	Epoch uint32 `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	// page numbering starts at '1' (default value: '1').
+	Page int32 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	// max page size: 1000. value modulo 10 must be zero. defaults to '10'.
+	PageSize      int32 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Desc          bool  `protobuf:"varint,4,opt,name=desc,proto3" json:"desc,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

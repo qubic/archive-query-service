@@ -53,7 +53,6 @@ type TransactionsServiceClient interface {
 	GetArchiverStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetArchiverStatusResponse, error)
 	GetComputorsList(ctx context.Context, in *GetComputorsRequest, opts ...grpc.CallOption) (*GetComputorsResponse, error)
 	GetLatestTick(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLatestTickResponse, error)
-	// Deprecated. Will be removed soon.
 	GetEpochTickListV2(ctx context.Context, in *GetEpochTickListRequestV2, opts ...grpc.CallOption) (*GetEpochTickListResponseV2, error)
 }
 
@@ -213,7 +212,6 @@ type TransactionsServiceServer interface {
 	GetArchiverStatus(context.Context, *emptypb.Empty) (*GetArchiverStatusResponse, error)
 	GetComputorsList(context.Context, *GetComputorsRequest) (*GetComputorsResponse, error)
 	GetLatestTick(context.Context, *emptypb.Empty) (*GetLatestTickResponse, error)
-	// Deprecated. Will be removed soon.
 	GetEpochTickListV2(context.Context, *GetEpochTickListRequestV2) (*GetEpochTickListResponseV2, error)
 	mustEmbedUnimplementedTransactionsServiceServer()
 }

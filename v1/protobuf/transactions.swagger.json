@@ -248,7 +248,6 @@
     },
     "/v2/epochs/{epoch}/ticks": {
       "get": {
-        "summary": "Deprecated. Will be removed soon.",
         "operationId": "TransactionsService_GetEpochTickListV2",
         "responses": {
           "200": {
@@ -267,6 +266,7 @@
         "parameters": [
           {
             "name": "epoch",
+            "description": "only the current and the previous epochs can be queried.",
             "in": "path",
             "required": true,
             "type": "integer",
@@ -274,6 +274,7 @@
           },
           {
             "name": "page",
+            "description": "page numbering starts at '1' (default value: '1').",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -281,6 +282,7 @@
           },
           {
             "name": "pageSize",
+            "description": "max page size: 1000. value modulo 10 must be zero. defaults to '10'.",
             "in": "query",
             "required": false,
             "type": "integer",
