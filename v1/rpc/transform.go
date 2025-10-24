@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/qubic/archive-query-service/elastic"
 	"github.com/qubic/archive-query-service/protobuf"
 )
 
-func TxToArchivePartialFormat(tx Tx) (*protobuf.Transaction, error) {
+func TxToArchivePartialFormat(tx elastic.Tx) (*protobuf.Transaction, error) {
 	inputBytes, err := base64.StdEncoding.DecodeString(tx.InputData)
 	if err != nil {
 		return nil, fmt.Errorf("decoding base64 input for tx with id %s: %w", tx.Hash, err)
@@ -32,7 +33,7 @@ func TxToArchivePartialFormat(tx Tx) (*protobuf.Transaction, error) {
 	}, nil
 }
 
-func TxToArchiveFullFormat(tx Tx) (*protobuf.TransactionData, error) {
+func TxToArchiveFullFormat(tx elastic.Tx) (*protobuf.TransactionData, error) {
 	partialTx, err := TxToArchivePartialFormat(tx)
 	if err != nil {
 		return nil, fmt.Errorf("converting tx to partial format: %w", err)
@@ -45,7 +46,7 @@ func TxToArchiveFullFormat(tx Tx) (*protobuf.TransactionData, error) {
 	}, nil
 }
 
-func TxToNewFormat(tx Tx) *protobuf.NewTransaction {
+func TxToNewFormat(tx elastic.Tx) *protobuf.NewTransaction {
 	return &protobuf.NewTransaction{
 		SourceId:   tx.Source,
 		DestId:     tx.Destination,
@@ -61,7 +62,7 @@ func TxToNewFormat(tx Tx) *protobuf.NewTransaction {
 	}
 }
 
-func TickDataToArchiveFormat(tickData TickData) (*protobuf.TickData, error) {
+func TickDataToArchiveFormat(tickData elastic.TickData) (*protobuf.TickData, error) {
 	sigBytes, err := base64.StdEncoding.DecodeString(tickData.Signature)
 	if err != nil {
 		return nil, fmt.Errorf("decoding base64 signature for tick data with number %d: %w", tickData.TickNumber, err)
@@ -90,7 +91,7 @@ func TickDataToArchiveFormat(tickData TickData) (*protobuf.TickData, error) {
 	}, nil
 }
 
-func ComputorsListToArchiveFormat(computorsList ComputorsList) (*protobuf.Computors, error) {
+func ComputorsListToArchiveFormat(computorsList elastic.ComputorsList) (*protobuf.Computors, error) {
 
 	sigBytes, err := base64.StdEncoding.DecodeString(computorsList.Signature)
 	if err != nil {

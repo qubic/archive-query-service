@@ -15,6 +15,7 @@ import (
 	grpcProm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/qubic/archive-query-service/elastic"
 	"github.com/qubic/archive-query-service/rpc"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
@@ -103,11 +104,11 @@ func run() error {
 			ResponseHeaderTimeout: cfg.ElasticSearch.ReadTimeout,
 		},
 	}
-
 	esClient, err := elasticsearch.NewClient(elsCfg)
 	if err != nil {
 		return fmt.Errorf("creating elasticsearch client: %w", err)
 	}
+	elasticClient := elastic.NewElasticClient(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, esClient)
 
 	srvMetrics := grpcProm.NewServerMetrics(
 		grpcProm.WithServerCounterOptions(grpcProm.WithConstLabels(prometheus.Labels{"namespace": cfg.Metrics.Namespace})),
@@ -126,7 +127,7 @@ func run() error {
 	go cache.Start()
 	defer cache.Stop()
 
-	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, esClient, cache)
+	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
 	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor

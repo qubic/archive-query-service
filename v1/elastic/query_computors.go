@@ -1,37 +1,23 @@
-package rpc
+package elastic
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
-func (qs *QueryService) performComputorListByEpochQuery(ctx context.Context, epoch uint32) (result ComputorsListSearchResponse, err error) {
+func (c *Client) QueryComputorListByEpoch(ctx context.Context, epoch uint32) (result ComputorsListSearchResponse, err error) {
 
 	query, err := createComputorsListQuery(epoch)
 	if err != nil {
 		return ComputorsListSearchResponse{}, fmt.Errorf("creating query: %w", err)
 	}
 
-	defer func() {
-		if errors.Is(err, ErrDocumentNotFound) {
-			return
-		}
-
-		if err != nil {
-			qs.TotalElasticErrorCount.Add(1)
-			qs.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qs.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qs.esClient.Search(
-		qs.esClient.Search.WithContext(ctx),
-		qs.esClient.Search.WithIndex(qs.computorListIndex),
-		qs.esClient.Search.WithBody(&query),
+	res, err := c.elastic.Search(
+		c.elastic.Search.WithContext(ctx),
+		c.elastic.Search.WithIndex(c.computorListIndex),
+		c.elastic.Search.WithBody(&query),
 	)
 	if err != nil {
 		return ComputorsListSearchResponse{}, fmt.Errorf("performing search: %w", err)

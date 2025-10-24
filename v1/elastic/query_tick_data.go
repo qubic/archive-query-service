@@ -1,34 +1,34 @@
-package rpc
+package elastic
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
+	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-func (qs *QueryService) performGetTickDataByTickNumberQuery(_ context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
-	defer func() {
-		if errors.Is(err, ErrDocumentNotFound) {
-			return
-		}
+func (c *Client) QueryTickDataByTickNumber(ctx context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
 
-		if err != nil {
-			qs.TotalElasticErrorCount.Add(1)
-			qs.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qs.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qs.esClient.Get(qs.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
+	res, err := c.elastic.Get(
+		c.tickDataIndex,
+		strconv.FormatUint(uint64(tickNumber), 10),
+		c.elastic.Get.WithContext(ctx),
+	)
 	if err != nil {
 		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %w", err)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("[WARN] failed to close body: %v", err)
+		}
+	}(res.Body)
 
 	if res.StatusCode == 404 {
 		return TickDataGetResponse{}, ErrDocumentNotFound
@@ -45,9 +45,9 @@ func (qs *QueryService) performGetTickDataByTickNumberQuery(_ context.Context, t
 	return result, nil
 }
 
-func (qs *QueryService) performGetEmptyTicksQuery(ctx context.Context, startTick, endTick, epoch uint32) ([]uint32, error) {
+func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch uint32) ([]uint32, error) {
 
-	searchResult, err := qs.performGetTicksQuery(ctx, startTick, endTick, epoch)
+	searchResult, err := c.performGetTicksQuery(ctx, startTick, endTick, epoch)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (qs *QueryService) performGetEmptyTicksQuery(ctx context.Context, startTick
 	for processed < total {
 
 		scrollId := searchResult.ScrollId
-		searchResult, err = qs.performGetTicksScroll(ctx, scrollId)
+		searchResult, err = c.performGetTicksScroll(ctx, scrollId)
 		if err != nil {
 			return nil, err
 		}
@@ -100,31 +100,7 @@ func (qs *QueryService) performGetEmptyTicksQuery(ctx context.Context, startTick
 
 }
 
-func (qs *QueryService) performGetTicksScroll(ctx context.Context, scrollId string) (*TickListSearchResponse, error) {
-
-	res, err := qs.esClient.Scroll(
-		qs.esClient.Scroll.WithContext(ctx),
-		qs.esClient.Scroll.WithScrollID(scrollId),
-		qs.esClient.Scroll.WithScroll(30*time.Second),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("calling es client scroll: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, fmt.Errorf("error response from elastic: %s", res.String())
-	}
-
-	var searchResult *TickListSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&searchResult); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
-	}
-	return searchResult, nil
-
-}
-
-func (qs *QueryService) performGetTicksQuery(ctx context.Context, startTick, endTick, epoch uint32) (*TickListSearchResponse, error) {
+func (c *Client) performGetTicksQuery(ctx context.Context, startTick, endTick, epoch uint32) (*TickListSearchResponse, error) {
 	query := `{
 	  "size": %d,
 	  "_source": false,
@@ -142,17 +118,38 @@ func (qs *QueryService) performGetTicksQuery(ctx context.Context, startTick, end
 	}`
 	query = fmt.Sprintf(query, 10000, epoch, startTick, endTick)
 
-	res, err := qs.esClient.Search(
-		qs.esClient.Search.WithContext(ctx),
-		qs.esClient.Search.WithIndex(qs.tickDataIndex),
-		qs.esClient.Search.WithScroll(30*time.Second),
-		qs.esClient.Search.WithSource("false"),
-		qs.esClient.Search.WithBody(strings.NewReader(query)),
-	)
+	return executeSearch(func() (*esapi.Response, error) {
+		return c.elastic.Search(
+			c.elastic.Search.WithContext(ctx),
+			c.elastic.Search.WithIndex(c.tickDataIndex),
+			c.elastic.Search.WithScroll(30*time.Second),
+			c.elastic.Search.WithSource("false"),
+			c.elastic.Search.WithBody(strings.NewReader(query)),
+		)
+	})
+}
+
+func (c *Client) performGetTicksScroll(ctx context.Context, scrollId string) (*TickListSearchResponse, error) {
+	return executeSearch(func() (*esapi.Response, error) {
+		return c.elastic.Scroll(
+			c.elastic.Scroll.WithContext(ctx),
+			c.elastic.Scroll.WithScrollID(scrollId),
+			c.elastic.Scroll.WithScroll(30*time.Second),
+		)
+	})
+}
+
+func executeSearch(search func() (*esapi.Response, error)) (*TickListSearchResponse, error) {
+	res, err := search()
 	if err != nil {
 		return nil, fmt.Errorf("calling es client search: %w", err)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("[WARN] failed to close body: %v", err)
+		}
+	}(res.Body)
 
 	if res.IsError() {
 		return nil, fmt.Errorf("error response from elastic: %s", res.String())

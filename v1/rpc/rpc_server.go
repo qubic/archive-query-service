@@ -10,6 +10,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
+	"github.com/qubic/archive-query-service/elastic"
 	"github.com/qubic/archive-query-service/protobuf"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/qubic/go-node-connector/types"
@@ -303,7 +304,7 @@ func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataReque
 	return &protobuf.GetTickDataResponse{TickData: tickData}, nil
 }
 
-func (s *Server) getApprovedTickTransactionsV2(_ context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
+func (s *Server) getApprovedTickTransactionsV2(_ context.Context, res elastic.TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 	var transactions []*protobuf.TransactionData
 
 	for _, hit := range res.Hits.Hits {
@@ -323,7 +324,7 @@ func (s *Server) getApprovedTickTransactionsV2(_ context.Context, res Transactio
 	return &protobuf.GetTickTransactionsResponseV2{Transactions: transactions}, nil
 }
 
-func (s *Server) getTransferTickTransactionsV2(_ context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
+func (s *Server) getTransferTickTransactionsV2(_ context.Context, res elastic.TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 	var transactions []*protobuf.TransactionData
 
 	for _, hit := range res.Hits.Hits {
@@ -343,7 +344,7 @@ func (s *Server) getTransferTickTransactionsV2(_ context.Context, res Transactio
 	return &protobuf.GetTickTransactionsResponseV2{Transactions: transactions}, nil
 }
 
-func (s *Server) getAllTickTransactionsV2(_ context.Context, res TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
+func (s *Server) getAllTickTransactionsV2(_ context.Context, res elastic.TransactionsSearchResponse) (*protobuf.GetTickTransactionsResponseV2, error) {
 
 	var transactions []*protobuf.TransactionData
 
@@ -536,13 +537,13 @@ func recomputeSendManyMoneyFlew(tx *protobuf.Transaction) (bool, error) {
 	if err != nil {
 		return false, status.Errorf(codes.Internal, "decoding tx input: %v", err)
 	}
-	var sendmanypayload types.SendManyTransferPayload
-	err = sendmanypayload.UnmarshallBinary(decodedInput)
+	var sendManyPayload types.SendManyTransferPayload
+	err = sendManyPayload.UnmarshallBinary(decodedInput)
 	if err != nil {
 		return false, status.Errorf(codes.Internal, "unmarshalling payload: %v", err)
 	}
 
-	if tx.Amount < sendmanypayload.GetTotalAmount() {
+	if tx.Amount < sendManyPayload.GetTotalAmount() {
 		return false, nil
 	}
 

@@ -1,44 +1,23 @@
-package rpc
+package elastic
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
-func (qs *QueryService) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, reqStartTick, reqEndTick uint32) (result TransactionsSearchResponse, err error) {
-	statusMaxTick, err := qs.cache.GetMaxTick(ctx)
-	if err != nil {
-		return TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
-	}
+func (c *Client) QueryIdentityTransactions(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (result TransactionsSearchResponse, err error) {
 
-	var queryEndTick uint32
-	if reqEndTick != 0 && reqEndTick <= statusMaxTick {
-		queryEndTick = reqEndTick
-	} else {
-		queryEndTick = statusMaxTick
-	}
-
-	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, reqStartTick, queryEndTick)
+	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, startTick, endTick)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
 	}
 
-	defer func() {
-		if err != nil {
-			qs.TotalElasticErrorCount.Add(1)
-			qs.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qs.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qs.esClient.Search(
-		qs.esClient.Search.WithContext(ctx),
-		qs.esClient.Search.WithIndex(qs.txIndex),
-		qs.esClient.Search.WithBody(&query),
+	res, err := c.elastic.Search(
+		c.elastic.Search.WithContext(ctx),
+		c.elastic.Search.WithIndex(c.txIndex),
+		c.elastic.Search.WithBody(&query),
 	)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
@@ -56,21 +35,12 @@ func (qs *QueryService) performIdentitiesTransactionsQuery(ctx context.Context, 
 	return result, nil
 }
 
-func (qs *QueryService) performGetTxByIDQuery(_ context.Context, txID string) (result TransactionGetResponse, err error) {
-	defer func() {
-		if errors.Is(err, ErrDocumentNotFound) {
-			return
-		}
-
-		if err != nil {
-			qs.TotalElasticErrorCount.Add(1)
-			qs.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qs.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qs.esClient.Get(qs.txIndex, txID)
+func (c *Client) QueryTransactionByHash(ctx context.Context, txID string) (result TransactionGetResponse, err error) {
+	res, err := c.elastic.Get(
+		c.txIndex,
+		txID,
+		c.elastic.Get.WithContext(ctx),
+	)
 	if err != nil {
 		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %w", err)
 	}
@@ -91,25 +61,16 @@ func (qs *QueryService) performGetTxByIDQuery(_ context.Context, txID string) (r
 	return result, nil
 }
 
-func (qs *QueryService) performTickTransactionsQuery(ctx context.Context, tick uint32) (TransactionsSearchResponse, error) {
+func (c *Client) QueryTickTransactions(ctx context.Context, tick uint32) (TransactionsSearchResponse, error) {
 	query, err := createTickTransactionsQuery(tick)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
 	}
 
-	defer func() {
-		if err != nil {
-			qs.TotalElasticErrorCount.Add(1)
-			qs.ConsecutiveElasticErrorCount.Add(1)
-		} else {
-			qs.ConsecutiveElasticErrorCount.Store(0)
-		}
-	}()
-
-	res, err := qs.esClient.Search(
-		qs.esClient.Search.WithContext(ctx),
-		qs.esClient.Search.WithIndex(qs.txIndex),
-		qs.esClient.Search.WithBody(&query),
+	res, err := c.elastic.Search(
+		c.elastic.Search.WithContext(ctx),
+		c.elastic.Search.WithIndex(c.txIndex),
+		c.elastic.Search.WithBody(&query),
 	)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("performing search: %w", err)
