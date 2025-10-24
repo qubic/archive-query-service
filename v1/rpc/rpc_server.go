@@ -212,7 +212,7 @@ func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.
 func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionResponse, error) {
 	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
 	if err != nil {
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
 		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
@@ -229,7 +229,7 @@ func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactio
 func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionStatusResponse, error) {
 	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
 	if err != nil {
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
 		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
@@ -272,7 +272,7 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 func (s *Server) GetTransactionV2(ctx context.Context, req *protobuf.GetTransactionRequest) (*protobuf.GetTransactionResponseV2, error) {
 	res, err := s.qb.performGetTxByIDQuery(ctx, req.TxId)
 	if err != nil {
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
 		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
@@ -290,7 +290,7 @@ func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataReque
 	res, err := s.qb.performGetTickDataByTickNumberQuery(ctx, req.TickNumber)
 	if err != nil {
 		// empty tick condition
-		if errors.Is(err, ErrDocumentNotFound) {
+		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return &protobuf.GetTickDataResponse{TickData: nil}, nil
 		}
 

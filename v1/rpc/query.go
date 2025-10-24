@@ -11,8 +11,6 @@ import (
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 )
 
-var ErrDocumentNotFound = errors.New("document not found")
-
 type QueryCache interface {
 	GetMaxTick(ctx context.Context) (uint32, error)
 	GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error)
@@ -46,7 +44,7 @@ func NewQueryService(txIndex, tickDataIndex, computorListIndex string, elasticCl
 
 func (qs *QueryService) performGetTickDataByTickNumberQuery(ctx context.Context, tickNumber uint32) (result elastic.TickDataGetResponse, err error) {
 	res, err := qs.elasticClient.QueryTickDataByTickNumber(ctx, tickNumber)
-	if err != nil && !errors.Is(err, ErrDocumentNotFound) {
+	if err != nil && !errors.Is(err, elastic.ErrDocumentNotFound) {
 		qs.TotalElasticErrorCount.Add(1)
 		qs.ConsecutiveElasticErrorCount.Add(1)
 	} else {
