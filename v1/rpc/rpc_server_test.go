@@ -392,7 +392,11 @@ func TestRpcServer_QueryEmptyTicks_GivenValidPageSize_ThenNoError(t *testing.T) 
 
 	server := Server{qb: qs, statusService: nil}
 
-	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 10})
+	// special treatment for page size 1
+	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 1})
+	require.NoError(t, err)
+
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 10})
 	require.NoError(t, err)
 
 	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 120})
