@@ -53,22 +53,22 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 	}
 
 	total := uint32(searchResult.Hits.Total.Value) // doesn't change in following queries
-	numberOfEmpty := (endTick - startTick) - total
+	numberOfEmpty := ((endTick + 1) - startTick) - total
 	var processed uint32
 	emptyTicks := make([]uint32, 0, numberOfEmpty)
 
-	currentTick := uint64(startTick)
+	nextTick := uint64(startTick)
 	for _, hit := range searchResult.Hits.Hits {
 		tickNumber, err := strconv.ParseUint(hit.Id, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse tick number: %w", err)
 		}
-		if currentTick < tickNumber { // only the gaps are empty
-			for i := currentTick; i < tickNumber; i++ {
+		if nextTick < tickNumber { // only the gaps are empty
+			for i := nextTick; i < tickNumber; i++ {
 				emptyTicks = append(emptyTicks, uint32(i))
 			}
 		}
-		currentTick = tickNumber
+		nextTick = tickNumber + 1
 		processed++
 	}
 
@@ -85,15 +85,20 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse tick number: %w", err)
 			}
-			if currentTick < tickNumber { // only the gaps are empty
-				for i := currentTick; i < tickNumber; i++ {
+			if nextTick < tickNumber { // only the gaps are empty
+				for i := nextTick; i < tickNumber; i++ {
 					emptyTicks = append(emptyTicks, uint32(i))
 				}
 			}
-			currentTick = tickNumber
+			nextTick = tickNumber + 1
 			processed++
 		}
 
+	}
+
+	// fill up with empty ticks
+	for i := nextTick; i <= uint64(endTick); i++ {
+		emptyTicks = append(emptyTicks, uint32(i))
 	}
 
 	return emptyTicks, nil
@@ -108,7 +113,7 @@ func (c *Client) performGetTicksQuery(ctx context.Context, startTick, endTick, e
 		"bool": {
 		  "must": [
 			{ "match": { "epoch": %d } },
-			{ "range": { "tickNumber": { "gte": %d, "lte": %d"} } }
+			{ "range": { "tickNumber": { "gte": %d, "lte": %d} } }
 		  ]
 		}
 	  },
@@ -158,6 +163,9 @@ func executeSearch(search func() (*esapi.Response, error)) (*TickListSearchRespo
 	var searchResult *TickListSearchResponse
 	if err = json.NewDecoder(res.Body).Decode(&searchResult); err != nil {
 		return nil, fmt.Errorf("decoding response: %w", err)
+	}
+	if searchResult.Took > 1000 {
+		log.Printf("[WARN] Slow get ticks query: %dms", searchResult.Took)
 	}
 	return searchResult, nil
 }
