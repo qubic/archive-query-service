@@ -424,8 +424,10 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 		return nil, internalErrorGettingTickIntervals()
 	}
 
-	if request.Epoch < intervals[len(intervals)-1].Epoch {
-		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch is supported.")
+	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
+		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
+	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
+		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 
 	var count uint32

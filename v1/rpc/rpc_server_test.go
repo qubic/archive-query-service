@@ -306,3 +306,98 @@ func TestRpcServer_QueryEmptyTicks_GivenMultipleIntervals_ReturnCorrectPages(t *
 	require.Equal(t, &protobuf.Tick{TickNumber: 21, IsEmpty: false}, response.Ticks[0])
 	require.Equal(t, &protobuf.Tick{TickNumber: 1, IsEmpty: true}, response.Ticks[20])
 }
+
+func TestRpcServer_QueryEmptyTicks_GivenValidEpochValues_ThenNoError(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{},
+		cache:         statusCache,
+	}
+
+	server := Server{qb: qs, statusService: nil}
+
+	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 122})
+	require.NoError(t, err)
+
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123})
+	require.NoError(t, err)
+}
+
+func TestRpcServer_QueryEmptyTicks_GivenEpochInThePast_ThenError(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{},
+		cache:         statusCache,
+	}
+
+	server := Server{qb: qs, statusService: nil}
+
+	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 121})
+	require.Error(t, err)
+	require.ErrorContains(t, err, "InvalidArgument")
+	require.ErrorContains(t, err, "old")
+}
+
+func TestRpcServer_QueryEmptyTicks_GivenEpochInTheFuture_ThenError(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{},
+		cache:         statusCache,
+	}
+
+	server := Server{qb: qs, statusService: nil}
+
+	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 124})
+	require.Error(t, err)
+	require.ErrorContains(t, err, "InvalidArgument")
+	require.ErrorContains(t, err, "future")
+}
+
+func TestRpcServer_QueryEmptyTicks_GivenInvalidPageSize_ThenError(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{},
+		cache:         statusCache,
+	}
+
+	server := Server{qb: qs, statusService: nil}
+
+	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 10000})
+	require.Error(t, err)
+	require.ErrorContains(t, err, "InvalidArgument")
+	require.ErrorContains(t, err, "page size")
+
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 11})
+	require.Error(t, err)
+	require.ErrorContains(t, err, "InvalidArgument")
+	require.ErrorContains(t, err, "page size")
+}
+
+func TestRpcServer_QueryEmptyTicks_GivenValidPageSize_ThenNoError(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{},
+		cache:         statusCache,
+	}
+
+	server := Server{qb: qs, statusService: nil}
+
+	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 10})
+	require.NoError(t, err)
+
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 120})
+	require.NoError(t, err)
+
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 1000})
+	require.NoError(t, err)
+}
