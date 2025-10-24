@@ -408,6 +408,7 @@ func (s *Server) GetLatestTick(ctx context.Context, _ *emptypb.Empty) (*protobuf
 func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEpochTickListRequestV2) (*protobuf.GetEpochTickListResponseV2, error) {
 
 	if request.PageSize%10 != 0 || request.PageSize > 1000 {
+		log.Printf("[DEBUG] Invalid paging information. Page size: [%d]", request.PageSize)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size")
 	}
 	page := max(1, request.Page)
@@ -425,8 +426,10 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	}
 
 	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
+		log.Printf("[DEBUG] Invalid epoche: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
 	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
+		log.Printf("[DEBUG] Invalid epoche: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 
