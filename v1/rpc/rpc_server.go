@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"slices"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
@@ -431,7 +432,7 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	filteredIntervals := make([]*statusPb.TickInterval, 0)
 	for _, interval := range intervals {
 		if request.Epoch == interval.Epoch {
-			count += interval.LastTick - interval.FirstTick
+			count += (interval.LastTick + 1) - interval.FirstTick
 			filteredIntervals = append(filteredIntervals, interval)
 		}
 	}
@@ -446,17 +447,10 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	end := min(start+uint32(pageSize), count)
 	ticks := make([]*protobuf.Tick, 0, pageSize)
 
-	processed := uint32(0)
-	for _, interval := range filteredIntervals {
-		for i := interval.FirstTick; i <= interval.LastTick; i++ {
-			if processed >= start && processed <= end {
-				ticks = append(ticks, &protobuf.Tick{
-					TickNumber: i,
-					IsEmpty:    emptyTicks.Ticks[i], // TODO check if this works
-				})
-			}
-			processed++
-		}
+	if request.GetDesc() {
+		ticks = getReversedPageData(filteredIntervals, start, end, ticks, emptyTicks)
+	} else {
+		ticks = getPageData(filteredIntervals, start, end, ticks, emptyTicks)
 	}
 
 	pagination, err := getPaginationInformation(int(count), int(page), int(pageSize))
@@ -470,6 +464,39 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 		Ticks:      ticks,
 	}, nil
 
+}
+
+func getPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
+	processed := uint32(0)
+	for _, interval := range filteredIntervals {
+		for i := interval.FirstTick; i <= interval.LastTick; i++ {
+			if processed >= start && processed < end {
+				ticks = append(ticks, &protobuf.Tick{
+					TickNumber: i,
+					IsEmpty:    emptyTicks.Ticks[i],
+				})
+			}
+			processed++
+		}
+	}
+	return ticks
+}
+
+func getReversedPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
+	processed := uint32(0)
+	slices.Reverse(filteredIntervals)
+	for _, interval := range filteredIntervals {
+		for i := interval.LastTick; i >= interval.FirstTick; i-- {
+			if processed >= start && processed < end {
+				ticks = append(ticks, &protobuf.Tick{
+					TickNumber: i,
+					IsEmpty:    emptyTicks.Ticks[i],
+				})
+			}
+			processed++
+		}
+	}
+	return ticks
 }
 
 func internalErrorGettingTickIntervals() error {
