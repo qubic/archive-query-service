@@ -229,6 +229,17 @@ message GetEpochTickListResponseV2 {
   repeated Tick ticks = 2;
 }
 
+message GetEpochEmptyTickListRequestV2 {
+  uint32 epoch = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message GetEpochEmptyTickListResponseV2 {
+  Pagination pagination = 1;
+  repeated uint32 emptyTicks = 2;
+}
+
 message Tick {
   uint32 tick_number = 1;
   bool is_empty = 2;
@@ -315,6 +326,12 @@ service TransactionsService {
   rpc GetEpochTickListV2(GetEpochTickListRequestV2) returns (GetEpochTickListResponseV2) {
     option (google.api.http) = {
       get: "/v2/epochs/{epoch}/ticks"
+    };
+  };
+
+  rpc GetEmptyTickListV2(GetEpochEmptyTickListRequestV2) returns (GetEpochEmptyTickListResponseV2) {
+    option (google.api.http) = {
+      get: "/v2/epochs/{epoch}/empty-ticks"
     };
   };
 

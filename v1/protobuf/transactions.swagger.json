@@ -246,6 +246,51 @@
         ]
       }
     },
+    "/v2/epochs/{epoch}/empty-ticks": {
+      "get": {
+        "operationId": "TransactionsService_GetEmptyTickListV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbGetEpochEmptyTickListResponseV2"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "epoch",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "TransactionsService"
+        ]
+      }
+    },
     "/v2/epochs/{epoch}/ticks": {
       "get": {
         "operationId": "TransactionsService_GetEpochTickListV2",
@@ -556,6 +601,21 @@
       "properties": {
         "computors": {
           "$ref": "#/definitions/pbComputors"
+        }
+      }
+    },
+    "pbGetEpochEmptyTickListResponseV2": {
+      "type": "object",
+      "properties": {
+        "pagination": {
+          "$ref": "#/definitions/pbPagination"
+        },
+        "emptyTicks": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },

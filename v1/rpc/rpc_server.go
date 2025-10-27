@@ -454,9 +454,9 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	ticks := make([]*protobuf.Tick, 0, pageSize)
 
 	if request.GetDesc() {
-		ticks = getReversedPageData(filteredIntervals, start, end, ticks, emptyTicks)
+		ticks = getTickListReversedPageData(filteredIntervals, start, end, ticks, emptyTicks)
 	} else {
-		ticks = getPageData(filteredIntervals, start, end, ticks, emptyTicks)
+		ticks = getTickListPageData(filteredIntervals, start, end, ticks, emptyTicks)
 	}
 
 	pagination, err := getPaginationInformation(int(count), int(page), int(pageSize))
@@ -472,7 +472,7 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 
 }
 
-func getPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
+func getTickListPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
 	processed := uint32(0)
 	for _, interval := range filteredIntervals {
 		for i := interval.FirstTick; i <= interval.LastTick; i++ {
@@ -488,7 +488,7 @@ func getPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end u
 	return ticks
 }
 
-func getReversedPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
+func getTickListReversedPageData(filteredIntervals []*statusPb.TickInterval, start uint32, end uint32, ticks []*protobuf.Tick, emptyTicks *EmptyTicks) []*protobuf.Tick {
 	processed := uint32(0)
 	slices.Reverse(filteredIntervals)
 	for _, interval := range filteredIntervals {
@@ -503,6 +503,71 @@ func getReversedPageData(filteredIntervals []*statusPb.TickInterval, start uint3
 		}
 	}
 	return ticks
+}
+
+func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEpochEmptyTickListRequestV2) (*protobuf.GetEpochEmptyTickListResponseV2, error) {
+
+	maxSize := int32(1000)
+	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxSize) {
+		log.Printf("[DEBUG] Invalid page size: [%d]", request.PageSize)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10.  max: %d", maxSize)
+	}
+	page := max(1, request.Page)
+	pageSize := max(10, request.PageSize)
+
+	intervals, err := s.qb.cache.GetTickIntervals(ctx) // TODO get current epoch here via status service status
+	if err != nil {
+		log.Printf("[ERROR] getting tick intervals: %v", err)
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	if len(intervals) == 0 {
+		log.Println("[ERROR] no tick intervals found.")
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
+		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
+	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
+		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
+	}
+
+	filteredIntervals := make([]*statusPb.TickInterval, 0)
+	for _, interval := range intervals {
+		if request.Epoch == interval.Epoch {
+			filteredIntervals = append(filteredIntervals, interval)
+		}
+	}
+
+	emptyTicks, err := s.qb.GetEmptyTicks(ctx, request.Epoch, filteredIntervals)
+	if err != nil {
+		log.Printf("[ERROR] getting empty ticks for epoch [%d]: %v", request.Epoch, err)
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	emptyTicksList := make([]uint32, 0, len(emptyTicks.Ticks))
+	for tickNumber := range emptyTicks.Ticks {
+		emptyTicksList = append(emptyTicksList, tickNumber)
+	}
+	slices.Sort(emptyTicksList) // the ticks are not sorted before this point
+
+	count := uint32(len(emptyTicksList))
+	start := uint32((page - 1) * pageSize)
+	end := min(start+uint32(pageSize), count)
+
+	pagination, err := getPaginationInformation(int(count), int(page), int(pageSize))
+	if err != nil {
+		log.Printf("Error creating pagination info: %v", err)
+		return nil, internalErrorGettingTickIntervals()
+	}
+
+	return &protobuf.GetEpochEmptyTickListResponseV2{
+		Pagination: pagination,
+		EmptyTicks: emptyTicksList[start:end],
+	}, nil
+
 }
 
 func internalErrorGettingTickIntervals() error {
