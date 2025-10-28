@@ -51,7 +51,7 @@ func (s *StatusGetter) GetStatus(ctx context.Context) (*statusPb.GetStatusRespon
 		// If not cached, fetch from the status service
 		status, err := s.fetchStatus(ctx)
 		if err != nil {
-			return 0, fmt.Errorf("fetching status service statys: %w", err)
+			return 0, fmt.Errorf("fetching status service status: %w", err)
 		}
 
 		// Cache the fetched status
@@ -67,7 +67,6 @@ func (s *StatusGetter) GetStatus(ctx context.Context) (*statusPb.GetStatusRespon
 	if !ok {
 		return nil, fmt.Errorf("invalid type assertion for status: expected *statusPb.GetStatusResponse, got %T", status)
 	}
-	fmt.Printf("STATUS: %+v\n", status)
 
 	return status, nil
 }
