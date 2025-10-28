@@ -246,6 +246,54 @@
         ]
       }
     },
+    "/v2/epochs/{epoch}/empty-ticks": {
+      "get": {
+        "operationId": "TransactionsService_GetEmptyTickListV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbGetEpochEmptyTickListResponseV2"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "epoch",
+            "description": "only the current and the previous epochs can be queried.",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "description": "page numbering starts at '1' (default value: '1').",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "description": "max page size: 1000. value modulo 10 must be zero. defaults to '10'.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "TransactionsService"
+        ]
+      }
+    },
     "/v2/epochs/{epoch}/ticks": {
       "get": {
         "operationId": "TransactionsService_GetEpochTickListV2",
@@ -556,6 +604,21 @@
       "properties": {
         "computors": {
           "$ref": "#/definitions/pbComputors"
+        }
+      }
+    },
+    "pbGetEpochEmptyTickListResponseV2": {
+      "type": "object",
+      "properties": {
+        "pagination": {
+          "$ref": "#/definitions/pbPagination"
+        },
+        "emptyTicks": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },
