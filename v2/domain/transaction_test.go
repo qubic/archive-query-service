@@ -2,19 +2,25 @@ package domain
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain/mock"
 	"github.com/qubic/archive-query-service/v2/entities"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
-	"testing"
 )
 
-func maxTickFetcherFunc(_ context.Context) (uint32, error) {
-	return 10, nil
+func statusFetcherFunc(_ context.Context) (*statusPb.GetStatusResponse, error) {
+	return &statusPb.GetStatusResponse{
+		LastProcessedTick:   10,
+		ProcessingEpoch:     100,
+		IntervalInitialTick: 1,
+	}, nil
 }
 
 func TestTransactionService_GetTransactionByHash(t *testing.T) {
@@ -22,7 +28,7 @@ func TestTransactionService_GetTransactionByHash(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock.NewMockTransactionRepository(ctrl)
-	serv := NewTransactionService(repo, maxTickFetcherFunc)
+	serv := NewTransactionService(repo, statusFetcherFunc)
 	repo.EXPECT().GetTransactionByHash(gomock.Any(), gomock.Any()).Return(&api.Transaction{Source: "test"}, nil)
 
 	tx, err := serv.GetTransactionByHash(context.Background(), "test-hash")
@@ -36,7 +42,7 @@ func TestTransactionService_GetTransactionByIdentity(t *testing.T) {
 	defer ctrl.Finish()
 
 	repo := mock.NewMockTransactionRepository(ctrl)
-	service := NewTransactionService(repo, maxTickFetcherFunc)
+	service := NewTransactionService(repo, statusFetcherFunc)
 	// []*api.Transaction, *entities.Hits, error
 	apiTransactions := []*api.Transaction{{Hash: "test-hash-1"}, {Hash: "test-hash-2"}}
 	entityHits := &entities.Hits{Total: 42, Relation: "eq"}

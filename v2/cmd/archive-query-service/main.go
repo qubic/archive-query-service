@@ -129,7 +129,7 @@ func run() error {
 
 	repo := elastic.NewRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorsListIndex, esClient)
 
-	txService := domain.NewTransactionService(repo, cache.GetMaxTick)
+	txService := domain.NewTransactionService(repo, cache.GetStatus)
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)

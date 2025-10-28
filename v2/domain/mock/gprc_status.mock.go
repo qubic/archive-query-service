@@ -63,6 +63,26 @@ func (mr *MockStatusServiceClientMockRecorder) GetArchiverStatus(ctx, in any, op
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetArchiverStatus", reflect.TypeOf((*MockStatusServiceClient)(nil).GetArchiverStatus), varargs...)
 }
 
+// GetErroneousSkippedTicks mocks base method.
+func (m *MockStatusServiceClient) GetErroneousSkippedTicks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*protobuf.GetSkippedTicksResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetErroneousSkippedTicks", varargs...)
+	ret0, _ := ret[0].(*protobuf.GetSkippedTicksResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetErroneousSkippedTicks indicates an expected call of GetErroneousSkippedTicks.
+func (mr *MockStatusServiceClientMockRecorder) GetErroneousSkippedTicks(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetErroneousSkippedTicks", reflect.TypeOf((*MockStatusServiceClient)(nil).GetErroneousSkippedTicks), varargs...)
+}
+
 // GetHealthCheck mocks base method.
 func (m *MockStatusServiceClient) GetHealthCheck(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*protobuf.GetHealthCheckResponse, error) {
 	m.ctrl.T.Helper()
@@ -81,26 +101,6 @@ func (mr *MockStatusServiceClientMockRecorder) GetHealthCheck(ctx, in any, opts 
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthCheck", reflect.TypeOf((*MockStatusServiceClient)(nil).GetHealthCheck), varargs...)
-}
-
-// GetSkippedTicks mocks base method.
-func (m *MockStatusServiceClient) GetSkippedTicks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*protobuf.GetSkippedTicksResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []any{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetSkippedTicks", varargs...)
-	ret0, _ := ret[0].(*protobuf.GetSkippedTicksResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSkippedTicks indicates an expected call of GetSkippedTicks.
-func (mr *MockStatusServiceClientMockRecorder) GetSkippedTicks(ctx, in any, opts ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSkippedTicks", reflect.TypeOf((*MockStatusServiceClient)(nil).GetSkippedTicks), varargs...)
 }
 
 // GetStatus mocks base method.

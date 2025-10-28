@@ -6,6 +6,7 @@ import (
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -33,7 +34,7 @@ type TickDataService interface {
 }
 
 type StatusService interface {
-	GetLastProcessedTick(ctx context.Context) (*api.LastProcessedTick, error)
+	GetStatus(ctx context.Context) (*statusPb.GetStatusResponse, error)
 	GetProcessedTickIntervals(ctx context.Context) ([]*api.ProcessedTickInterval, error)
 }
 
@@ -129,12 +130,16 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 }
 
 func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
-	lpt, err := s.statusService.GetLastProcessedTick(ctx)
+	cachedStatus, err := s.statusService.GetStatus(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get last processed tick: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to get status: %v", err)
 	}
 
-	return &api.GetLastProcessedTickResponse{TickNumber: lpt.TickNumber}, nil
+	return &api.GetLastProcessedTickResponse{
+		TickNumber:          cachedStatus.LastProcessedTick,
+		Epoch:               cachedStatus.ProcessingEpoch,
+		IntervalInitialTick: cachedStatus.IntervalInitialTick,
+	}, nil
 }
 
 func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *emptypb.Empty) (*api.GetProcessedTicksIntervalsResponse, error) {

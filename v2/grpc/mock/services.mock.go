@@ -15,6 +15,7 @@ import (
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	entities "github.com/qubic/archive-query-service/v2/entities"
+	protobuf "github.com/qubic/go-data-publisher/status-service/protobuf"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -150,21 +151,6 @@ func (m *MockStatusService) EXPECT() *MockStatusServiceMockRecorder {
 	return m.recorder
 }
 
-// GetLastProcessedTick mocks base method.
-func (m *MockStatusService) GetLastProcessedTick(ctx context.Context) (*api.LastProcessedTick, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLastProcessedTick", ctx)
-	ret0, _ := ret[0].(*api.LastProcessedTick)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetLastProcessedTick indicates an expected call of GetLastProcessedTick.
-func (mr *MockStatusServiceMockRecorder) GetLastProcessedTick(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastProcessedTick", reflect.TypeOf((*MockStatusService)(nil).GetLastProcessedTick), ctx)
-}
-
 // GetProcessedTickIntervals mocks base method.
 func (m *MockStatusService) GetProcessedTickIntervals(ctx context.Context) ([]*api.ProcessedTickInterval, error) {
 	m.ctrl.T.Helper()
@@ -178,6 +164,21 @@ func (m *MockStatusService) GetProcessedTickIntervals(ctx context.Context) ([]*a
 func (mr *MockStatusServiceMockRecorder) GetProcessedTickIntervals(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProcessedTickIntervals", reflect.TypeOf((*MockStatusService)(nil).GetProcessedTickIntervals), ctx)
+}
+
+// GetStatus mocks base method.
+func (m *MockStatusService) GetStatus(ctx context.Context) (*protobuf.GetStatusResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatus", ctx)
+	ret0, _ := ret[0].(*protobuf.GetStatusResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatus indicates an expected call of GetStatus.
+func (mr *MockStatusServiceMockRecorder) GetStatus(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockStatusService)(nil).GetStatus), ctx)
 }
 
 // MockComputorsListService is a mock of ComputorsListService interface.
