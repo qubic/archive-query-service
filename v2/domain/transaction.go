@@ -2,8 +2,10 @@ package domain
 
 import (
 	"context"
+
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 )
 
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/transactions.mock.go -package=mock -source transaction.go
@@ -20,17 +22,17 @@ type TransactionRepository interface {
 	) ([]*api.Transaction, *entities.Hits, error)
 }
 
-type MaxTickFetcherFunc func(ctx context.Context) (uint32, error)
+type StatusFetcherFunc func(ctx context.Context) (*statusPb.GetStatusResponse, error)
 
 type TransactionService struct {
-	maxTickFetcher MaxTickFetcherFunc
-	repo           TransactionRepository
+	statusFetcher StatusFetcherFunc
+	repo          TransactionRepository
 }
 
-func NewTransactionService(repo TransactionRepository, maxTickFetcher MaxTickFetcherFunc) *TransactionService {
+func NewTransactionService(repo TransactionRepository, statusFetcher StatusFetcherFunc) *TransactionService {
 	return &TransactionService{
-		maxTickFetcher: maxTickFetcher,
-		repo:           repo,
+		statusFetcher: statusFetcher,
+		repo:          repo,
 	}
 }
 
@@ -49,10 +51,10 @@ func (s *TransactionService) GetTransactionsForIdentity(
 	ranges map[string][]*entities.Range,
 	from, size uint32,
 ) (*entities.TransactionsResult, error) {
-	maxTick, err := s.maxTickFetcher(ctx)
-	if err != nil || maxTick < 1 {
+	status, err := s.statusFetcher(ctx)
+	if err != nil || status == nil || status.LastProcessedTick < 1 {
 		return nil, err
 	}
-	txs, hits, err := s.repo.GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, from, size)
-	return &entities.TransactionsResult{LastProcessedTick: maxTick, Hits: hits, Transactions: txs}, err
+	txs, hits, err := s.repo.GetTransactionsForIdentity(ctx, identity, status.LastProcessedTick, filters, ranges, from, size)
+	return &entities.TransactionsResult{LastProcessedTick: status.LastProcessedTick, Hits: hits, Transactions: txs}, err
 }

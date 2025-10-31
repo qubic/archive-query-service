@@ -3,12 +3,13 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
-	"strings"
 )
 
 type TickWithinBoundsInterceptor struct {
@@ -71,9 +72,9 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 }
 
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {
-	maxTick, err := twb.statusService.GetLastProcessedTick(ctx)
+	cachedStatus, err := twb.statusService.GetStatus(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get max tick from cache: %v", err)
+		return status.Errorf(codes.Internal, "failed to get status from cache: %v", err)
 	}
 
 	tickIntervals, err := twb.statusService.GetProcessedTickIntervals(ctx)
@@ -81,7 +82,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 		return status.Errorf(codes.Internal, "failed to get tick intervals from cache: %v", err)
 	}
 
-	lastProcessedTick := maxTick.TickNumber
+	lastProcessedTick := cachedStatus.LastProcessedTick
 
 	if tickNumber > lastProcessedTick {
 		st := status.Newf(codes.FailedPrecondition, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)

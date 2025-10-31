@@ -3,29 +3,30 @@ package domain
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/jellydator/ttlcache/v3"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"golang.org/x/sync/singleflight"
-	"time"
 )
 
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/gprc_status.mock.go -package=mock github.com/qubic/go-data-publisher/status-service/protobuf StatusServiceClient
 
-const maxTickCacheKey = "max_tick"
+const statusCacheKey = "status"
 const tickIntervalsCacheKey = "tick_intervals"
 
 type StatusGetter struct {
-	lptProviderCache    *ttlcache.Cache[string, uint32]
+	statusProviderCache *ttlcache.Cache[string, *statusPb.GetStatusResponse]
 	tiProviderCache     *ttlcache.Cache[string, []*statusPb.TickInterval]
 	StatusServiceClient statusPb.StatusServiceClient
 	sfGroup             *singleflight.Group
 }
 
 func NewStatusGetter(statusServiceClient statusPb.StatusServiceClient, cacheTTL time.Duration) *StatusGetter {
-	lastProcessedTickProvider := ttlcache.New[string, uint32](
-		ttlcache.WithTTL[string, uint32](cacheTTL),
-		ttlcache.WithDisableTouchOnHit[string, uint32](), // don't refresh cacheTTL upon getting the item from getter
+	statusProvider := ttlcache.New[string, *statusPb.GetStatusResponse](
+		ttlcache.WithTTL[string, *statusPb.GetStatusResponse](cacheTTL),
+		ttlcache.WithDisableTouchOnHit[string, *statusPb.GetStatusResponse](), // don't refresh cacheTTL upon getting the item from getter
 	)
 
 	tickIntervalsProvider := ttlcache.New[string, []*statusPb.TickInterval](
@@ -33,41 +34,41 @@ func NewStatusGetter(statusServiceClient statusPb.StatusServiceClient, cacheTTL 
 		ttlcache.WithDisableTouchOnHit[string, []*statusPb.TickInterval](), // don't refresh cacheTTL upon getting the item from getter
 	)
 	return &StatusGetter{
-		lptProviderCache:    lastProcessedTickProvider,
+		statusProviderCache: statusProvider,
 		tiProviderCache:     tickIntervalsProvider,
 		StatusServiceClient: statusServiceClient,
 		sfGroup:             &singleflight.Group{},
 	}
 }
 
-func (s *StatusGetter) GetMaxTick(ctx context.Context) (uint32, error) {
-	maxTick, err, _ := s.sfGroup.Do(maxTickCacheKey, func() (interface{}, error) {
-		// Check if the max tick is already cached
-		if item := s.lptProviderCache.Get(maxTickCacheKey); item != nil {
+func (s *StatusGetter) GetStatus(ctx context.Context) (*statusPb.GetStatusResponse, error) {
+	cachedStatus, err, _ := s.sfGroup.Do(statusCacheKey, func() (interface{}, error) {
+		// Check if the status is already cached
+		if item := s.statusProviderCache.Get(statusCacheKey); item != nil {
 			return item.Value(), nil
 		}
 
 		// If not cached, fetch from the status service
-		maxTick, err := s.fetchStatusMaxTick(ctx)
+		status, err := s.fetchStatus(ctx)
 		if err != nil {
-			return 0, fmt.Errorf("fetching status service max tick: %w", err)
+			return 0, fmt.Errorf("fetching status service status: %w", err)
 		}
 
-		// Cache the fetched max tick
-		s.lptProviderCache.Set(maxTickCacheKey, maxTick, ttlcache.DefaultTTL)
-		return maxTick, nil
+		// Cache the fetched status
+		s.statusProviderCache.Set(statusCacheKey, status, ttlcache.DefaultTTL)
+		return status, nil
 	})
 	if err != nil {
-		return 0, fmt.Errorf("getting max tick from getter: %w", err)
+		return nil, fmt.Errorf("getting status from getter: %w", err)
 	}
 
-	// cast to uint32
-	maxTickUint32, ok := maxTick.(uint32)
+	// cast to object pointer
+	status, ok := cachedStatus.(*statusPb.GetStatusResponse)
 	if !ok {
-		return 0, fmt.Errorf("invalid type assertion for max tick: expected uint32, got %T", maxTick)
+		return nil, fmt.Errorf("invalid type assertion for status: expected *statusPb.GetStatusResponse, got %T", status)
 	}
 
-	return maxTickUint32, nil
+	return status, nil
 }
 
 func (s *StatusGetter) GetTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
@@ -99,22 +100,21 @@ func (s *StatusGetter) GetTickIntervals(ctx context.Context) ([]*statusPb.TickIn
 }
 
 func (s *StatusGetter) Start() {
-	s.lptProviderCache.Start()
+	s.statusProviderCache.Start()
 	s.tiProviderCache.Start()
 }
 
 func (s *StatusGetter) Stop() {
-	s.lptProviderCache.Stop()
+	s.statusProviderCache.Stop()
 	s.tiProviderCache.Stop()
 }
 
-func (s *StatusGetter) fetchStatusMaxTick(ctx context.Context) (uint32, error) {
+func (s *StatusGetter) fetchStatus(ctx context.Context) (*statusPb.GetStatusResponse, error) {
 	statusResponse, err := s.StatusServiceClient.GetStatus(ctx, nil)
 	if err != nil {
-		return 0, fmt.Errorf("fetching status service from grpc service: %w", err)
+		return nil, fmt.Errorf("fetching status service from grpc service: %w", err)
 	}
-
-	return statusResponse.LastProcessedTick, nil
+	return statusResponse, nil
 }
 
 func (s *StatusGetter) fetchTickIntervals(ctx context.Context) ([]*statusPb.TickInterval, error) {
@@ -140,13 +140,13 @@ func NewStatusService(getter *StatusGetter) *StatusService {
 	}
 }
 
-func (s *StatusService) GetLastProcessedTick(ctx context.Context) (*api.LastProcessedTick, error) {
-	maxTick, err := s.getter.GetMaxTick(ctx)
+func (s *StatusService) GetStatus(ctx context.Context) (*statusPb.GetStatusResponse, error) {
+	status, err := s.getter.GetStatus(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting max tick: %w", err)
+		return nil, fmt.Errorf("getting status: %w", err)
 	}
 
-	return &api.LastProcessedTick{TickNumber: maxTick}, nil
+	return status, nil
 }
 
 func (s *StatusService) GetProcessedTickIntervals(ctx context.Context) ([]*api.ProcessedTickInterval, error) {

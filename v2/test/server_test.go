@@ -1,16 +1,18 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	rpc "github.com/qubic/archive-query-service/v2/grpc"
 	"github.com/qubic/archive-query-service/v2/grpc/mock"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/testing/protocmp"
-	"testing"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -79,11 +81,19 @@ func (s *ServerTestSuite) TearDownSuite() {
 
 func (s *ServerTestSuite) TestGetLastProcessedTick() {
 	t := s.T()
-	s.mockStatusService.EXPECT().GetLastProcessedTick(gomock.Any()).Return(&api.LastProcessedTick{TickNumber: 125}, nil)
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+		LastProcessedTick:   125,
+		ProcessingEpoch:     100,
+		IntervalInitialTick: 10,
+	}, nil)
 	resp, err := s.client.GetLastProcessedTick(t.Context(), nil)
 	require.NoError(t, err, "getting last processed tick")
 
-	expected := &api.GetLastProcessedTickResponse{TickNumber: 125}
+	expected := &api.GetLastProcessedTickResponse{
+		TickNumber:          125,
+		Epoch:               100,
+		IntervalInitialTick: 10,
+	}
 	diff := cmp.Diff(expected, resp, protocmp.Transform())
 	require.Empty(t, diff, "expected last processed tick to match")
 }

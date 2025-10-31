@@ -2,15 +2,17 @@ package domain
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/google/go-cmp/cmp"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain/mock"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-	"testing"
-	"time"
 )
 
 func Test_StatusService(t *testing.T) {
@@ -22,18 +24,25 @@ func Test_StatusService(t *testing.T) {
 
 	sc := NewStatusGetter(statusServiceClient, 1*time.Second)
 	statusServiceClient.EXPECT().GetStatus(gomock.Any(), gomock.Any()).Return(&statusPb.GetStatusResponse{
-		LastProcessedTick: 12345,
+		LastProcessedTick:   12345,
+		ProcessingEpoch:     123,
+		IntervalInitialTick: 4321,
 	}, nil)
 
 	statusSvc := NewStatusService(sc)
 
-	// Test GetLastProcessedTick
-	t.Run("GetLastProcessedTick", func(t *testing.T) {
-		resp, err := statusSvc.GetLastProcessedTick(ctx)
-		require.NoError(t, err, "getting last processed tick")
+	// Test GetStatus
+	t.Run("GetStatus", func(t *testing.T) {
+		resp, err := statusSvc.GetStatus(ctx)
+		require.NoError(t, err, "getting status")
 
-		expected := &api.LastProcessedTick{TickNumber: 12345}
-		require.Equal(t, expected, resp, "expected last processed tick to be 12345")
+		expected := &statusPb.GetStatusResponse{
+			LastProcessedTick:   12345,
+			ProcessingEpoch:     123,
+			IntervalInitialTick: 4321,
+		}
+		equals := proto.Equal(expected, resp)
+		require.True(t, equals, "expected status to be %+v", expected)
 	})
 
 	statusServiceClient.EXPECT().GetTickIntervals(gomock.Any(), gomock.Any()).Return(&statusPb.GetTickIntervalsResponse{
