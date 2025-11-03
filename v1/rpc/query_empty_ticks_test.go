@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/qubic/archive-query-service/elastic"
+	"github.com/qubic/archive-query-service/v1/elastic"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

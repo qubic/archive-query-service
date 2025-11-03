@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"github.com/qubic/archive-query-service/protobuf"
+	"github.com/qubic/archive-query-service/v1/protobuf"
 	"github.com/qubic/go-archiver/protobuff"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/qubic/go-node-connector/types"
