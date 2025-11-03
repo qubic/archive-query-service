@@ -7,7 +7,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/qubic/archive-query-service/elastic"
+	"github.com/qubic/archive-query-service/v1/elastic"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 )
 
