@@ -3,7 +3,7 @@ name: Deploy v1 snapshot image to GHCR
 on:
   push:
     branches:
-      - 'feature/query-ticks'
+      - 'feature/update-v1-module-name'
 
 jobs:
   docker-publish:
