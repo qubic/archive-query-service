@@ -409,13 +409,13 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 
 	maxSize := int32(1000)
 	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxSize) {
-		log.Printf("[DEBUG] Invalid page size: [%d]", request.PageSize)
+		// log.Printf("[DEBUG] Invalid page size: [%d]", request.PageSize)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10.  max: %d", maxSize)
 	}
 	page := max(1, request.Page)
 	pageSize := max(10, request.PageSize)
 
-	intervals, err := s.qb.cache.GetTickIntervals(ctx) // TODO get current epoch here via status service status
+	intervals, err := s.qb.cache.GetTickIntervals(ctx)
 	if err != nil {
 		log.Printf("[ERROR] getting tick intervals: %v", err)
 		return nil, internalErrorGettingTickIntervals()
@@ -427,10 +427,10 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	}
 
 	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
-		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
 	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
-		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 
@@ -509,13 +509,13 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 
 	maxSize := int32(1000)
 	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxSize) {
-		log.Printf("[DEBUG] Invalid page size: [%d]", request.PageSize)
+		// log.Printf("[DEBUG] Invalid page size: [%d]", request.PageSize)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10.  max: %d", maxSize)
 	}
 	page := max(1, request.Page)
 	pageSize := max(10, request.PageSize)
 
-	intervals, err := s.qb.cache.GetTickIntervals(ctx) // TODO get current epoch here via status service status
+	intervals, err := s.qb.cache.GetTickIntervals(ctx)
 	if err != nil {
 		log.Printf("[ERROR] getting tick intervals: %v", err)
 		return nil, internalErrorGettingTickIntervals()
@@ -527,10 +527,10 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 	}
 
 	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
-		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
 	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
-		log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 

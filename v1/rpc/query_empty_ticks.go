@@ -85,7 +85,9 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 }
 
 func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to uint32, epoch uint32) ([]uint32, error) {
-	log.Printf("[DEBUG] Query empty ticks: from [%d], to [%d], epoch [%d]", from, to, epoch)
+	if to-from > 100 {
+		log.Printf("[DEBUG] Query empty ticks: from [%d], to [%d], epoch [%d]", from, to, epoch)
+	}
 	ticks, err := qs.elasticClient.QueryEmptyTicks(ctx, from, to, epoch)
 	if err != nil {
 		qs.TotalElasticErrorCount.Add(1)
