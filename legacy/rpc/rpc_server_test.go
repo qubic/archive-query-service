@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jellydator/ttlcache/v3"
-	"github.com/qubic/archive-query-service/v1/protobuf"
+	"github.com/qubic/archive-query-service/legacy/protobuf"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

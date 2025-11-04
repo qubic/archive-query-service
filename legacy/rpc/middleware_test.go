@@ -1,8 +1,9 @@
 package rpc
 
 import (
-	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"testing"
+
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 )
 
 func Test_WasSkippedByArchive(t *testing.T) {

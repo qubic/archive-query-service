@@ -1,4 +1,4 @@
-module github.com/qubic/archive-query-service/v1
+module github.com/qubic/archive-query-service/legacy
 
 go 1.25.0
 

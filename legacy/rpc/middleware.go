@@ -3,15 +3,16 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"github.com/qubic/archive-query-service/v1/protobuf"
+	"log"
+	"strings"
+
+	"github.com/qubic/archive-query-service/legacy/protobuf"
 	"github.com/qubic/go-archiver/protobuff"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/qubic/go-node-connector/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
-	"strings"
 )
 
 type TickWithinBoundsInterceptor struct {

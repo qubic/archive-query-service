@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/qubic/archive-query-service/v1/elastic"
-	"github.com/qubic/archive-query-service/v1/protobuf"
+	"github.com/qubic/archive-query-service/legacy/elastic"
+	"github.com/qubic/archive-query-service/legacy/protobuf"
 )
 
 func TxToArchivePartialFormat(tx elastic.Tx) (*protobuf.Transaction, error) {
