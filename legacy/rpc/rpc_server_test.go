@@ -77,7 +77,7 @@ func TestRpcServer_ConvertArchiverStatus(t *testing.T) {
 
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenAscendingTrue_ReturnInAscendingOrder(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenAscendingTrue_ReturnInAscendingOrder(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{
 		{
 			Epoch:     123,
@@ -124,7 +124,7 @@ func TestRpcServer_QueryEmptyTicks_GivenAscendingTrue_ReturnInAscendingOrder(t *
 	assert.Equal(t, expectedTicks, response.Ticks)
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenAscendingTrue_ReturnInDescendingOrder(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenAscendingTrue_ReturnInDescendingOrder(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{
 		{
 			Epoch:     123,
@@ -172,7 +172,7 @@ func TestRpcServer_QueryEmptyTicks_GivenAscendingTrue_ReturnInDescendingOrder(t 
 	assert.Equal(t, expectedTicks, response.Ticks)
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenMultipleIntervals_ReturnPageOverIntervalBorders(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenMultipleIntervals_ReturnPageOverIntervalBorders(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{
 		{
 			Epoch:     123,
@@ -221,7 +221,7 @@ func TestRpcServer_QueryEmptyTicks_GivenMultipleIntervals_ReturnPageOverInterval
 
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenMultipleIntervals_ReturnCorrectPages(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenMultipleIntervals_ReturnCorrectPages(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{
 		{
 			Epoch:     123,
@@ -307,7 +307,7 @@ func TestRpcServer_QueryEmptyTicks_GivenMultipleIntervals_ReturnCorrectPages(t *
 	require.Equal(t, &protobuf.Tick{TickNumber: 1, IsEmpty: true}, response.Ticks[20])
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenValidEpochValues_ThenNoError(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenValidEpochValues_ThenNoError(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
 	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
 	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
@@ -325,7 +325,7 @@ func TestRpcServer_QueryEmptyTicks_GivenValidEpochValues_ThenNoError(t *testing.
 	require.NoError(t, err)
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenEpochInThePast_ThenError(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenEpochInThePast_ThenError(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
 	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
 	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
@@ -342,7 +342,7 @@ func TestRpcServer_QueryEmptyTicks_GivenEpochInThePast_ThenError(t *testing.T) {
 	require.ErrorContains(t, err, "old")
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenEpochInTheFuture_ThenError(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenEpochInTheFuture_ThenError(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
 	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
 	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
@@ -359,7 +359,7 @@ func TestRpcServer_QueryEmptyTicks_GivenEpochInTheFuture_ThenError(t *testing.T)
 	require.ErrorContains(t, err, "future")
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenInvalidPageSize_ThenError(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenInvalidPageSize_ThenError(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
 	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
 	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
@@ -379,9 +379,16 @@ func TestRpcServer_QueryEmptyTicks_GivenInvalidPageSize_ThenError(t *testing.T) 
 	require.Error(t, err)
 	require.ErrorContains(t, err, "InvalidArgument")
 	require.ErrorContains(t, err, "page size")
+
+	// page size 1 is only allowed for page 0 or page 1
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 1, Page: 2})
+	require.Error(t, err)
+	require.ErrorContains(t, err, "InvalidArgument")
+	require.ErrorContains(t, err, "page size")
+
 }
 
-func TestRpcServer_QueryEmptyTicks_GivenValidPageSize_ThenNoError(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_GivenValidPageSize_ThenNoError(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
 	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
 	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
@@ -404,4 +411,72 @@ func TestRpcServer_QueryEmptyTicks_GivenValidPageSize_ThenNoError(t *testing.T) 
 
 	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 1000})
 	require.NoError(t, err)
+}
+
+func TestRpcServer_GetEmptyTickListV2_Pagination(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	elasticClient := &FakeElasticClient{
+		emptyTicks: map[string][]uint32{"123-1-100": {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 95, 99, 100}},
+	}
+	qs := &QueryService{
+		elasticClient: elasticClient,
+		cache:         statusCache,
+	}
+	server := Server{qb: qs, statusService: nil}
+
+	res, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, Page: 1, PageSize: 10})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res.GetTicks())
+
+	require.Equal(t, 100, int(res.GetPagination().TotalRecords))
+	require.Equal(t, 10, int(res.GetPagination().TotalPages))
+	require.Equal(t, 1, int(res.GetPagination().CurrentPage))
+	require.Equal(t, 2, int(res.GetPagination().NextPage))
+
+	res, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, Page: 11, PageSize: 10})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Empty(t, res.GetTicks())
+
+	require.Equal(t, 100, int(res.GetPagination().TotalRecords))
+	require.Equal(t, 10, int(res.GetPagination().TotalPages))
+	require.Equal(t, 11, int(res.GetPagination().CurrentPage))
+	require.Equal(t, -1, int(res.GetPagination().NextPage))
+}
+
+func TestRpcServer_GetEmptyTickListV2_GivenExceedsMaxPage_ThenError(t *testing.T) {
+	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
+	elasticClient := &FakeElasticClient{
+		emptyTicks: map[string][]uint32{"123-1-100": {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}},
+	}
+	qs := &QueryService{
+		elasticClient: elasticClient,
+		cache:         statusCache,
+	}
+	server := Server{qb: qs, statusService: nil}
+
+	res, err := server.GetEmptyTickListV2(context.Background(), &protobuf.GetEpochEmptyTickListRequestV2{Epoch: 123, Page: 1, PageSize: 10})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Len(t, res.GetEmptyTicks(), 10)
+
+	require.Equal(t, 10, int(res.GetPagination().TotalRecords))
+	require.Equal(t, 1, int(res.GetPagination().TotalPages))
+	require.Equal(t, 1, int(res.GetPagination().CurrentPage))
+	require.Equal(t, -1, int(res.GetPagination().NextPage))
+
+	res, err = server.GetEmptyTickListV2(context.Background(), &protobuf.GetEpochEmptyTickListRequestV2{Epoch: 123, Page: 2, PageSize: 10})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Empty(t, res.GetEmptyTicks())
+
+	require.Equal(t, 10, int(res.GetPagination().TotalRecords))
+	require.Equal(t, 1, int(res.GetPagination().TotalPages))
+	require.Equal(t, 2, int(res.GetPagination().CurrentPage))
+	require.Equal(t, -1, int(res.GetPagination().NextPage))
 }
