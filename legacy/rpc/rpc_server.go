@@ -410,12 +410,12 @@ const maxTickListPageSize = int32(1000)
 func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEpochTickListRequestV2) (*protobuf.GetEpochTickListResponseV2, error) {
 
 	if request.PageSize == 1 && request.Page > 1 {
-		log.Printf("[DEBUG] Invalid page size 1 for page [%d].", request.Page)
+		// log.Printf("[DEBUG] Get ticks: invalid page size 1 for page [%d].", request.Page)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
 	}
 
 	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
-		log.Printf("[DEBUG] Invalid page size: [%d].", request.PageSize)
+		log.Printf("[DEBUG] Get ticks: invalid page size: [%d].", request.PageSize)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10. max: %d", maxTickListPageSize)
 	}
 
@@ -434,10 +434,10 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	}
 
 	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
-		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Get ticks: invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
 	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
-		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Get ticks: invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 
@@ -515,12 +515,12 @@ func getTickListReversedPageData(filteredIntervals []*statusPb.TickInterval, sta
 func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEpochEmptyTickListRequestV2) (*protobuf.GetEpochEmptyTickListResponseV2, error) {
 
 	if request.PageSize == 1 && request.Page > 1 {
-		log.Printf("[DEBUG] Invalid page size 1 for page [%d].", request.Page)
+		// log.Printf("[DEBUG] Get empty ticks: invalid page size 1 for page [%d].", request.Page)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
 	}
 
 	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
-		log.Printf("[DEBUG] Invalid page size: [%d].", request.PageSize)
+		log.Printf("[DEBUG] Get empty ticks: invalid page size: [%d].", request.PageSize)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10. max: %d", maxTickListPageSize)
 	}
 
@@ -539,10 +539,10 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 	}
 
 	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
-		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Get empty ticks: invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
 	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
-		// log.Printf("[DEBUG] Invalid epoch: [%d]", request.Epoch)
+		// log.Printf("[DEBUG] Get empty ticks: invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 
