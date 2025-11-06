@@ -413,7 +413,7 @@ func TestRpcServer_GetEpochTickListV2_GivenValidPageSize_ThenNoError(t *testing.
 	require.NoError(t, err)
 }
 
-func TestRpcServer_GetEmptyTickListV2_Pagination(t *testing.T) {
+func TestRpcServer_GetEpochTickListV2_Pagination(t *testing.T) {
 	tickIntervals := []*statusPb.TickInterval{{Epoch: 123, FirstTick: 1, LastTick: 100}}
 	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
 	statusCache.tickIntervalsProvider.Set(tickIntervalsCacheKey, tickIntervals, ttlcache.DefaultTTL)
