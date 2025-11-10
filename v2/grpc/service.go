@@ -2,13 +2,11 @@ package grpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net"
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
@@ -68,12 +66,11 @@ func NewArchiveQueryService(txService TransactionsService, tdService TickDataSer
 func (s *ArchiveQueryService) GetTransactionByHash(ctx context.Context, req *api.GetTransactionByHashRequest) (*api.GetTransactionByHashResponse, error) {
 	tx, err := s.txService.GetTransactionByHash(ctx, req.Hash)
 	if err != nil {
-		if errors.Is(err, domain.ErrNotFound) {
-			return nil, status.Error(codes.NotFound, "transaction not found")
-		}
 		return nil, createInternalError(fmt.Sprintf("failed to get transaction by hash [%v]", req.GetHash()), err)
 	}
-
+	if tx == nil {
+		return nil, status.Error(codes.NotFound, "transaction not found")
+	}
 	return &api.GetTransactionByHashResponse{Transaction: tx}, nil
 }
 

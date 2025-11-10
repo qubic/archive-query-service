@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +27,7 @@ func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash st
 			return tx, nil
 		}
 	}
-	return nil, domain.ErrNotFound
+	return nil, nil
 }
 
 func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32) ([]*api.Transaction, error) {
@@ -70,7 +69,7 @@ func TestArchiverQueryService_GetTransactionByHash(t *testing.T) {
 
 func TestArchiverQueryService_GetTransactionByHash_GivenNoTransaction_ThenReturnNotFound(t *testing.T) {
 	txService := &TransactionServiceStub{
-		transactions: []*api.Transaction{{Hash: "tx-hash"}},
+		transactions: []*api.Transaction{},
 	}
 	service := NewArchiveQueryService(txService, nil, nil, nil)
 	_, err := service.GetTransactionByHash(context.Background(), &api.GetTransactionByHashRequest{Hash: "not-found"})
