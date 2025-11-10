@@ -25,7 +25,7 @@ func NewTickDataService(repo TickDataRepository) *TickDataService {
 // GetTickData Returns the tick data or nil, if no tick data is found.
 func (s *TickDataService) GetTickData(ctx context.Context, tickNumber uint32) (*api.TickData, error) {
 	tickData, err := s.repo.GetTickData(ctx, tickNumber)
-	if errors.Is(err, ErrNotFound) { // handle empty tick.
+	if errors.Is(err, ErrNotFound) {
 		return nil, nil
 	} // empty tick
 	return tickData, err
