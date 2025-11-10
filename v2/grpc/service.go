@@ -135,7 +135,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 
 func createInternalError(message string, err error) error {
 	log.Printf("[ERROR] %s: %v", message, err)
-	return status.Error(codes.Internal, fmt.Sprintf("%s", message))
+	return status.Error(codes.Internal, message)
 }
 
 func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
