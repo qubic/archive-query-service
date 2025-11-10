@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"errors"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
@@ -37,7 +38,11 @@ func NewTransactionService(repo TransactionRepository, statusFetcher StatusFetch
 }
 
 func (s *TransactionService) GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error) {
-	return s.repo.GetTransactionByHash(ctx, hash)
+	tx, err := s.repo.GetTransactionByHash(ctx, hash)
+	if errors.Is(err, ErrNotFound) {
+		return nil, nil
+	}
+	return tx, err
 }
 
 func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error) {

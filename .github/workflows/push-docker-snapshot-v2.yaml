@@ -1,9 +1,9 @@
-name: Deploy v1 snapshot image to GHCR
+name: Deploy v2 prod images to GHCR
 
 on:
   push:
     branches:
-      - 'feature/update-v1-module-name'
+      - 'bugfix/v2-error-codes'
 
 jobs:
   docker-publish:
@@ -30,7 +30,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./v1
-          file: ./v1/Dockerfile
+          context: ./v2
+          file: ./v2/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v1:snapshot
+          tags: ghcr.io/qubic/archive-query-service-v2:snapshot

@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net"
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -64,26 +66,28 @@ func NewArchiveQueryService(txService TransactionsService, tdService TickDataSer
 func (s *ArchiveQueryService) GetTransactionByHash(ctx context.Context, req *api.GetTransactionByHashRequest) (*api.GetTransactionByHashResponse, error) {
 	tx, err := s.txService.GetTransactionByHash(ctx, req.Hash)
 	if err != nil {
-		//TODO: Handle specific error cases, e.g., if transaction not found to return NotFound status
-		return nil, status.Errorf(codes.Internal, "failed to get transaction by hash: %v", err)
+		return nil, createInternalError(fmt.Sprintf("failed to get transaction by hash [%v]", req.GetHash()), err)
 	}
-
+	if tx == nil {
+		return nil, status.Error(codes.NotFound, "transaction not found")
+	}
 	return &api.GetTransactionByHashResponse{Transaction: tx}, nil
 }
 
 func (s *ArchiveQueryService) GetTransactionsForTick(ctx context.Context, req *api.GetTransactionsForTickRequest) (*api.GetTransactionsForTickResponse, error) {
 	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get transactions for tick: %v", err)
+		return nil, createInternalError(fmt.Sprintf("failed to get transactions for tick [%d]", req.GetTickNumber()), err)
 	}
 
 	return &api.GetTransactionsForTickResponse{Transactions: txs}, nil
 }
 
 func (s *ArchiveQueryService) GetTickData(ctx context.Context, req *api.GetTickDataRequest) (*api.GetTickDataResponse, error) {
+	// it is important that the tick range is checked in advance because a nil result will be returned as an empty tick and not as 404
 	td, err := s.tdService.GetTickData(ctx, req.TickNumber)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get tick data: %v", err)
+		return nil, createInternalError(fmt.Sprintf("failed to get tick data for tick [%d]", req.GetTickNumber()), err)
 	}
 
 	return &api.GetTickDataResponse{TickData: td}, nil
@@ -112,7 +116,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 
 	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get transactions for identity: %v", err)
+		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}
 
 	// paging information
@@ -127,6 +131,11 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		Hits:         apiHits,
 		Transactions: result.GetTransactions(),
 	}, nil
+}
+
+func createInternalError(message string, err error) error {
+	log.Printf("[ERROR] %s: %v", message, err)
+	return status.Error(codes.Internal, message)
 }
 
 func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
@@ -150,10 +159,15 @@ func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *
 
 	return &api.GetProcessedTicksIntervalsResponse{ProcessedTicksIntervals: intervals}, nil
 }
+
 func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, request *api.GetComputorsListForEpochRequest) (*api.GetComputorsListForEpochResponse, error) {
 	computorListsForEpoch, err := s.clService.GetComputorsListsForEpoch(ctx, request.Epoch)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get computors lists: %v", err)
+	}
+
+	if len(computorListsForEpoch) == 0 {
+		return nil, status.Error(codes.NotFound, "computor lists not found")
 	}
 
 	return &api.GetComputorsListForEpochResponse{
