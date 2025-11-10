@@ -7,7 +7,6 @@ import (
 	"log"
 	"net"
 
-	"github.com/google/uuid"
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
@@ -138,9 +137,8 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 }
 
 func createInternalError(message string, err error) error {
-	id := uuid.New()
-	log.Printf("[ERROR] (%s) %s: %v", id.String(), message, err)
-	return status.Error(codes.Internal, fmt.Sprintf("%s (%s)", message, id.String()))
+	log.Printf("[ERROR] %s: %v", message, err)
+	return status.Error(codes.Internal, fmt.Sprintf("%s", message))
 }
 
 func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *emptypb.Empty) (*api.GetLastProcessedTickResponse, error) {
