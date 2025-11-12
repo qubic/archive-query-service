@@ -151,13 +151,13 @@ func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *empty
 	}, nil
 }
 
-func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *emptypb.Empty) (*api.GetProcessedTicksIntervalsResponse, error) {
+func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *emptypb.Empty) (*api.GetProcessedTickIntervalsResponse, error) {
 	intervals, err := s.statusService.GetProcessedTickIntervals(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get processed tick intervals: %v", err)
 	}
 
-	return &api.GetProcessedTicksIntervalsResponse{ProcessedTicksIntervals: intervals}, nil
+	return &api.GetProcessedTickIntervalsResponse{ProcessedTickIntervals: intervals}, nil
 }
 
 func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, request *api.GetComputorsListForEpochRequest) (*api.GetComputorsListForEpochResponse, error) {

@@ -70,7 +70,7 @@
         ]
       }
     },
-    "/getProcessedTicksIntervals": {
+    "/getProcessedTickIntervals": {
       "get": {
         "operationId": "ArchiveQueryService_GetProcessedTickIntervals",
         "responses": {
@@ -312,10 +312,10 @@
         }
       }
     },
-    "pbGetProcessedTicksIntervalsResponse": {
+    "pbGetProcessedTickIntervalsResponse": {
       "type": "object",
       "properties": {
-        "processedTicksIntervals": {
+        "processedTickIntervals": {
           "type": "array",
           "items": {
             "type": "object",

@@ -115,8 +115,8 @@ func (s *ServerTestSuite) TestGetTickIntervals() {
 	resp, err := s.client.GetProcessedTickIntervals(t.Context(), nil)
 	require.NoError(t, err, "getting processed tick intervals")
 
-	expected := &api.GetProcessedTicksIntervalsResponse{
-		ProcessedTicksIntervals: []*api.ProcessedTickInterval{
+	expected := &api.GetProcessedTickIntervalsResponse{
+		ProcessedTickIntervals: []*api.ProcessedTickInterval{
 			{
 				Epoch:     1,
 				FirstTick: 100,
