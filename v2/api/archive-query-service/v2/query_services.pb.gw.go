@@ -380,7 +380,7 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTicksIntervals"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTickIntervals"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -601,7 +601,7 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTicksIntervals"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTickIntervals"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -665,8 +665,8 @@ type response_ArchiveQueryService_GetProcessedTickIntervals_0 struct {
 }
 
 func (m response_ArchiveQueryService_GetProcessedTickIntervals_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*GetProcessedTicksIntervalsResponse)
-	return response.ProcessedTicksIntervals
+	response := m.Message.(*GetProcessedTickIntervalsResponse)
+	return response.ProcessedTickIntervals
 }
 
 var (
@@ -682,7 +682,7 @@ var (
 
 	pattern_ArchiveQueryService_GetLastProcessedTick_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getLastProcessedTick"}, ""))
 
-	pattern_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTicksIntervals"}, ""))
+	pattern_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTickIntervals"}, ""))
 
 	pattern_ArchiveQueryService_GetHealth_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"health"}, ""))
 )

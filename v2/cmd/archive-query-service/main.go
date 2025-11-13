@@ -26,8 +26,9 @@ import (
 const prefix = "QUBIC_LTS_QUERY_SERVICE_V2"
 
 func main() {
+	log.SetOutput(os.Stdout)
 	if err := run(); err != nil {
-		log.Fatalf("main: exited with error: %s", err.Error())
+		log.Fatalf("main: exited: %s", err.Error())
 	}
 }
 

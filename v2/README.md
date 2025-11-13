@@ -9,7 +9,7 @@ Provides the following endpoints:
 * `/getTransactionsForIdentity`
 * `/getTickData`
 * `/getLastProcessedTick`
-* `/getProcessedTicksIntervals`
+* `/getProcessedTickIntervals`
 
 ## Get transactions for Identity
 

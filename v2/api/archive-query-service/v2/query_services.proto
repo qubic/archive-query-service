@@ -51,10 +51,10 @@ service ArchiveQueryService {
     };
   }
 
-  rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTicksIntervalsResponse) {
+  rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTickIntervalsResponse) {
     option (google.api.http) = {
-      get: "/getProcessedTicksIntervals"
-      response_body: "processed_ticks_intervals"
+      get: "/getProcessedTickIntervals"
+      response_body: "processed_tick_intervals"
     };
   }
 

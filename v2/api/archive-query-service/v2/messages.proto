@@ -122,8 +122,8 @@ message GetTickDataResponse {
     TickData tick_data = 1;
 }
 
-message GetProcessedTicksIntervalsResponse {
-    repeated ProcessedTickInterval processed_ticks_intervals = 1;
+message GetProcessedTickIntervalsResponse {
+    repeated ProcessedTickInterval processed_tick_intervals = 1;
 }
 
 message GetLastProcessedTickResponse {
