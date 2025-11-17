@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -19,6 +20,7 @@ import (
 	"github.com/qubic/archive-query-service/v2/domain/repository/elastic"
 	rpc "github.com/qubic/archive-query-service/v2/grpc"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -42,6 +44,8 @@ func run() error {
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:localhost:9901"`
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
+			CacheEnabled          bool          `conf:"default:false"`
+			CacheTTLFile          string        `conf:"default:cache_ttl.json"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -58,6 +62,11 @@ func run() error {
 		Metrics struct {
 			Namespace string `conf:"default:query_service_v2"`
 			Port      int    `conf:"default:9999"`
+		}
+		Redis struct {
+			Address  string `conf:"default:localhost:6379"`
+			Password string `conf:"mask,optional"`
+			DB       int    `conf:"default:0"`
 		}
 	}
 
@@ -142,11 +151,34 @@ func run() error {
 		ListenAddrHTTP: cfg.Server.HttpHost,
 	}
 
-	srvErrorsChan := make(chan error, 1)
-	err = rpcServer.Start(startCfg, srvErrorsChan, srvMetrics.UnaryServerInterceptor(),
+	var interceptors = []grpc.UnaryServerInterceptor{
+		srvMetrics.UnaryServerInterceptor(),
 		logTechnicalErrorInterceptor.GetInterceptor,
 		tickInBoundsInterceptor.GetInterceptor,
-		identitiesValidatorInterceptor.GetInterceptor)
+		identitiesValidatorInterceptor.GetInterceptor,
+	}
+
+	if cfg.Server.CacheEnabled {
+		ttlMap, err := rpc.CreateTTLMapFromJSONFile(cfg.Server.CacheTTLFile)
+		if err != nil {
+			return fmt.Errorf("creating ttl map from json file: %w", err)
+		}
+		redisClient := redis.NewClient(&redis.Options{
+			Addr:     cfg.Redis.Address,
+			Password: cfg.Redis.Password,
+			DB:       cfg.Redis.DB,
+		})
+		//check if redis client is reachable
+		if err := redisClient.Ping(context.Background()).Err(); err != nil {
+			return fmt.Errorf("connecting to redis: %w", err)
+		}
+
+		cacheInterceptor := rpc.NewRedisCacheInterceptor(redisClient, ttlMap)
+		interceptors = append([]grpc.UnaryServerInterceptor{cacheInterceptor.GetInterceptor}, interceptors...)
+	}
+
+	srvErrorsChan := make(chan error, 1)
+	err = rpcServer.Start(startCfg, srvErrorsChan, interceptors...)
 	if err != nil {
 		return fmt.Errorf("starting rpc server: %w", err)
 	}

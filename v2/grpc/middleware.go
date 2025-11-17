@@ -2,8 +2,10 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -149,31 +152,70 @@ func (lte *LogTechnicalErrorInterceptor) GetInterceptor(ctx context.Context, req
 }
 
 type Cacheable interface {
-	GetCacheKey() string
-	GetTTL() time.Duration
+	GetCacheKey() (string, error)
+}
+
+func CreateTTLMapFromJSONFile(jsonFilePath string) (map[string]time.Duration, error) {
+	file, err := os.Open(jsonFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("opening json file: %w", err)
+	}
+	defer file.Close()
+
+	var rawMap map[string]string
+	if err := json.NewDecoder(file).Decode(&rawMap); err != nil {
+		return nil, fmt.Errorf("parsing json file: %w", err)
+	}
+
+	ttlMap := make(map[string]time.Duration)
+	for k, v := range rawMap {
+		dur, err := time.ParseDuration(v)
+		if err != nil {
+			return nil, fmt.Errorf("converting ttl endpoint [%s] value [%s] to duration: %w", k, v, err)
+		}
+		ttlMap[k] = dur
+	}
+
+	return ttlMap, nil
 }
 
 type RedisCacheInterceptor struct {
 	redisClient *redis.Client
+	ttlMap      map[string]time.Duration
 }
 
-func NewRedisCacheInterceptor(redisClient *redis.Client) *RedisCacheInterceptor {
-	return &RedisCacheInterceptor{redisClient: redisClient}
+func NewRedisCacheInterceptor(redisClient *redis.Client, ttlMap map[string]time.Duration) *RedisCacheInterceptor {
+	return &RedisCacheInterceptor{redisClient: redisClient, ttlMap: ttlMap}
 }
 
-func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	log.Printf("RedisCacheInterceptor: Checking cache for method %s\n", info.FullMethod)
 	// we first need to check if the request is cacheable, if not, we just call the handler
 	t, ok := req.(Cacheable)
 	if !ok {
 		return handler(ctx, req)
 	}
 
+	// if TTL from the map is zero or key does not exist, then caching is disabled
+	ttl, exists := rci.ttlMap[info.FullMethod]
+	if !exists {
+		return handler(ctx, req)
+	}
+
+	if ttl == 0 {
+		return handler(ctx, req)
+	}
+
 	// then we need to get the cache key which is defined by the request itself
 	// normally a combination of the method name and request parameters
-	key := t.GetCacheKey()
+	key, err := t.GetCacheKey()
+	if err != nil {
+		log.Printf("failed to get cache key: %v\n", err)
+		return handler(ctx, req)
+	}
 
 	// if response found in cache, return it
-	cachedResponse, err := getCachedResponse(ctx, rci.redisClient, key, req)
+	cachedResponse, err := getCachedResponse(ctx, rci.redisClient, key)
 	if err == nil {
 		return cachedResponse, nil
 	}
@@ -186,15 +228,21 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, _
 
 	// then proceed to cache the response and even if caching fails for multiple reasons like redis cluster unavailable
 	// we still return the response
-	err = cacheResponse(ctx, rci.redisClient, key, response, t.GetTTL())
+	err = cacheResponse(ctx, rci.redisClient, key, response, ttl)
 	if err != nil {
-		log.Printf("failed to cache response: %v", err)
+		log.Printf("failed to cache response: %v\n", err)
+	}
+
+	md := metadata.Pairs("cache-control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
+	err = grpc.SetHeader(ctx, md)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "setting header: %v", err)
 	}
 
 	return response, nil
 }
 
-func getCachedResponse(ctx context.Context, redisClient *redis.Client, key string, response any) (proto.Message, error) {
+func getCachedResponse(ctx context.Context, redisClient *redis.Client, key string) (proto.Message, error) {
 	b, err := redisClient.Get(ctx, key).Bytes()
 	if err != nil {
 		return nil, fmt.Errorf("getting cached response from redis: %w", err)
