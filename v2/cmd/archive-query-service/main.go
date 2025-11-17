@@ -168,7 +168,7 @@ func run() error {
 			Password: cfg.Redis.Password,
 			DB:       cfg.Redis.DB,
 		})
-		//check if redis client is reachable
+		// check if redis client is reachable
 		if err := redisClient.Ping(context.Background()).Err(); err != nil {
 			return fmt.Errorf("connecting to redis: %w", err)
 		}

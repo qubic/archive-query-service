@@ -207,6 +207,6 @@ func Test_createTTLMapFromJSONFile(t *testing.T) {
 	require.NoError(t, err, "could not write to temp file")
 	tmpFile.Close()
 
-	ttlMap, err = CreateTTLMapFromJSONFile(tmpFile.Name())
+	_, err = CreateTTLMapFromJSONFile(tmpFile.Name()) // nolint:ineffassign
 	require.Error(t, err)
 }

@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -263,7 +264,10 @@ func getCachedResponse(ctx context.Context, redisClient *redis.Client, key strin
 }
 
 func cacheResponse(ctx context.Context, redisClient *redis.Client, key string, response any, ttl time.Duration) error {
-	msg, _ := response.(proto.Message)
+	msg, ok := response.(proto.Message)
+	if !ok {
+		return errors.New("response is not a proto.Message")
+	}
 	anyRes, err := anypb.New(msg)
 	if err != nil {
 		return fmt.Errorf("calling anypb.New: %w", err)
