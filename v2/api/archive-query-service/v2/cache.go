@@ -1,0 +1,36 @@
+package api
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"strconv"
+
+	"google.golang.org/protobuf/proto"
+)
+
+const (
+	getTickDataRequestPrefix         = "tdr"
+	getTransactionsForTickPrefix     = "ttfr"
+	getTransactionsForIdentityPrefix = "ttfir"
+)
+
+func (r *GetTickDataRequest) GetCacheKey() (string, error) {
+	return getTickDataRequestPrefix + ":" + strconv.FormatUint(uint64(r.TickNumber), 10), nil
+}
+
+func (r *GetTransactionsForTickRequest) GetCacheKey() (string, error) {
+	return getTransactionsForTickPrefix + ":" + strconv.FormatUint(uint64(r.TickNumber), 10), nil
+}
+
+func (r *GetTransactionsForIdentityRequest) GetCacheKey() (string, error) {
+	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(r)
+	if err != nil {
+		return "", fmt.Errorf("marshalling request: %w", err)
+	}
+
+	// hash the bytes
+	sum := sha256.Sum256(b)
+
+	return getTransactionsForIdentityPrefix + ":" + hex.EncodeToString(sum[:]), nil
+}

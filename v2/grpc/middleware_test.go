@@ -1,8 +1,13 @@
 package grpc
 
 import (
-	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"os"
 	"testing"
+	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_WasSkippedByArchive(t *testing.T) {
@@ -161,4 +166,47 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_createTTLMapFromJSONFile(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "ttlmap-*.json")
+	require.NoError(t, err, "could not create temp file")
+	defer os.Remove(tmpFile.Name())
+
+	content := `{
+		"endpointA": "5m",
+		"endpointB": "1h",
+		"endpointC": "30s"
+	}`
+	_, err = tmpFile.Write([]byte(content))
+	require.NoError(t, err, "could not write to temp file")
+	tmpFile.Close()
+
+	ttlMap, err := CreateTTLMapFromJSONFile(tmpFile.Name())
+	require.NoError(t, err, "could not create TTLMap from JSON file")
+
+	expected := map[string]time.Duration{
+		"endpointA": 5 * time.Minute,
+		"endpointB": 1 * time.Hour,
+		"endpointC": 30 * time.Second,
+	}
+
+	diff := cmp.Diff(ttlMap, expected)
+	require.Empty(t, diff)
+
+	tmpFile, err = os.CreateTemp("", "ttlmap-*.json")
+	require.NoError(t, err, "could not create temp file")
+	defer os.Remove(tmpFile.Name())
+
+	content = `{
+		"endpointA": "500",
+		"endpointB": "1h",
+		"endpointC": "30s"
+	}`
+	_, err = tmpFile.Write([]byte(content))
+	require.NoError(t, err, "could not write to temp file")
+	tmpFile.Close()
+
+	_, err = CreateTTLMapFromJSONFile(tmpFile.Name()) // nolint:ineffassign
+	require.Error(t, err)
 }
