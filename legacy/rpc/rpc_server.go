@@ -31,33 +31,29 @@ var _ protobuf.TransactionsServiceServer = &Server{}
 
 type Server struct {
 	protobuf.UnimplementedTransactionsServiceServer
-	listenAddrGRPC string
-	listenAddrHTTP string
-	qb             *QueryService
-	statusService  statusPb.StatusServiceClient
+	listenAddrGRPC   string
+	listenAddrHTTP   string
+	qb               *QueryService
+	statusService    statusPb.StatusServiceClient
+	paginationLimits PaginationLimits
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryService, statusClient statusPb.StatusServiceClient) *Server {
+func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryService, statusClient statusPb.StatusServiceClient, limits PaginationLimits) *Server {
 	return &Server{
-		listenAddrGRPC: listenAddrGRPC,
-		listenAddrHTTP: listenAddrHTTP,
-		qb:             qb,
-		statusService:  statusClient,
+		listenAddrGRPC:   listenAddrGRPC,
+		listenAddrHTTP:   listenAddrHTTP,
+		qb:               qb,
+		statusService:    statusClient,
+		paginationLimits: limits,
 	}
 }
-
-const maxPageSize uint32 = 250
-const defaultPageSize uint32 = 100
 
 func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetIdentityTransactionsRequest) (*protobuf.GetIdentityTransactionsResponse, error) {
-	var pageSize uint32
-	if req.GetPageSize() > maxPageSize { // max size
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
-	} else if req.GetPageSize() == 0 {
-		pageSize = defaultPageSize // default
-	} else {
-		pageSize = req.GetPageSize()
+	pageSize, err := s.paginationLimits.ValidatePageSizeLimits(int(req.PageSize), int(req.Page))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size: %v", err)
 	}
+
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, 0, 0)
 	if err != nil {
@@ -83,14 +79,12 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 }
 
 func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *protobuf.GetTransferTransactionsPerTickRequestV2) (*protobuf.GetIdentityTransfersInTickRangeResponseV2, error) {
-	var pageSize uint32
-	if req.GetPageSize() > maxPageSize { // max size
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
-	} else if req.GetPageSize() == 0 {
-		pageSize = defaultPageSize // default
-	} else {
-		pageSize = req.GetPageSize()
+
+	pageSize, err := s.paginationLimits.ValidatePageSizeLimits(int(req.PageSize), int(req.Page))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size: %v", err)
 	}
+
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, req.StartTick, req.EndTick)
 	if err != nil {
@@ -405,22 +399,14 @@ func (s *Server) GetLatestTick(ctx context.Context, _ *emptypb.Empty) (*protobuf
 	}, nil
 }
 
-const maxTickListPageSize = int32(1000)
-
 func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEpochTickListRequestV2) (*protobuf.GetEpochTickListResponseV2, error) {
 
-	if request.PageSize == 1 && request.Page > 1 {
-		// log.Printf("[DEBUG] Get ticks: invalid page size 1 for page [%d].", request.Page)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
-	}
-
-	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
-		log.Printf("[DEBUG] Get ticks: invalid page size: [%d].", request.PageSize)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10. max: %d", maxTickListPageSize)
+	pageSize, err := s.paginationLimits.ValidatePageSizeLimits(int(request.PageSize), int(request.Page))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size: %s", err.Error())
 	}
 
 	page := max(1, request.Page)
-	pageSize := max(10, request.PageSize)
 
 	intervals, err := s.qb.cache.GetTickIntervals(ctx)
 	if err != nil {
@@ -456,7 +442,7 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 		return nil, internalErrorGettingTickIntervals()
 	}
 
-	start := uint32((page - 1) * pageSize)
+	start := uint32((page - 1) * int32(pageSize))
 	end := min(start+uint32(pageSize), count)
 	ticks := make([]*protobuf.Tick, 0, pageSize)
 
@@ -514,18 +500,12 @@ func getTickListReversedPageData(filteredIntervals []*statusPb.TickInterval, sta
 
 func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEpochEmptyTickListRequestV2) (*protobuf.GetEpochEmptyTickListResponseV2, error) {
 
-	if request.PageSize == 1 && request.Page > 1 {
-		// log.Printf("[DEBUG] Get empty ticks: invalid page size 1 for page [%d].", request.Page)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
-	}
-
-	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
-		log.Printf("[DEBUG] Get empty ticks: invalid page size: [%d].", request.PageSize)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10. max: %d", maxTickListPageSize)
+	pageSize, err := s.paginationLimits.ValidatePageSizeLimits(int(request.PageSize), int(request.Page))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size: %s", err.Error())
 	}
 
 	page := max(1, request.Page)
-	pageSize := max(10, request.PageSize)
 
 	intervals, err := s.qb.cache.GetTickIntervals(ctx)
 	if err != nil {
@@ -566,7 +546,7 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 	slices.Sort(emptyTicksList) // the ticks are not sorted before this point
 
 	count := uint32(len(emptyTicksList))
-	start := uint32((page - 1) * pageSize)
+	start := uint32((page - 1) * int32(pageSize))
 	end := min(start+uint32(pageSize), count)
 
 	pagination, err := getPaginationInformation(int(count), int(page), int(pageSize))
