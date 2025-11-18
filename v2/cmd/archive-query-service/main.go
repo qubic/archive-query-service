@@ -44,6 +44,11 @@ func run() error {
 			StatusServiceGrpcHost string        `conf:"default:localhost:9901"`
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 		}
+		Pagination struct {
+			EnforcePageLimits bool  `conf:"default:true"`
+			AllowedPageSizes  []int `conf:"default:10;25;50;100"`
+			DefaultPageSize   int   `conf:"default:10"`
+		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
 			Username                              string        `conf:"default:qubic-query"`
@@ -134,7 +139,8 @@ func run() error {
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)
-	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService)
+	paginationLimits := rpc.NewPaginationLimits(cfg.Pagination.EnforcePageLimits, cfg.Pagination.AllowedPageSizes, cfg.Pagination.DefaultPageSize)
+	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, paginationLimits)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor

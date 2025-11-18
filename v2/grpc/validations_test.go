@@ -1,72 +1,44 @@
 package grpc
 
 import (
+	"testing"
+
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestValidations_validatePagination(t *testing.T) {
-	from, size, err := validatePagination(&api.Pagination{
+	from, err := validatePagination(&api.Pagination{
 		Offset: uint32Pointer(13),
 		Size:   uint32Pointer(123),
 	})
 	require.NoError(t, err)
 	assert.Equal(t, uint32(13), from)
-	assert.Equal(t, uint32(123), size)
 }
 
 func TestValidations_validatePagination_largeOffset(t *testing.T) {
-	_, _, err := validatePagination(&api.Pagination{
+	_, err := validatePagination(&api.Pagination{
 		Offset: uint32Pointer(100001),
 		Size:   uint32Pointer(123),
 	})
 	require.ErrorContains(t, err, "exceeds maximum [10000]")
 }
 
-func TestValidations_validatePagination_largePageSize(t *testing.T) {
-	_, _, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(13),
-		Size:   uint32Pointer(2000),
-	})
-	require.ErrorContains(t, err, "exceeds maximum [1024]")
-}
-
 func TestValidations_validatePagination_largetOffsetPlusPageSize(t *testing.T) {
 
-	_, _, err := validatePagination(&api.Pagination{
+	_, err := validatePagination(&api.Pagination{
 		Offset: uint32Pointer(9990),
 		Size:   uint32Pointer(10),
 	})
 	require.NoError(t, err)
 
-	_, _, err = validatePagination(&api.Pagination{
+	_, err = validatePagination(&api.Pagination{
 		Offset: uint32Pointer(9999),
 		Size:   uint32Pointer(1),
 	})
 	require.NoError(t, err)
 
-	_, _, err = validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9999),
-		Size:   uint32Pointer(0), // defaults to 10
-	})
-	require.ErrorContains(t, err, "exceeds maximum [10000]")
-
-	_, _, err = validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9990),
-		Size:   uint32Pointer(11),
-	})
-	require.ErrorContains(t, err, "exceeds maximum [10000]")
-}
-
-func TestValidations_validatePagination_defaultPageSize(t *testing.T) {
-	_, size, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(13),
-		Size:   uint32Pointer(0),
-	})
-	require.NoError(t, err)
-	assert.Equal(t, uint32(10), size)
 }
 
 func TestValidations_validateFilters_givenAllValid(t *testing.T) {
