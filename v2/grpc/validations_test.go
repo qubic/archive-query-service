@@ -4,11 +4,10 @@ import (
 	"testing"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidations_validatePagination(t *testing.T) {
+/*func TestValidations_validatePagination(t *testing.T) {
 	from, err := validatePagination(&api.Pagination{
 		Offset: uint32Pointer(13),
 		Size:   uint32Pointer(123),
@@ -39,7 +38,7 @@ func TestValidations_validatePagination_largetOffsetPlusPageSize(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-}
+}*/
 
 func TestValidations_validateFilters_givenAllValid(t *testing.T) {
 	filters := map[string]string{

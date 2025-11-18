@@ -111,31 +111,20 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
-	if request.GetPagination() == nil {
-
-		defaultOffset := uint32(0)
-		defaultPageSize := uint32(s.paginationLimits.defaultPageSize)
-
+	// This check is required as GRPC will not create an object if the request omits the pagination object
+	if request.Pagination == nil {
 		request.Pagination = &api.Pagination{
-			Offset: &defaultOffset,
-			Size:   &defaultPageSize,
+			Offset: 0,
+			Size:   uint32(s.paginationLimits.defaultPageSize),
 		}
 	}
 
-	size, err := s.paginationLimits.ValidatePageSizeLimits(int(*request.GetPagination().Size), int(*request.GetPagination().Offset))
+	from, size, err := s.paginationLimits.ValidatePagination(request.Pagination)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid requested pagination: %v", err)
 	}
 
-	sizeUint32 := uint32(size)
-	request.GetPagination().Size = &sizeUint32
-
-	from, err := validatePagination(request.GetPagination())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page: %v", err)
-	}
-
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, uint32(size))
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, uint32(from), uint32(size))
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}
@@ -143,7 +132,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 	// paging information
 	apiHits := &api.Hits{
 		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
-		From:  from,
+		From:  uint32(from),
 		Size:  uint32(size),
 	}
 

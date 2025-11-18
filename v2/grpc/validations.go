@@ -10,20 +10,6 @@ import (
 	"github.com/qubic/go-node-connector/types"
 )
 
-const maxHitsSize uint32 = 10000
-
-func validatePagination(page *api.Pagination) (from uint32, err error) {
-	from = page.GetOffset()
-	size := page.GetSize()
-	if from >= maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] exceeds maximum [%d]", from, maxHitsSize)
-	}
-	if from+size > maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum [%d]", from, size, maxHitsSize)
-	}
-	return from, nil
-}
-
 var allowedTermFilters = [4]string{"source", "destination", "amount", "inputType"}
 
 func validateIdentityTransactionQueryFilters(filters map[string]string) error {

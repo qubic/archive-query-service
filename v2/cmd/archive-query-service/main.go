@@ -48,6 +48,7 @@ func run() error {
 			EnforcePageLimits bool  `conf:"default:true"`
 			AllowedPageSizes  []int `conf:"default:10;25;50;100"`
 			DefaultPageSize   int   `conf:"default:10"`
+			MaxHitsSize       int   `conf:"default:10000"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -139,7 +140,7 @@ func run() error {
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)
-	paginationLimits := rpc.NewPaginationLimits(cfg.Pagination.EnforcePageLimits, cfg.Pagination.AllowedPageSizes, cfg.Pagination.DefaultPageSize)
+	paginationLimits := rpc.NewPaginationLimits(cfg.Pagination.EnforcePageLimits, cfg.Pagination.AllowedPageSizes, cfg.Pagination.DefaultPageSize, cfg.Pagination.MaxHitsSize)
 	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, paginationLimits)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
