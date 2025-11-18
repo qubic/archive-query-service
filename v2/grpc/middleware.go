@@ -240,7 +240,7 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 		log.Printf("failed to cache response: %v\n", err)
 	}
 
-	log.Printf("RedisCacheInterceptor:  Request %s is served from cache with TTL %d seconds\n", info.FullMethod, ttl.Seconds())
+	log.Printf("RedisCacheInterceptor:  Request %s is served from cache with TTL %d seconds\n", info.FullMethod, int(ttl.Seconds()))
 
 	return response, nil
 }
