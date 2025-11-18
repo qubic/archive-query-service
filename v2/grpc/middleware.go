@@ -12,6 +12,7 @@ import (
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -183,10 +184,11 @@ func CreateTTLMapFromJSONFile(jsonFilePath string) (map[string]time.Duration, er
 type RedisCacheInterceptor struct {
 	redisClient *redis.Client
 	ttlMap      map[string]time.Duration
+	sfGroup     *singleflight.Group
 }
 
 func NewRedisCacheInterceptor(redisClient *redis.Client, ttlMap map[string]time.Duration) *RedisCacheInterceptor {
-	return &RedisCacheInterceptor{redisClient: redisClient, ttlMap: ttlMap}
+	return &RedisCacheInterceptor{redisClient: redisClient, ttlMap: ttlMap, sfGroup: &singleflight.Group{}}
 }
 
 func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -195,7 +197,7 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 	if !ok {
 		return handler(ctx, req)
 	}
-	log.Printf("RedisCacheInterceptor:  Request %s is cachable, proceed to check TTL and key\n", info.FullMethod)
+	log.Printf("RedisCacheInterceptor: Request %s is cachable, proceed to check TTL and key\n", info.FullMethod)
 
 	// if TTL from the map is zero or key does not exist, then caching is disabled
 	ttl, exists := rci.ttlMap[info.FullMethod]
@@ -215,34 +217,50 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 		return handler(ctx, req)
 	}
 
-	// if response found in cache, return it
-	cachedResponse, err := getCachedResponse(ctx, rci.redisClient, key)
-	if err == nil {
-		return cachedResponse, nil
-	}
-
 	md := metadata.Pairs("cache-control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
 	err = grpc.SetHeader(ctx, md)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "setting header: %v", err)
 	}
 
-	// otherwise call the handler to get the response
-	response, err := handler(ctx, req)
+	res, err, _ := rci.sfGroup.Do(key, func() (interface{}, error) {
+		// if response found in cache, return it
+		cachedResponse, sfErr := getCachedResponse(ctx, rci.redisClient, key)
+		if sfErr == nil {
+			log.Printf("RedisCacheInterceptor:  Request %s is served from cache with TTL %d seconds\n", info.FullMethod, int(ttl.Seconds()))
+			return cachedResponse, nil
+		}
+
+		// otherwise call the handler to get the response
+		response, sfErr := handler(ctx, req)
+		if err != nil {
+			return response, sfErr
+		}
+
+		log.Printf(
+			"RedisCacheInterceptor: Request %s will be stored to cache with TTL %d seconds\n",
+			info.FullMethod,
+			int(ttl.Seconds()),
+		)
+		// then proceed to cache the response and even if caching fails for multiple reasons like redis cluster unavailable
+		// we still return the response
+		sfErr = cacheResponse(ctx, rci.redisClient, key, response, ttl)
+		if sfErr != nil {
+			log.Printf("RedisCacheInterceptor: Request %s failed to store cache: %v\n", info.FullMethod, sfErr)
+		}
+
+		return response, nil
+	})
 	if err != nil {
-		return response, err
+		return nil, err
 	}
 
-	// then proceed to cache the response and even if caching fails for multiple reasons like redis cluster unavailable
-	// we still return the response
-	err = cacheResponse(ctx, rci.redisClient, key, response, ttl)
-	if err != nil {
-		log.Printf("failed to cache response: %v\n", err)
+	msg, ok := res.(proto.Message)
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "invalid type assertion for cached response: expected proto.Message, got %T", res)
 	}
 
-	log.Printf("RedisCacheInterceptor:  Request %s is served from cache with TTL %d seconds\n", info.FullMethod, int(ttl.Seconds()))
-
-	return response, nil
+	return msg, nil
 }
 
 func getCachedResponse(ctx context.Context, redisClient *redis.Client, key string) (proto.Message, error) {
