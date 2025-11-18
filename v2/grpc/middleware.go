@@ -190,12 +190,12 @@ func NewRedisCacheInterceptor(redisClient *redis.Client, ttlMap map[string]time.
 }
 
 func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	log.Printf("RedisCacheInterceptor: Checking cache for method %s\n", info.FullMethod)
 	// we first need to check if the request is cacheable, if not, we just call the handler
 	t, ok := req.(Cacheable)
 	if !ok {
 		return handler(ctx, req)
 	}
+	log.Printf("RedisCacheInterceptor:  Request %s is cachable, proceed to check TTL and key\n", info.FullMethod)
 
 	// if TTL from the map is zero or key does not exist, then caching is disabled
 	ttl, exists := rci.ttlMap[info.FullMethod]
@@ -221,6 +221,12 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 		return cachedResponse, nil
 	}
 
+	md := metadata.Pairs("cache-control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
+	err = grpc.SetHeader(ctx, md)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "setting header: %v", err)
+	}
+
 	// otherwise call the handler to get the response
 	response, err := handler(ctx, req)
 	if err != nil {
@@ -234,11 +240,7 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 		log.Printf("failed to cache response: %v\n", err)
 	}
 
-	md := metadata.Pairs("cache-control", fmt.Sprintf("public, max-age=%d", int(ttl.Seconds())))
-	err = grpc.SetHeader(ctx, md)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "setting header: %v", err)
-	}
+	log.Printf("RedisCacheInterceptor:  Request %s is served from cache with TTL %d seconds\n", info.FullMethod, ttl.Seconds())
 
 	return response, nil
 }
