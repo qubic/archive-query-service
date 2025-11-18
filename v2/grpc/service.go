@@ -111,6 +111,17 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
+	if request.GetPagination() == nil {
+
+		defaultOffset := uint32(0)
+		defaultPageSize := uint32(s.paginationLimits.defaultPageSize)
+
+		request.Pagination = &api.Pagination{
+			Offset: &defaultOffset,
+			Size:   &defaultPageSize,
+		}
+	}
+
 	size, err := s.paginationLimits.ValidatePageSizeLimits(int(*request.GetPagination().Size), int(*request.GetPagination().Offset))
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size: %v", err)
