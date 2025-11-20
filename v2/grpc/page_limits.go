@@ -34,14 +34,27 @@ func NewPaginationLimits(enforce bool, pageSizes []int, defaultSize int, maxHits
 	}
 }
 
-func (pl PaginationLimits) ValidatePagination(page *api.Pagination) (from, size int, err error) {
+func (pl PaginationLimits) ValidatePagination(pagination *api.Pagination) (from, size int, err error) {
 
-	size, err = pl.validatePageSizeLimits(int(page.Size), int(page.Offset))
+	var pageSize int
+	var offset int
+
+	// This check is required as GRPC will not create an object with default values if the request omits the pagination object
+	if pagination != nil {
+		pageSize = int(pagination.Size)
+		offset = int(pagination.Offset)
+
+	} else {
+		pageSize = pl.defaultPageSize
+		offset = 0
+	}
+
+	size, err = pl.validatePageSizeLimits(pageSize, offset)
 	if err != nil {
 		return 0, 0, fmt.Errorf("validating page size limits: %w", err)
 	}
 
-	from, err = pl.validatePageOffsetLimits(size, int(page.Offset))
+	from, err = pl.validatePageOffsetLimits(size, offset)
 	if err != nil {
 		return 0, 0, fmt.Errorf("validating page offset limits: %w", err)
 	}
@@ -76,7 +89,7 @@ func (pl PaginationLimits) validatePageOffsetLimits(pageSize, offset int) (int, 
 		return 0, fmt.Errorf("offset [%d] exceeds maximum [%d]", offset, pl.maxHitsSize)
 	}
 	if offset+pageSize > pl.maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum [%d]", offset, pageSize, pl.maxHitsSize)
+		return pl.maxHitsSize, nil
 	}
 
 	return offset, nil

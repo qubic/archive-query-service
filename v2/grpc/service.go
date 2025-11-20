@@ -111,14 +111,6 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
-	// This check is required as GRPC will not create an object if the request omits the pagination object
-	if request.Pagination == nil {
-		request.Pagination = &api.Pagination{
-			Offset: 0,
-			Size:   uint32(s.paginationLimits.defaultPageSize),
-		}
-	}
-
 	from, size, err := s.paginationLimits.ValidatePagination(request.Pagination)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid requested pagination: %v", err)
