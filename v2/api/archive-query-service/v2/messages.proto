@@ -62,8 +62,8 @@ message RangeUint32 {
 // paging
 
 message Pagination {
-    optional uint32 offset = 1;
-    optional uint32 size = 2;
+    uint32 offset = 1;
+    uint32 size = 2;
 }
 
 // requests and responses
@@ -99,7 +99,7 @@ message GetTransactionsForIdentityRequest {
     string identity = 1;
     map<string, string> filters = 2;
     map<string, Range> ranges = 3;
-    optional Pagination pagination = 4;
+    Pagination pagination = 4;
 }
 
 message Hits {

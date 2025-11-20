@@ -48,18 +48,20 @@ type ArchiveQueryService struct {
 	srv            *grpc.Server
 	grpcListenAddr net.Addr
 	api.UnimplementedArchiveQueryServiceServer
-	txService     TransactionsService
-	tdService     TickDataService
-	statusService StatusService
-	clService     ComputorsListService
+	txService        TransactionsService
+	tdService        TickDataService
+	statusService    StatusService
+	clService        ComputorsListService
+	paginationLimits PaginationLimits
 }
 
-func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService) *ArchiveQueryService {
+func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService, limits PaginationLimits) *ArchiveQueryService {
 	return &ArchiveQueryService{
-		txService:     txService,
-		tdService:     tdService,
-		statusService: statusService,
-		clService:     clService,
+		txService:        txService,
+		tdService:        tdService,
+		statusService:    statusService,
+		clService:        clService,
+		paginationLimits: limits,
 	}
 }
 
@@ -109,12 +111,12 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
-	from, size, err := validatePagination(request.GetPagination())
+	from, size, err := s.paginationLimits.ValidatePagination(request.Pagination)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid requested pagination: %v", err)
 	}
 
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, uint32(from), uint32(size))
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}
@@ -122,8 +124,8 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 	// paging information
 	apiHits := &api.Hits{
 		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
-		From:  from,
-		Size:  size,
+		From:  uint32(from),                        //nolint: gosec
+		Size:  uint32(size),                        //nolint: gosec
 	}
 
 	return &api.GetTransactionsForIdentityResponse{
