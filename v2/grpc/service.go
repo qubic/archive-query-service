@@ -124,8 +124,8 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 	// paging information
 	apiHits := &api.Hits{
 		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
-		From:  uint32(from),
-		Size:  uint32(size),
+		From:  uint32(from),                        //nolint: gosec
+		Size:  uint32(size),                        //nolint: gosec
 	}
 
 	return &api.GetTransactionsForIdentityResponse{
