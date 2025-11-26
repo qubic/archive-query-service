@@ -233,7 +233,7 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 
 		// otherwise call the handler to get the response
 		response, sfErr := handler(ctx, req)
-		if err != nil {
+		if sfErr != nil {
 			return response, sfErr
 		}
 
