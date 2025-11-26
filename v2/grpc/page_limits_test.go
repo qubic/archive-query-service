@@ -79,8 +79,8 @@ func TestPaginationLimits_ValidatePagination(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 
 			_, size, err := testData.pl.ValidatePagination(&api.Pagination{
-				Offset: uint32(testData.offset),
-				Size:   uint32(testData.pageSize),
+				Offset: uint32(testData.offset),   //nolint: gosec
+				Size:   uint32(testData.pageSize), //nolint: gosec
 			})
 			if testData.expectError {
 				require.Error(t, err)
