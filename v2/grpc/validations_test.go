@@ -7,39 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-/*func TestValidations_validatePagination(t *testing.T) {
-	from, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(13),
-		Size:   uint32Pointer(123),
-	})
-	require.NoError(t, err)
-	assert.Equal(t, uint32(13), from)
-}
-
-func TestValidations_validatePagination_largeOffset(t *testing.T) {
-	_, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(100001),
-		Size:   uint32Pointer(123),
-	})
-	require.ErrorContains(t, err, "exceeds maximum [10000]")
-}
-
-func TestValidations_validatePagination_largetOffsetPlusPageSize(t *testing.T) {
-
-	_, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9990),
-		Size:   uint32Pointer(10),
-	})
-	require.NoError(t, err)
-
-	_, err = validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9999),
-		Size:   uint32Pointer(1),
-	})
-	require.NoError(t, err)
-
-}*/
-
 func TestValidations_validateFilters_givenAllValid(t *testing.T) {
 	filters := map[string]string{
 		"source":      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
@@ -205,8 +172,4 @@ func TestValidations_validateRanges_givenDuplicateFilter_thenError(t *testing.T)
 	ranges := map[string]*api.Range{"amount": nil}
 	_, err := validateIdentityTransactionQueryRanges(filters, ranges)
 	require.ErrorContains(t, err, "already declared as filter")
-}
-
-func uint32Pointer(val uint32) *uint32 {
-	return &val
 }

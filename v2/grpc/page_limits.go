@@ -61,8 +61,19 @@ func (pl PaginationLimits) ValidatePagination(pagination *api.Pagination) (from,
 	return from, size, nil
 }
 
+const maxPageSize = 1024
+
 func (pl PaginationLimits) validatePageSizeLimits(pageSize, offset int) (int, error) {
+	// If disabled use previous behaviour
 	if !pl.enforceLimits {
+
+		if pageSize > maxPageSize {
+			return 0, fmt.Errorf("size [%d] exceeds maximum [%d]", pageSize, maxPageSize)
+		}
+		if pageSize == 0 {
+			return pl.defaultPageSize, nil
+		}
+
 		return pageSize, nil
 	}
 
@@ -85,7 +96,7 @@ func (pl PaginationLimits) validatePageSizeLimits(pageSize, offset int) (int, er
 
 func (pl PaginationLimits) validatePageOffsetLimits(pageSize, offset int) (int, error) {
 
-	if offset >= pl.maxHitsSize {
+	if offset > pl.maxHitsSize {
 		return 0, fmt.Errorf("offset [%d] exceeds maximum [%d]", offset, pl.maxHitsSize)
 	}
 	if offset+pageSize > pl.maxHitsSize {

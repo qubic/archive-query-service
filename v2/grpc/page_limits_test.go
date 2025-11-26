@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPaginationLimits_ValidatePageSizeLimits(t *testing.T) {
+func TestPaginationLimits_ValidatePagination(t *testing.T) {
 
 	test := map[string]struct {
 		pl       PaginationLimits
@@ -38,7 +38,7 @@ func TestPaginationLimits_ValidatePageSizeLimits(t *testing.T) {
 			expectedPageSize: 1,
 			expectError:      false,
 		},
-		"TestPageSizeOneForOffsetZero_Negative": {
+		"TestPageSizeOneForOffsetOne": {
 			pl:               NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000),
 			pageSize:         1,
 			offset:           1,
@@ -58,6 +58,20 @@ func TestPaginationLimits_ValidatePageSizeLimits(t *testing.T) {
 			offset:           0,
 			expectedPageSize: 0,
 			expectError:      true,
+		},
+		"OffsetOverflow": {
+			pl:               NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000),
+			pageSize:         25,
+			offset:           100001,
+			expectedPageSize: 0,
+			expectError:      true,
+		},
+		"LargeOffsetPlusPageSize": {
+			pl:               NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000),
+			pageSize:         10,
+			offset:           9990,
+			expectedPageSize: 10,
+			expectError:      false,
 		},
 	}
 

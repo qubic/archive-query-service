@@ -30,8 +30,19 @@ func NewPaginationLimits(enforce bool, pageSizes []int, defaultSize int) Paginat
 	}
 }
 
+const maxPageSize = 1024
+
 func (pl PaginationLimits) ValidatePageSizeLimits(pageSize, offset int) (int, error) {
+	// If disabled use previous behaviour
 	if !pl.enforceLimits {
+
+		if pageSize > maxPageSize {
+			return 0, fmt.Errorf("size [%d] exceeds maximum [%d]", pageSize, maxPageSize)
+		}
+		if pageSize == 0 {
+			return pl.defaultPageSize, nil
+		}
+
 		return pageSize, nil
 	}
 

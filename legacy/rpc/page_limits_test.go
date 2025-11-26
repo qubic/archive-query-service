@@ -37,7 +37,7 @@ func TestPaginationLimits_ValidatePageSizeLimits(t *testing.T) {
 			expectedPageSize: 1,
 			expectError:      false,
 		},
-		"TestPageSizeOneForOffsetZero_Negative": {
+		"TestPageSizeOneForOffsetOne": {
 			pl:               NewPaginationLimits(true, []int{10, 25, 50, 100}, 10),
 			pageSize:         1,
 			offset:           1,
