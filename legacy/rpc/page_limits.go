@@ -10,9 +10,10 @@ type PaginationLimits struct {
 	allowedPageSizes      map[int]bool
 	allowedPageSizesArray []int
 	defaultPageSize       int
+	maxAllowedOffset      int
 }
 
-func NewPaginationLimits(enforce bool, pageSizes []int, defaultSize int) PaginationLimits {
+func NewPaginationLimits(enforce bool, pageSizes []int, defaultSize int, maxAllowedOffset int) PaginationLimits {
 
 	allowedPageSizes := make(map[int]bool, len(pageSizes))
 	for _, size := range pageSizes {
@@ -27,12 +28,19 @@ func NewPaginationLimits(enforce bool, pageSizes []int, defaultSize int) Paginat
 		allowedPageSizes:      allowedPageSizes,
 		allowedPageSizesArray: sorted,
 		defaultPageSize:       defaultSize,
+		maxAllowedOffset:      maxAllowedOffset,
 	}
 }
 
 const maxPageSize = 1024
 
-func (pl PaginationLimits) ValidatePageSizeLimits(pageSize, offset int) (int, error) {
+func (pl PaginationLimits) ValidatePageSizeLimits(pageSize, page int) (int, error) {
+
+	// This check should be run regardless if limits are enabled or not
+	if pageSize*page > pl.maxAllowedOffset {
+		return 0, fmt.Errorf("pagination out of bounds. pageSize * page cannot be larger than [%d], got: [%d]", pl.maxAllowedOffset, pageSize*page)
+	}
+
 	// If disabled use previous behaviour
 	if !pl.enforceLimits {
 
@@ -51,8 +59,9 @@ func (pl PaginationLimits) ValidatePageSizeLimits(pageSize, offset int) (int, er
 	}
 
 	if pageSize == 1 {
-		if offset != 0 {
-			return 0, fmt.Errorf("page size [1] is only allowed when used with offset [0]")
+		// This check assumes that the first page is 1, not 0
+		if page != 1 {
+			return 0, fmt.Errorf("page size [1] is only allowed when used with page [1]")
 		}
 		return pageSize, nil
 	}
