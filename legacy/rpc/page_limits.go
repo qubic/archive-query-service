@@ -60,7 +60,7 @@ func (pl PaginationLimits) ValidatePageSizeLimits(pageSize, page int) (int, erro
 
 	if pageSize == 1 {
 		// This check assumes that the first page is 1, not 0
-		if page != 1 {
+		if max(page, 1) != 1 { // Use max here to make it work with page 0 as well
 			return 0, fmt.Errorf("page size [1] is only allowed when used with page [1]")
 		}
 		return pageSize, nil

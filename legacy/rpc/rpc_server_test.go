@@ -100,7 +100,7 @@ func TestRpcServer_GetEpochTickListV2_GivenAscendingTrue_ReturnInAscendingOrder(
 	server := Server{
 		qb:               qs,
 		statusService:    nil,
-		paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10),
+		paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000),
 	}
 	response, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{
 		Epoch: 123,
@@ -148,7 +148,7 @@ func TestRpcServer_GetEpochTickListV2_GivenAscendingTrue_ReturnInDescendingOrder
 	server := Server{
 		qb:               qs,
 		statusService:    nil,
-		paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10),
+		paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000),
 	}
 
 	response, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{
@@ -200,8 +200,9 @@ func TestRpcServer_GetEpochTickListV2_GivenMultipleIntervals_ReturnPageOverInter
 	}
 
 	server := Server{
-		qb:            qs,
-		statusService: nil,
+		qb:               qs,
+		statusService:    nil,
+		paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100, 1000}, 10, 10000),
 	}
 
 	response, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{
@@ -249,8 +250,9 @@ func TestRpcServer_GetEpochTickListV2_GivenMultipleIntervals_ReturnCorrectPages(
 	}
 
 	server := Server{
-		qb:            qs,
-		statusService: nil,
+		qb:               qs,
+		statusService:    nil,
+		paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 60, 100}, 10, 10000),
 	}
 
 	response, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{
@@ -318,7 +320,7 @@ func TestRpcServer_GetEpochTickListV2_GivenValidEpochValues_ThenNoError(t *testi
 		cache:         statusCache,
 	}
 
-	server := Server{qb: qs, statusService: nil, paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10)}
+	server := Server{qb: qs, statusService: nil, paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000)}
 
 	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 122})
 	require.NoError(t, err)
@@ -370,7 +372,7 @@ func TestRpcServer_GetEpochTickListV2_GivenInvalidPageSize_ThenError(t *testing.
 		cache:         statusCache,
 	}
 
-	server := Server{qb: qs, statusService: nil, paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10)}
+	server := Server{qb: qs, statusService: nil, paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000)}
 
 	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 10000})
 	require.Error(t, err)
@@ -426,7 +428,7 @@ func TestRpcServer_GetEpochTickListV2_Pagination(t *testing.T) {
 		elasticClient: elasticClient,
 		cache:         statusCache,
 	}
-	server := Server{qb: qs, statusService: nil}
+	server := Server{qb: qs, statusService: nil, paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000)}
 
 	res, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, Page: 1, PageSize: 10})
 	require.NoError(t, err)
@@ -460,7 +462,7 @@ func TestRpcServer_GetEmptyTickListV2_GivenExceedsMaxPage_ThenError(t *testing.T
 		elasticClient: elasticClient,
 		cache:         statusCache,
 	}
-	server := Server{qb: qs, statusService: nil}
+	server := Server{qb: qs, statusService: nil, paginationLimits: NewPaginationLimits(true, []int{10, 25, 50, 100}, 10, 10000)}
 
 	res, err := server.GetEmptyTickListV2(context.Background(), &protobuf.GetEpochEmptyTickListRequestV2{Epoch: 123, Page: 1, PageSize: 10})
 	require.NoError(t, err)
