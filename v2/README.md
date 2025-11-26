@@ -222,3 +222,6 @@ The documentation might not be complete or up-to-date due to changes.
 See [messages.proto](api/archive-query-service/v2/messages.proto) 
 and [query_services.proto](api/archive-query-service/v2/query_services.proto) 
 for full details.
+
+## Caching
+See [CACHE.md](CACHE.md) for details about enabling and using caching in Archive Query Service v2.
