@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,6 +13,84 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 )
+
+func TestRpcServer_GetIdentityTransfersInTickRangeV2(t *testing.T) {
+	elasticClient := &FakeElasticClient{}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.lastProcessedTickProvider.Set(maxTickCacheKey, 42, ttlcache.DefaultTTL)
+	server := Server{qb: &QueryService{elasticClient: elasticClient, cache: statusCache}}
+
+	response, err := server.GetIdentityTransfersInTickRangeV2(context.Background(), &protobuf.GetTransferTransactionsPerTickRequestV2{})
+
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	assert.NotNil(t, response.GetTransactions())
+	assert.Empty(t, response.GetTransactions())
+	assert.NotEmpty(t, response.GetPagination())
+}
+
+func TestRpcServer_GetIdentityTransfersInTickRangeV2_GivenExceedsMaximumResultSize_ThenError(t *testing.T) {
+	server := Server{qb: &QueryService{}}
+	_, err := server.GetIdentityTransfersInTickRangeV2(context.Background(), &protobuf.GetTransferTransactionsPerTickRequestV2{
+		Page:     101,
+		PageSize: 100,
+	})
+
+	require.ErrorContains(t, err, "code = InvalidArgument")
+	require.ErrorContains(t, err, "exceeds maximum result size")
+}
+
+func TestRpcServer_GetIdentityTransfersInTickRangeV2_GivenQueryError_ThenReturnGenericErrorMessage(t *testing.T) {
+	elasticClient := &FakeElasticClient{err: fmt.Errorf("test error")}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.lastProcessedTickProvider.Set(maxTickCacheKey, 42, ttlcache.DefaultTTL)
+	qs := &QueryService{elasticClient: elasticClient, cache: statusCache}
+	server := Server{qb: qs}
+
+	_, err := server.GetIdentityTransfersInTickRangeV2(context.Background(), &protobuf.GetTransferTransactionsPerTickRequestV2{})
+
+	require.ErrorContains(t, err, "code = Internal")
+	require.ErrorContains(t, err, "performing identities transactions query")
+}
+
+func TestRpcServer_GetIdentityTransactions(t *testing.T) {
+	elasticClient := &FakeElasticClient{}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.lastProcessedTickProvider.Set(maxTickCacheKey, 42, ttlcache.DefaultTTL)
+	server := Server{qb: &QueryService{elasticClient: elasticClient, cache: statusCache}}
+
+	response, err := server.GetIdentityTransactions(context.Background(), &protobuf.GetIdentityTransactionsRequest{})
+
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	assert.NotNil(t, response.GetTransactions())
+	assert.Empty(t, response.GetTransactions())
+	assert.NotEmpty(t, response.GetPagination())
+}
+
+func TestRpcServer_GetIdentityTransactions_GivenExceedsMaximumResultSize_ThenError(t *testing.T) {
+	server := Server{qb: &QueryService{}}
+	_, err := server.GetIdentityTransactions(context.Background(), &protobuf.GetIdentityTransactionsRequest{
+		Page:     101,
+		PageSize: 100,
+	})
+
+	require.ErrorContains(t, err, "code = InvalidArgument")
+	require.ErrorContains(t, err, "exceeds maximum result size")
+}
+
+func TestRpcServer_GetIdentityTransactions_GivenQueryError_ThenReturnGenericErrorMessage(t *testing.T) {
+	elasticClient := &FakeElasticClient{err: fmt.Errorf("test error")}
+	statusCache := NewStatusCache(nil, time.Minute, time.Minute)
+	statusCache.lastProcessedTickProvider.Set(maxTickCacheKey, 42, ttlcache.DefaultTTL)
+	qs := &QueryService{elasticClient: elasticClient, cache: statusCache}
+	server := Server{qb: qs}
+
+	_, err := server.GetIdentityTransactions(context.Background(), &protobuf.GetIdentityTransactionsRequest{})
+
+	require.ErrorContains(t, err, "code = Internal")
+	require.ErrorContains(t, err, "performing identities transactions query")
+}
 
 func TestRpcServer_ConvertArchiverStatus(t *testing.T) {
 

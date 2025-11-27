@@ -15,7 +15,9 @@ import (
 const key = "%d-%d-%d"
 
 type FakeElasticClient struct {
-	emptyTicks map[string][]uint32
+	emptyTicks           map[string][]uint32
+	identityTransactions elastic.TransactionsSearchResponse
+	err                  error
 }
 
 func (f *FakeElasticClient) QueryTickDataByTickNumber(context.Context, uint32) (elastic.TickDataGetResponse, error) {
@@ -32,7 +34,7 @@ func (f *FakeElasticClient) QueryComputorListByEpoch(context.Context, uint32) (e
 }
 
 func (f *FakeElasticClient) QueryIdentityTransactions(_ context.Context, _ string, _, _ int, _ bool, _, _ uint32) (elastic.TransactionsSearchResponse, error) {
-	panic("implement me")
+	return f.identityTransactions, f.err
 }
 
 func (f *FakeElasticClient) QueryTransactionByHash(context.Context, string) (elastic.TransactionGetResponse, error) {
