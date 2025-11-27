@@ -64,7 +64,7 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 	}
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, 0, 0)
 	if err != nil {
-		log.Printf("Error performing identities transactions query (get identity transactions): %v. Request: %v", err, req)
+		log.Printf("Error performing identities transactions query (get identity transactions): %v.", err)
 		return nil, status.Errorf(codes.Internal, "performing identities transactions query.")
 	}
 
@@ -101,7 +101,7 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 	}
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, req.StartTick, req.EndTick)
 	if err != nil {
-		log.Printf("Error performing identities transactions query (get identity transfers): %v. Request: %v", err, req)
+		log.Printf("Error performing identities transactions query (get identity transfers): %v.", err)
 		return nil, status.Error(codes.Internal, "performing identities transactions query")
 	}
 
@@ -141,7 +141,7 @@ func (s *Server) GetTickTransactionsV2(ctx context.Context, req *protobuf.GetTic
 		if errors.Is(err, ErrNotFound) {
 			return nil, status.Errorf(codes.NotFound, "tick transfer transactions for specified tick not found")
 		}
-		log.Printf("Error performing tick transactions query: %v. Request: %v", err, req)
+		log.Printf("Error performing tick transactions query: %v.", err)
 		return nil, status.Error(codes.Internal, "getting tick transactions")
 	}
 
@@ -163,7 +163,7 @@ func (s *Server) GetTickTransactions(ctx context.Context, req *protobuf.GetTickT
 		if errors.Is(err, ErrNotFound) {
 			return nil, status.Errorf(codes.NotFound, "tick transactions for specified tick not found")
 		}
-		log.Printf("Error performing tick transactions query: %v. Request: %v", err, req)
+		log.Printf("Error performing tick transactions query: %v.", err)
 		return nil, status.Error(codes.Internal, "getting tick transactions")
 	}
 
@@ -188,7 +188,7 @@ func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.
 		if errors.Is(err, ErrNotFound) {
 			return nil, status.Error(codes.NotFound, "tick approved transactions for specified tick not found")
 		}
-		log.Printf("Error performing tick transactions query: %v. Request: %v", err, req)
+		log.Printf("Error performing tick transactions query: %v.", err)
 		return nil, status.Error(codes.Internal, "getting tick approved transactions")
 	}
 
@@ -230,7 +230,7 @@ func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactio
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
-		log.Printf("Error performing get transaction by id query: %v. Request: %v", err, req)
+		log.Printf("Error performing get transaction by id query: %v.", err)
 		return nil, status.Errorf(codes.Internal, "getting transaction")
 	}
 
@@ -249,7 +249,7 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
-		log.Printf("Error performing get transaction by id query: %v. Request: %v", err, req)
+		log.Printf("Error performing get transaction by id query: %v.", err)
 		return nil, status.Errorf(codes.Internal, "performing get transaction by id query")
 	}
 
@@ -295,7 +295,7 @@ func (s *Server) GetTransactionV2(ctx context.Context, req *protobuf.GetTransact
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
-		log.Printf("Error performing get transaction by id query: %v. Request: %v", err, req)
+		log.Printf("Error performing get transaction by id query: %v.", err)
 		return nil, status.Errorf(codes.Internal, "performing get transaction by id query")
 	}
 
@@ -315,7 +315,7 @@ func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataReque
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return &protobuf.GetTickDataResponse{TickData: nil}, nil
 		}
-		log.Printf("Error performing get tick data by tick number query: %v. Request: %v", err, req)
+		log.Printf("Error performing get tick data by tick number query: %v.", err)
 		return nil, status.Errorf(codes.Internal, "error querying tick data")
 	}
 
@@ -406,7 +406,7 @@ func (s *Server) GetArchiverStatus(ctx context.Context, empty *emptypb.Empty) (*
 func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputorsRequest) (*protobuf.GetComputorsResponse, error) {
 	response, err := s.qb.performComputorListByEpochQuery(ctx, req.Epoch)
 	if err != nil {
-		log.Printf("Error performing get computor list by epoch query: %v. Request: %v", err, req)
+		log.Printf("Error performing get computor list by epoch query: %v.", err)
 		return nil, status.Errorf(codes.Internal, "performing computors list query")
 	}
 
