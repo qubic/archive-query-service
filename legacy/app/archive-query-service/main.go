@@ -37,12 +37,12 @@ func run() error {
 			ReadTimeout           time.Duration `conf:"default:5s"`
 			WriteTimeout          time.Duration `conf:"default:5s"`
 			ShutdownTimeout       time.Duration `conf:"default:5s"`
-			HTTPHost              string        `conf:"default:0.0.0.0:8000"`
+			HttpHost              string        `conf:"default:0.0.0.0:8000"` // nolint:revive
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
-			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
-			EmptyTicksTTL         time.Duration `conf:"default:24h"`
+			StatusDataCacheTtl    time.Duration `conf:"default:1s"`  // nolint:revive
+			EmptyTicksTtl         time.Duration `conf:"default:24h"` // nolint:revive
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -123,13 +123,13 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTTL, cfg.Server.StatusDataCacheTTL)
+	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTtl, cfg.Server.StatusDataCacheTtl)
 
 	go cache.Start()
 	defer cache.Stop()
 
 	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HTTPHost, queryService, statusServiceClient)
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
