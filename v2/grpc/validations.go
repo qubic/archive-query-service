@@ -36,9 +36,8 @@ func (psl PageSizeLimits) validatePageSize(pageSize, offset uint32) (uint32, err
 	if pageSize == 1 {
 		if offset != 0 {
 			return 0, fmt.Errorf("page size [1] is only allowed for offset [0]")
-		} else {
-			return pageSize, nil
 		}
+		return pageSize, nil
 	}
 
 	if pageSize%10 != 0 {
