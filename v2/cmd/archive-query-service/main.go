@@ -40,7 +40,7 @@ func run() error {
 			ReadTimeout           time.Duration `conf:"default:5s"`
 			WriteTimeout          time.Duration `conf:"default:5s"`
 			ShutdownTimeout       time.Duration `conf:"default:5s"`
-			HttpHost              string        `conf:"default:0.0.0.0:8000"` //nolint:revive
+			HTTPHost              string        `conf:"default:0.0.0.0:8000"`
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:localhost:9901"`
@@ -149,7 +149,7 @@ func run() error {
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
 	startCfg := rpc.StartConfig{
 		ListenAddrGRPC: cfg.Server.GrpcHost,
-		ListenAddrHTTP: cfg.Server.HttpHost,
+		ListenAddrHTTP: cfg.Server.HTTPHost,
 	}
 
 	var interceptors = []grpc.UnaryServerInterceptor{

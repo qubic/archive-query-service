@@ -33,6 +33,10 @@ linters:
       for-loops: false
     unparam:
       check-exported: true
+    gosec:
+      excludes:
+        - G115
+        - G114
   exclusions:
     generated: disable
     presets:
@@ -42,6 +46,7 @@ linters:
       - std-error-handling
     paths:
       - .*mock.*\.go$
+      - .*_test.*\.go$
       - api
 formatters:
   enable:

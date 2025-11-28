@@ -16,6 +16,10 @@ linters:
     - lll
     - gocyclo
   settings:
+    gosec:
+      excludes:
+        - G115
+        - G114
     errcheck:
       check-type-assertions: true
       check-blank: true

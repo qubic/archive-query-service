@@ -37,12 +37,12 @@ func run() error {
 			ReadTimeout           time.Duration `conf:"default:5s"`
 			WriteTimeout          time.Duration `conf:"default:5s"`
 			ShutdownTimeout       time.Duration `conf:"default:5s"`
-			HttpHost              string        `conf:"default:0.0.0.0:8000"`
+			HTTPHost              string        `conf:"default:0.0.0.0:8000"`
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
-			StatusDataCacheTtl    time.Duration `conf:"default:1s"`
-			EmptyTicksTtl         time.Duration `conf:"default:24h"`
+			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
+			EmptyTicksTTL         time.Duration `conf:"default:24h"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -123,13 +123,13 @@ func run() error {
 	}
 	statusServiceClient := statusPb.NewStatusServiceClient(statusServiceGrpcConn)
 
-	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTtl, cfg.Server.StatusDataCacheTtl)
+	cache := rpc.NewStatusCache(statusServiceClient, cfg.Server.EmptyTicksTTL, cfg.Server.StatusDataCacheTTL)
 
 	go cache.Start()
 	defer cache.Stop()
 
 	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryService, statusServiceClient)
+	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HTTPHost, queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
@@ -154,7 +154,7 @@ func run() error {
 	go func() {
 		log.Printf("main: Starting status and metrics endpoints on port [%d]\n", cfg.Metrics.Port)
 
-		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
+		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, _ *http.Request) {
 
 			consecutiveErrorCount := int(queryService.ConsecutiveElasticErrorCount.Load())
 

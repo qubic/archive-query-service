@@ -51,13 +51,15 @@ const defaultPageSize uint32 = 100
 
 func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetIdentityTransactionsRequest) (*protobuf.GetIdentityTransactionsResponse, error) {
 	var pageSize uint32
-	if req.GetPageSize() > maxPageSize { // max size
+	switch {
+	case req.GetPageSize() > maxPageSize:
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
-	} else if req.GetPageSize() == 0 {
-		pageSize = defaultPageSize // default
-	} else {
+	case req.GetPageSize() == 0:
+		pageSize = defaultPageSize
+	default:
 		pageSize = req.GetPageSize()
 	}
+
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, 0, 0)
 	if err != nil {
@@ -84,11 +86,12 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 
 func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *protobuf.GetTransferTransactionsPerTickRequestV2) (*protobuf.GetIdentityTransfersInTickRangeResponseV2, error) {
 	var pageSize uint32
-	if req.GetPageSize() > maxPageSize { // max size
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
-	} else if req.GetPageSize() == 0 {
+	switch {
+	case req.GetPageSize() > maxPageSize:
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize) // max size
+	case req.GetPageSize() == 0:
 		pageSize = defaultPageSize // default
-	} else {
+	default:
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
@@ -242,9 +245,9 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 	moneyFlew := res.Source.MoneyFlew
 
 	// this was ported from archiver, will disable it for now as I believe it's not impacting anything
-	//if res.Source.Amount <= 0 {
+	// if res.Source.Amount <= 0 {
 	//	return nil, status.Errorf(codes.NotFound, "tx status for specified tx id not found")
-	//}
+	// }
 
 	if !moneyFlew {
 		return &protobuf.GetTransactionStatusResponse{TransactionStatus: &protobuf.TransactionStatus{TxId: res.Source.Hash, MoneyFlew: false}}, nil
@@ -616,7 +619,7 @@ func getPaginationInformation(totalRecords, pageNumber, pageSize int) (*protobuf
 
 	totalPages := totalRecords / pageSize // rounds down
 	if totalRecords%pageSize != 0 {
-		totalPages += 1
+		totalPages++
 	}
 
 	// next page starts at index 1. -1 if no next page.
