@@ -160,6 +160,7 @@ func run() error {
 	}
 
 	if cfg.Server.CacheEnabled {
+		log.Println("main: caching is enabled")
 		ttlMap, err := rpc.CreateTTLMapFromJSONFile(cfg.Server.CacheTTLFile)
 		if err != nil {
 			return fmt.Errorf("creating ttl map from json file: %w", err)
@@ -210,7 +211,6 @@ func run() error {
 			return fmt.Errorf("web server error: %w", err)
 		case err := <-srvErrorsChan:
 			return fmt.Errorf("grpc server error: %w", err)
-
 		}
 	}
 }
