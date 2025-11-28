@@ -8,6 +8,10 @@ on:
     paths:
       - 'v2/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Test v2
 jobs:
   test-nocache:
@@ -43,7 +47,7 @@ jobs:
           working-directory: v2
   govulncheck:
     runs-on: ubuntu-latest
-    name: Run govulncheck
+    name: Run govulncheck v2
     steps:
       - id: govulncheck
         uses: golang/govulncheck-action@v1

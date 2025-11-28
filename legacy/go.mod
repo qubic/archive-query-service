@@ -13,7 +13,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/qubic/go-archiver v0.12.4
 	github.com/qubic/go-data-publisher/status-service v1.2.0
-	github.com/qubic/go-node-connector v0.14.0
+	github.com/qubic/go-node-connector v0.14.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/genproto/googleapis/api v0.0.0-20251029180050-ab9386a59fda
 	google.golang.org/grpc v1.76.0

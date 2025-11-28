@@ -42,7 +42,8 @@ linters:
       - std-error-handling
     paths:
       - .*mock.*\.go$
-      - api
+      - .*_test.*\.go$
+      - protobuf
 formatters:
   enable:
     - gofmt
@@ -51,4 +52,4 @@ formatters:
     paths:
       - .*mock.*\.go$
       - .*_test.*\.go$
-      - api
+      - protobuf

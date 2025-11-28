@@ -198,7 +198,7 @@ func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.
 				return nil, status.Errorf(codes.Internal, "recomputeSendManyMoneyFlew: %v", err)
 			}
 
-			if moneyFlew == false {
+			if !moneyFlew {
 				continue
 			}
 		}
@@ -246,7 +246,7 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 	//	return nil, status.Errorf(codes.NotFound, "tx status for specified tx id not found")
 	//}
 
-	if moneyFlew == false {
+	if !moneyFlew {
 		return &protobuf.GetTransactionStatusResponse{TransactionStatus: &protobuf.TransactionStatus{TxId: res.Source.Hash, MoneyFlew: false}}, nil
 	}
 
