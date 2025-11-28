@@ -103,12 +103,14 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {
 	maxTick, err := twb.statusCache.GetMaxTick(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get max tick from cache: %v", err)
+		log.Printf("error getting max tick from cache: %v", err)
+		return status.Errorf(codes.Internal, "failed to get max tick from cache")
 	}
 
 	tickIntervals, err := twb.statusCache.GetTickIntervals(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get tick intervals from cache: %v", err)
+		log.Printf("failed to get tick intervals from cache: %v", err)
+		return status.Error(codes.Internal, "failed to get tick intervals from cache")
 	}
 
 	lastProcessedTick := maxTick

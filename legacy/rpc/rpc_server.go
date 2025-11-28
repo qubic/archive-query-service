@@ -59,12 +59,16 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
+	if uint32(pageNumber)*pageSize+pageSize > 10000 {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid pagination information. Page number and page size exceeds maximum result size of 10000.")
+	}
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, 0, 0)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
+		log.Printf("Error performing identities transactions query (get identity transactions): %v.", err)
+		return nil, status.Errorf(codes.Internal, "performing identities transactions query.")
 	}
 
-	var transactions []*protobuf.NewTransaction
+	var transactions = make([]*protobuf.NewTransaction, 0)
 	for _, hit := range response.Hits.Hits {
 		transactions = append(transactions, TxToNewFormat(hit.Source))
 	}
@@ -92,9 +96,13 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 		pageSize = req.GetPageSize()
 	}
 	pageNumber := max(0, int(req.Page)-1) // API index starts with '1', implementation index starts with '0'.
+	if uint32(pageNumber)*pageSize+pageSize > 10000 {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid pagination information. Page number and page size exceeds maximum result size of 10000.")
+	}
 	response, err := s.qb.performIdentitiesTransactionsQuery(ctx, req.Identity, int(pageSize), pageNumber, req.Desc, req.StartTick, req.EndTick)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "performing identities transactions query: %s", err.Error())
+		log.Printf("Error performing identities transactions query (get identity transfers): %v.", err)
+		return nil, status.Error(codes.Internal, "performing identities transactions query")
 	}
 
 	totalTransfers := make([]*protobuf.PerTickIdentityTransfers, 0, len(response.Hits.Hits))
@@ -102,7 +110,8 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 	for _, hit := range response.Hits.Hits {
 		tx, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+			log.Printf("Error converting transactions to archive full format: %v", err)
+			return nil, status.Error(codes.Internal, "converting transactions to output format")
 		}
 
 		perTickIdentityTransfers := &protobuf.PerTickIdentityTransfers{
@@ -132,7 +141,8 @@ func (s *Server) GetTickTransactionsV2(ctx context.Context, req *protobuf.GetTic
 		if errors.Is(err, ErrNotFound) {
 			return nil, status.Errorf(codes.NotFound, "tick transfer transactions for specified tick not found")
 		}
-		return nil, status.Errorf(codes.Internal, "getting tick transactions: %v", err)
+		log.Printf("Error performing tick transactions query: %v.", err)
+		return nil, status.Error(codes.Internal, "getting tick transactions")
 	}
 
 	if req.Approved {
@@ -153,7 +163,8 @@ func (s *Server) GetTickTransactions(ctx context.Context, req *protobuf.GetTickT
 		if errors.Is(err, ErrNotFound) {
 			return nil, status.Errorf(codes.NotFound, "tick transactions for specified tick not found")
 		}
-		return nil, status.Errorf(codes.Internal, "getting tick transactions: %v", err)
+		log.Printf("Error performing tick transactions query: %v.", err)
+		return nil, status.Error(codes.Internal, "getting tick transactions")
 	}
 
 	var transactions []*protobuf.Transaction
@@ -161,7 +172,8 @@ func (s *Server) GetTickTransactions(ctx context.Context, req *protobuf.GetTickT
 	for _, hit := range res.Hits.Hits {
 		txData, err := TxToArchivePartialFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format: %s", err.Error())
+			log.Printf("Error converting transaction to archive partial format: %v.", err)
+			return nil, status.Errorf(codes.Internal, "converting transaction to output format")
 		}
 
 		transactions = append(transactions, txData)
@@ -174,9 +186,10 @@ func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.
 	res, err := s.qb.performTickTransactionsQuery(ctx, req.TickNumber)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "tick approved transactions for specified tick not found")
+			return nil, status.Error(codes.NotFound, "tick approved transactions for specified tick not found")
 		}
-		return nil, status.Errorf(codes.Internal, "getting tick approved transactions: %v", err)
+		log.Printf("Error performing tick transactions query: %v.", err)
+		return nil, status.Error(codes.Internal, "getting tick approved transactions")
 	}
 
 	var transactions []*protobuf.Transaction
@@ -189,13 +202,15 @@ func (s *Server) GetTickApprovedTransactions(ctx context.Context, req *protobuf.
 
 		txData, err := TxToArchivePartialFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format: %s", err.Error())
+			log.Printf("Error converting transaction to archive partial format: %v.", err)
+			return nil, status.Error(codes.Internal, "converting transaction to output format")
 		}
 
 		if tx.InputType == 1 && tx.InputSize == 1000 && tx.Destination == "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVWRF" {
 			moneyFlew, err := recomputeSendManyMoneyFlew(txData)
 			if err != nil {
-				return nil, status.Errorf(codes.Internal, "recomputeSendManyMoneyFlew: %v", err)
+				log.Printf("Error recomputing send many money flew: %v", err)
+				return nil, status.Error(codes.Internal, "recomputing send many money flew")
 			}
 
 			if moneyFlew == false {
@@ -215,12 +230,14 @@ func (s *Server) GetTransaction(ctx context.Context, req *protobuf.GetTransactio
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
-		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
+		log.Printf("Error performing get transaction by id query: %v.", err)
+		return nil, status.Errorf(codes.Internal, "getting transaction")
 	}
 
 	tx, err := TxToArchivePartialFormat(res.Source)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format: %s", err.Error())
+		log.Printf("Error converting transaction to archive partial format: %v", err)
+		return nil, status.Errorf(codes.Internal, "converting transaction to archive partial format")
 	}
 
 	return &protobuf.GetTransactionResponse{Transaction: tx}, nil
@@ -232,7 +249,8 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
-		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
+		log.Printf("Error performing get transaction by id query: %v.", err)
+		return nil, status.Errorf(codes.Internal, "performing get transaction by id query")
 	}
 
 	if !res.Found {
@@ -252,7 +270,8 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 
 	txData, err := TxToArchiveFullFormat(res.Source)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+		log.Printf("Error converting transaction to archive full format: %v.", err)
+		return nil, status.Errorf(codes.Internal, "converting transaction to output format")
 	}
 
 	tx := txData.Transaction
@@ -260,7 +279,8 @@ func (s *Server) GetTransactionStatus(ctx context.Context, req *protobuf.GetTran
 	if tx.InputType == 1 && tx.InputSize == 1000 && tx.DestId == "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVWRF" {
 		moneyFlew, err = recomputeSendManyMoneyFlew(tx)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "recomputeSendManyMoneyFlew: %v", err)
+			log.Printf("Error recomputing send many money flew: %v", err)
+			return nil, status.Error(codes.Internal, "recomputing send many money flew")
 		}
 
 		return &protobuf.GetTransactionStatusResponse{TransactionStatus: &protobuf.TransactionStatus{TxId: tx.TxId, MoneyFlew: moneyFlew}}, nil
@@ -275,12 +295,14 @@ func (s *Server) GetTransactionV2(ctx context.Context, req *protobuf.GetTransact
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return nil, status.Errorf(codes.NotFound, "transaction with specified ID not found")
 		}
-		return nil, status.Errorf(codes.Internal, "getting transaction: %v", err)
+		log.Printf("Error performing get transaction by id query: %v.", err)
+		return nil, status.Errorf(codes.Internal, "performing get transaction by id query")
 	}
 
 	tx, err := TxToArchiveFullFormat(res.Source)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+		log.Printf("Error converting transaction to archive full format: %v", err)
+		return nil, status.Errorf(codes.Internal, "converting transaction to output format")
 	}
 
 	return &protobuf.GetTransactionResponseV2{Transaction: tx.Transaction, Timestamp: tx.Timestamp, MoneyFlew: tx.MoneyFlew}, nil
@@ -293,13 +315,14 @@ func (s *Server) GetTickData(ctx context.Context, req *protobuf.GetTickDataReque
 		if errors.Is(err, elastic.ErrDocumentNotFound) {
 			return &protobuf.GetTickDataResponse{TickData: nil}, nil
 		}
-
-		return nil, status.Errorf(codes.Internal, "getting tick data: %v", err)
+		log.Printf("Error performing get tick data by tick number query: %v.", err)
+		return nil, status.Errorf(codes.Internal, "error querying tick data")
 	}
 
 	tickData, err := TickDataToArchiveFormat(res.Source)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting tick data to archive format: %s", err.Error())
+		log.Printf("Error converting tick data to archive format: %v", err)
+		return nil, status.Errorf(codes.Internal, "converting tick data to output format")
 	}
 
 	return &protobuf.GetTickDataResponse{TickData: tickData}, nil
@@ -316,7 +339,8 @@ func (s *Server) getApprovedTickTransactionsV2(_ context.Context, res elastic.Tr
 
 		txData, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+			log.Printf("Error converting transaction to archive full format: %v", err)
+			return nil, status.Errorf(codes.Internal, "converting transaction to output format")
 		}
 
 		transactions = append(transactions, txData)
@@ -336,7 +360,8 @@ func (s *Server) getTransferTickTransactionsV2(_ context.Context, res elastic.Tr
 
 		txData, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+			log.Printf("Error converting transaction to archive full format: %v", err)
+			return nil, status.Errorf(codes.Internal, "converting transaction to output format")
 		}
 
 		transactions = append(transactions, txData)
@@ -352,7 +377,8 @@ func (s *Server) getAllTickTransactionsV2(_ context.Context, res elastic.Transac
 	for _, hit := range res.Hits.Hits {
 		txData, err := TxToArchiveFullFormat(hit.Source)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting transaction to archive full format: %s", err.Error())
+			log.Printf("Error converting transaction to archive full format: %v", err)
+			return nil, status.Errorf(codes.Internal, "converting transaction to output format")
 		}
 
 		transactions = append(transactions, txData)
@@ -364,12 +390,14 @@ func (s *Server) getAllTickTransactionsV2(_ context.Context, res elastic.Transac
 func (s *Server) GetArchiverStatus(ctx context.Context, empty *emptypb.Empty) (*protobuf.GetArchiverStatusResponse, error) {
 	archiverStatus, err := s.statusService.GetArchiverStatus(ctx, empty)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "getting status: %s", err.Error())
+		log.Printf("Error getting archiver status: %v", err)
+		return nil, status.Errorf(codes.Internal, "getting status")
 	}
 
 	response, err := convertArchiverStatus(archiverStatus)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting status: %s", err.Error())
+		log.Printf("Error converting archiver status: %v", err)
+		return nil, status.Errorf(codes.Internal, "converting status")
 	}
 
 	return response, nil
@@ -378,7 +406,8 @@ func (s *Server) GetArchiverStatus(ctx context.Context, empty *emptypb.Empty) (*
 func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputorsRequest) (*protobuf.GetComputorsResponse, error) {
 	response, err := s.qb.performComputorListByEpochQuery(ctx, req.Epoch)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "performing computors list query: %s", err.Error())
+		log.Printf("Error performing get computor list by epoch query: %v.", err)
+		return nil, status.Errorf(codes.Internal, "performing computors list query")
 	}
 
 	if response.Hits.Total.Value == 0 {
@@ -388,7 +417,8 @@ func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputor
 	hit := response.Hits.Hits[0]
 	computorsList, err := ComputorsListToArchiveFormat(hit.Source)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting computors list to archive format: %s", err.Error())
+		log.Printf("Error converting computor list to archive format: %v", err)
+		return nil, status.Errorf(codes.Internal, "converting computors list to output format")
 	}
 
 	return &protobuf.GetComputorsResponse{Computors: computorsList}, nil
@@ -397,7 +427,8 @@ func (s *Server) GetComputorsList(ctx context.Context, req *protobuf.GetComputor
 func (s *Server) GetLatestTick(ctx context.Context, _ *emptypb.Empty) (*protobuf.GetLatestTickResponse, error) {
 	maxTick, err := s.qb.cache.GetMaxTick(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "fetching last processed tick: %s", err.Error())
+		log.Printf("Error getting max tick: %v", err)
+		return nil, status.Errorf(codes.Internal, "fetching last processed tick")
 	}
 
 	return &protobuf.GetLatestTickResponse{
@@ -645,12 +676,12 @@ func getPaginationInformation(totalRecords, pageNumber, pageSize int) (*protobuf
 func recomputeSendManyMoneyFlew(tx *protobuf.Transaction) (bool, error) {
 	decodedInput, err := hex.DecodeString(tx.InputHex)
 	if err != nil {
-		return false, status.Errorf(codes.Internal, "decoding tx input: %v", err)
+		return false, fmt.Errorf("decoding tx input: %w", err)
 	}
 	var sendManyPayload types.SendManyTransferPayload
 	err = sendManyPayload.UnmarshallBinary(decodedInput)
 	if err != nil {
-		return false, status.Errorf(codes.Internal, "unmarshalling payload: %v", err)
+		return false, fmt.Errorf("unmarshalling payload: %w", err)
 	}
 
 	if tx.Amount < sendManyPayload.GetTotalAmount() {
