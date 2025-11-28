@@ -482,6 +482,10 @@ func TestRpcServer_GetEpochTickListV2_GivenValidPageSize_ThenNoError(t *testing.
 	_, err := server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 1})
 	require.NoError(t, err)
 
+	// special treatment for page size 36 (needed by sally for iphone app). Remove, if not needed anymore.
+	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 36})
+	require.NoError(t, err)
+
 	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 10})
 	require.NoError(t, err)
 
