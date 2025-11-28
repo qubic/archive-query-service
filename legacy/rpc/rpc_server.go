@@ -445,9 +445,9 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
 	}
 
-	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
+	if request.PageSize > 1 && request.PageSize != 36 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
 		log.Printf("[DEBUG] Get ticks: invalid page size: [%d].", request.PageSize)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10. max: %d", maxTickListPageSize)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be a multiple of 10. max: %d", maxTickListPageSize)
 	}
 
 	page := max(1, request.Page)
