@@ -48,6 +48,10 @@ func run() error {
 			CacheEnabled          bool          `conf:"default:false"`
 			CacheTTLFile          string        `conf:"default:cache_ttl.json"`
 		}
+		Pagination struct {
+			MaxPageSize     uint32 `conf:"default:1000"`
+			DefaultPageSize uint32 `conf:"default:10"`
+		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
 			Username                              string        `conf:"default:qubic-query"`
@@ -143,7 +147,8 @@ func run() error {
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)
-	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService)
+	pageSizeLimits := rpc.NewPageSizeLimits(cfg.Pagination.MaxPageSize, cfg.Pagination.DefaultPageSize)
+	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, pageSizeLimits)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor

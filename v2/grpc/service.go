@@ -48,18 +48,20 @@ type ArchiveQueryService struct {
 	srv            *grpc.Server
 	grpcListenAddr net.Addr
 	api.UnimplementedArchiveQueryServiceServer
-	txService     TransactionsService
-	tdService     TickDataService
-	statusService StatusService
-	clService     ComputorsListService
+	txService      TransactionsService
+	tdService      TickDataService
+	statusService  StatusService
+	clService      ComputorsListService
+	pageSizeLimits PageSizeLimits
 }
 
-func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService) *ArchiveQueryService {
+func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService, pageSizeLimits PageSizeLimits) *ArchiveQueryService {
 	return &ArchiveQueryService{
-		txService:     txService,
-		tdService:     tdService,
-		statusService: statusService,
-		clService:     clService,
+		txService:      txService,
+		tdService:      tdService,
+		statusService:  statusService,
+		clService:      clService,
+		pageSizeLimits: pageSizeLimits,
 	}
 }
 
@@ -109,7 +111,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
-	from, size, err := validatePagination(request.GetPagination())
+	from, size, err := s.pageSizeLimits.ValidatePagination(request.GetPagination())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page: %v", err)
 	}

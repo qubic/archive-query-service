@@ -1,72 +1,189 @@
 package grpc
 
 import (
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/stretchr/testify/require"
 )
 
-func TestValidations_validatePagination(t *testing.T) {
-	from, size, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(13),
-		Size:   uint32Pointer(123),
-	})
-	require.NoError(t, err)
-	assert.Equal(t, uint32(13), from)
-	assert.Equal(t, uint32(123), size)
-}
+func TestPageSizeLimits_ValidatePagination(t *testing.T) {
 
-func TestValidations_validatePagination_largeOffset(t *testing.T) {
-	_, _, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(100001),
-		Size:   uint32Pointer(123),
-	})
-	require.ErrorContains(t, err, "exceeds maximum [10000]")
-}
+	defaultPageLimits := NewPageSizeLimits(1000, 10)
 
-func TestValidations_validatePagination_largePageSize(t *testing.T) {
-	_, _, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(13),
-		Size:   uint32Pointer(2000),
-	})
-	require.ErrorContains(t, err, "exceeds maximum [1024]")
-}
+	test := map[string]struct {
+		pageSizeLimits PageSizeLimits
 
-func TestValidations_validatePagination_largetOffsetPlusPageSize(t *testing.T) {
+		inputPageSize uint32
+		inputOffset   uint32
 
-	_, _, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9990),
-		Size:   uint32Pointer(10),
-	})
-	require.NoError(t, err)
+		expectedPageSize uint32
+		expectedOffset   uint32
+		expectError      bool
+	}{
+		"TestPageSizeModuloTen_1": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    10,
+			inputOffset:      0,
+			expectedPageSize: 10,
+			expectedOffset:   0,
+			expectError:      false,
+		},
+		"TestPageSizeModuloTen_2": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    100,
+			inputOffset:      0,
+			expectedPageSize: 100,
+			expectedOffset:   0,
+			expectError:      false,
+		},
+		"TestPageSizeModuloTen_3": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1000,
+			inputOffset:      0,
+			expectedPageSize: 1000,
+			expectedOffset:   0,
+			expectError:      false,
+		},
+		"TestPageSizeNotModuloTen_1": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    11,
+			inputOffset:      0,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizeNotModuloTen_2": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    101,
+			inputOffset:      0,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizeNotModuloTen_3": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    999,
+			inputOffset:      0,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizeUnderMax": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1000,
+			inputOffset:      0,
+			expectedPageSize: 1000,
+			expectedOffset:   0,
+			expectError:      false,
+		},
+		"TestPageSizeOverMax": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1010,
+			inputOffset:      0,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizeOneForZeroOffset": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1,
+			inputOffset:      0,
+			expectedPageSize: 1,
+			expectedOffset:   0,
+			expectError:      false,
+		},
+		"TestPageSizeOneForNonZeroOffset": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1,
+			inputOffset:      1,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestDefaultPageSize": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    0,
+			inputOffset:      0,
+			expectedPageSize: 10,
+			expectedOffset:   0,
+			expectError:      false,
+		},
+		"TestOffsetOverMax": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    10,
+			inputOffset:      10000,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizePlusOffsetUnderMax_1": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    10,
+			inputOffset:      9990,
+			expectedPageSize: 10,
+			expectedOffset:   9990,
+			expectError:      false,
+		},
+		"TestPageSizePlusOffsetUnderMax_2": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    0, // Default page size
+			inputOffset:      9990,
+			expectedPageSize: 10,
+			expectedOffset:   9990,
+			expectError:      false,
+		},
+		"TestPageSizePlusOffsetUnderMax_3": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    100,
+			inputOffset:      9900,
+			expectedPageSize: 100,
+			expectedOffset:   9900,
+			expectError:      false,
+		},
+		"TestPageSizePlusOffsetOverMax_1": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    10,
+			inputOffset:      9991,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizePlusOffsetOverMax_2": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    0, // Default page size
+			inputOffset:      9991,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+		"TestPageSizePlusOffsetOverMax_3": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    100,
+			inputOffset:      9901,
+			expectedPageSize: 0,
+			expectedOffset:   0,
+			expectError:      true,
+		},
+	}
 
-	_, _, err = validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9999),
-		Size:   uint32Pointer(1),
-	})
-	require.NoError(t, err)
+	for testName, testData := range test {
 
-	_, _, err = validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9999),
-		Size:   uint32Pointer(0), // defaults to 10
-	})
-	require.ErrorContains(t, err, "exceeds maximum [10000]")
+		t.Run(testName, func(t *testing.T) {
+			offset, size, err := testData.pageSizeLimits.ValidatePagination(&api.Pagination{
+				Offset: testData.inputOffset,
+				Size:   testData.inputPageSize,
+			})
+			if testData.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 
-	_, _, err = validatePagination(&api.Pagination{
-		Offset: uint32Pointer(9990),
-		Size:   uint32Pointer(11),
-	})
-	require.ErrorContains(t, err, "exceeds maximum [10000]")
-}
-
-func TestValidations_validatePagination_defaultPageSize(t *testing.T) {
-	_, size, err := validatePagination(&api.Pagination{
-		Offset: uint32Pointer(13),
-		Size:   uint32Pointer(0),
-	})
-	require.NoError(t, err)
-	assert.Equal(t, uint32(10), size)
+				require.Equalf(t, testData.expectedPageSize, size, "PageSize not equal. Expected %d, Got %d", testData.expectedPageSize, size)
+				require.Equalf(t, testData.expectedPageSize, size, "Offset not equal. Expected %d, Got %d", testData.expectedOffset, offset)
+			}
+		})
+	}
 }
 
 func TestValidations_validateFilters_givenAllValid(t *testing.T) {
@@ -234,8 +351,4 @@ func TestValidations_validateRanges_givenDuplicateFilter_thenError(t *testing.T)
 	ranges := map[string]*api.Range{"amount": nil}
 	_, err := validateIdentityTransactionQueryRanges(filters, ranges)
 	require.ErrorContains(t, err, "already declared as filter")
-}
-
-func uint32Pointer(val uint32) *uint32 {
-	return &val
 }
