@@ -720,11 +720,10 @@ func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
 			opts := []grpc.DialOption{
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithDefaultCallOptions(
-					grpc.MaxCallRecvMsgSize(600*1024*1024),
-					grpc.MaxCallSendMsgSize(600*1024*1024),
+					grpc.MaxCallRecvMsgSize(1*1024*1024),
+					grpc.MaxCallSendMsgSize(10*1024*1024),
 				),
 			}
-
 			if err := protobuf.RegisterTransactionsServiceHandlerFromEndpoint(
 				context.Background(),
 				mux,
