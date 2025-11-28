@@ -27,7 +27,7 @@ type StatusCache struct {
 	StatusServiceClient       statusPb.StatusServiceClient
 }
 
-func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, emptyTicksTtl, ttl time.Duration) *StatusCache {
+func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, emptyTicksTTL, ttl time.Duration) *StatusCache {
 	lastProcessedTickProvider := ttlcache.New[string, uint32](
 		ttlcache.WithTTL[string, uint32](ttl),
 		ttlcache.WithDisableTouchOnHit[string, uint32](),
@@ -39,7 +39,7 @@ func NewStatusCache(statusServiceClient statusPb.StatusServiceClient, emptyTicks
 	)
 
 	emptyTicksCache := ttlcache.New[string, *EmptyTicks](
-		ttlcache.WithTTL[string, *EmptyTicks](emptyTicksTtl),
+		ttlcache.WithTTL[string, *EmptyTicks](emptyTicksTTL),
 	)
 
 	return &StatusCache{

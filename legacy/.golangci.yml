@@ -16,6 +16,10 @@ linters:
     - lll
     - gocyclo
   settings:
+    gosec:
+      excludes:
+        - G115
+        - G114
     errcheck:
       check-type-assertions: true
       check-blank: true
@@ -33,10 +37,6 @@ linters:
       for-loops: false
     unparam:
       check-exported: true
-    gosec:
-      excludes:
-        - G115
-        - G114
   exclusions:
     generated: disable
     presets:
@@ -47,7 +47,7 @@ linters:
     paths:
       - .*mock.*\.go$
       - .*_test.*\.go$
-      - api
+      - protobuf
 formatters:
   enable:
     - gofmt
@@ -56,4 +56,4 @@ formatters:
     paths:
       - .*mock.*\.go$
       - .*_test.*\.go$
-      - api
+      - protobuf

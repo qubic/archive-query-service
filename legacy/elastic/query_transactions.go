@@ -7,9 +7,9 @@ import (
 	"fmt"
 )
 
-func (c *Client) QueryIdentityTransactions(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (result TransactionsSearchResponse, err error) {
+func (c *Client) QueryIdentityTransactions(ctx context.Context, id string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (result TransactionsSearchResponse, err error) {
 
-	query, err := createIdentitiesQuery(ID, pageSize, pageNumber, desc, startTick, endTick)
+	query, err := createIdentitiesQuery(id, pageSize, pageNumber, desc, startTick, endTick)
 	if err != nil {
 		return TransactionsSearchResponse{}, fmt.Errorf("creating query: %w", err)
 	}
@@ -90,7 +90,7 @@ func (c *Client) QueryTickTransactions(ctx context.Context, tick uint32) (Transa
 	return result, nil
 }
 
-func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (bytes.Buffer, error) {
+func createIdentitiesQuery(id string, pageSize, pageNumber int, desc bool, startTick, endTick uint32) (bytes.Buffer, error) {
 	from := pageNumber * pageSize
 	querySort := "asc"
 	if desc {
@@ -112,12 +112,12 @@ func createIdentitiesQuery(ID string, pageSize, pageNumber int, desc bool, start
 				"should": []interface{}{
 					map[string]interface{}{
 						"match": map[string]interface{}{
-							"source": ID,
+							"source": id,
 						},
 					},
 					map[string]interface{}{
 						"match": map[string]interface{}{
-							"destination": ID,
+							"destination": id,
 						},
 					},
 				},
@@ -183,7 +183,7 @@ type TransactionsSearchResponse struct {
 
 type TransactionGetResponse struct {
 	Index       string `json:"_index"`
-	Id          string `json:"_id"`
+	ID          string `json:"_id"`
 	Version     int    `json:"_version"`
 	SeqNo       int    `json:"_seq_no"`
 	PrimaryTerm int    `json:"_primary_term"`

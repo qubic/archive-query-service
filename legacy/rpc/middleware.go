@@ -126,7 +126,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 
 	processedTickIntervalsPerEpoch := tickIntervals
 	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch)
-	if wasSkipped == true {
+	if wasSkipped {
 		st := status.Newf(codes.OutOfRange, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
 		st, err = st.WithDetails(&protobuff.NextAvailableTick{NextTickNumber: nextAvailableTick})
 		if err != nil {

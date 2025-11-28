@@ -59,7 +59,7 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 
 	nextTick := uint64(startTick)
 	for _, hit := range searchResult.Hits.Hits {
-		tickNumber, err := strconv.ParseUint(hit.Id, 10, 32)
+		tickNumber, err := strconv.ParseUint(hit.ID, 10, 32)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse tick number: %w", err)
 		}
@@ -74,14 +74,14 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 
 	for processed < total {
 
-		scrollId := searchResult.ScrollId
-		searchResult, err = c.performGetTicksScroll(ctx, scrollId)
+		scrollID := searchResult.ScrollID
+		searchResult, err = c.performGetTicksScroll(ctx, scrollID)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, hit := range searchResult.Hits.Hits {
-			tickNumber, err := strconv.ParseUint(hit.Id, 10, 32)
+			tickNumber, err := strconv.ParseUint(hit.ID, 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse tick number: %w", err)
 			}
@@ -134,11 +134,11 @@ func (c *Client) performGetTicksQuery(ctx context.Context, startTick, endTick, e
 	})
 }
 
-func (c *Client) performGetTicksScroll(ctx context.Context, scrollId string) (*TickListSearchResponse, error) {
+func (c *Client) performGetTicksScroll(ctx context.Context, scrollID string) (*TickListSearchResponse, error) {
 	return executeSearch(func() (*esapi.Response, error) {
 		return c.elastic.Scroll(
 			c.elastic.Scroll.WithContext(ctx),
-			c.elastic.Scroll.WithScrollID(scrollId),
+			c.elastic.Scroll.WithScrollID(scrollID),
 			c.elastic.Scroll.WithScroll(30*time.Second),
 		)
 	})
@@ -171,7 +171,7 @@ func executeSearch(search func() (*esapi.Response, error)) (*TickListSearchRespo
 }
 
 type TickListSearchResponse struct {
-	ScrollId string `json:"_scroll_id"`
+	ScrollID string `json:"_scroll_id"`
 	Took     int    `json:"took"`
 	TimedOut bool   `json:"timed_out"`
 	Hits     struct {
@@ -180,14 +180,14 @@ type TickListSearchResponse struct {
 			Relation string `json:"relation"`
 		} `json:"total"`
 		Hits []struct {
-			Id string `json:"_id"`
+			ID string `json:"_id"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
 
 type TickDataGetResponse struct {
 	Index       string   `json:"_index"`
-	Id          string   `json:"_id"`
+	ID          string   `json:"_id"`
 	Version     int      `json:"_version"`
 	SeqNo       int      `json:"_seq_no"`
 	PrimaryTerm int      `json:"_primary_term"`
