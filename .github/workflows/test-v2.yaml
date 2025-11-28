@@ -41,3 +41,13 @@ jobs:
         with:
           version: v2.5
           working-directory: v2
+  govulncheck:
+    runs-on: ubuntu-latest
+    name: Run govulncheck
+    steps:
+      - id: govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: '1.25' # Change this to your project's Go version
+          go-package: ./...
+          work-dir: v2
