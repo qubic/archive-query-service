@@ -43,6 +43,8 @@ func run() error {
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
 			StatusDataCacheTtl    time.Duration `conf:"default:1s"`
 			EmptyTicksTtl         time.Duration `conf:"default:24h"`
+			MaxRecvSizeInMb       int           `conf:"default:1"`
+			MaxSendSizeInMb       int           `conf:"default:10"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -128,12 +130,20 @@ func run() error {
 	go cache.Start()
 	defer cache.Stop()
 
+	startCfg := rpc.StartConfig{
+		ListenAddrGRPC: cfg.Server.GrpcHost,
+		ListenAddrHTTP: cfg.Server.HttpHost,
+		MaxRecvMsgSize: cfg.Server.MaxRecvSizeInMb * 1024 * 1024,
+		MaxSendMsgSize: cfg.Server.MaxSendSizeInMb * 1024 * 1024,
+	}
+
 	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
-	rpcServer := rpc.NewServer(cfg.Server.GrpcHost, cfg.Server.HttpHost, queryService, statusServiceClient)
+	rpcServer := rpc.NewServer(queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
-	err = rpcServer.Start(srvMetrics.UnaryServerInterceptor(),
+	err = rpcServer.Start(startCfg,
+		srvMetrics.UnaryServerInterceptor(),
 		logTechnicalErrorInterceptor.GetInterceptor,
 		tickInBoundsInterceptor.GetInterceptor,
 		identitiesValidatorInterceptor.GetInterceptor)

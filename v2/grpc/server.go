@@ -17,12 +17,14 @@ import (
 type StartConfig struct {
 	ListenAddrGRPC string
 	ListenAddrHTTP string
+	MaxRecvMsgSize int // limit receive size (request)
+	MaxSendMsgSize int // limit send size (response)
 }
 
 func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, interceptors ...grpc.UnaryServerInterceptor) error {
 	srv := grpc.NewServer(
-		grpc.MaxRecvMsgSize(1*1024*1024),  // limit receive size to 1 mb (request)
-		grpc.MaxSendMsgSize(10*1024*1024), // limit send size to 10 mb (response)
+		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
 		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 	api.RegisterArchiveQueryServiceServer(srv, s)
@@ -47,8 +49,8 @@ func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, intercept
 			opts := []grpc.DialOption{
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithDefaultCallOptions(
-					grpc.MaxCallRecvMsgSize(600*1024*1024),
-					grpc.MaxCallSendMsgSize(600*1024*1024),
+					grpc.MaxCallRecvMsgSize(cfg.MaxRecvMsgSize),
+					grpc.MaxCallSendMsgSize(cfg.MaxSendMsgSize),
 				),
 			}
 
