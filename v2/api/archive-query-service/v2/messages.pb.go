@@ -537,10 +537,15 @@ func (x *RangeUint32) GetLte() uint32 {
 	return 0
 }
 
+// Allows to specify what part of the data should be returned.
+// Pagination size and offset input is restricted and needs to follow certain rules.
+// The number of maximum results (offset + size) is limited to 10000.
 type Pagination struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        *uint32                `protobuf:"varint,1,opt,name=offset,proto3,oneof" json:"offset,omitempty"`
-	Size          *uint32                `protobuf:"varint,2,opt,name=size,proto3,oneof" json:"size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The offset specifies the starting point of the returned data. It needs to be a multiple of the page size.
+	Offset uint32 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	// The size specifies how many results should be returned. It needs to be a multiple of 10.
+	Size          uint32 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -576,15 +581,15 @@ func (*Pagination) Descriptor() ([]byte, []int) {
 }
 
 func (x *Pagination) GetOffset() uint32 {
-	if x != nil && x.Offset != nil {
-		return *x.Offset
+	if x != nil {
+		return x.Offset
 	}
 	return 0
 }
 
 func (x *Pagination) GetSize() uint32 {
-	if x != nil && x.Size != nil {
-		return *x.Size
+	if x != nil {
+		return x.Size
 	}
 	return 0
 }
@@ -898,7 +903,7 @@ type GetTransactionsForIdentityRequest struct {
 	Identity      string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
 	Filters       map[string]string      `protobuf:"bytes,2,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Ranges        map[string]*Range      `protobuf:"bytes,3,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,4,opt,name=pagination,proto3,oneof" json:"pagination,omitempty"`
+	Pagination    *Pagination            `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1535,13 +1540,11 @@ const file_messages_proto_rawDesc = "" +
 	"\x03_gtB\x06\n" +
 	"\x04_gteB\x05\n" +
 	"\x03_ltB\x06\n" +
-	"\x04_lte\"V\n" +
+	"\x04_lte\"8\n" +
 	"\n" +
-	"Pagination\x12\x1b\n" +
-	"\x06offset\x18\x01 \x01(\rH\x00R\x06offset\x88\x01\x01\x12\x17\n" +
-	"\x04size\x18\x02 \x01(\rH\x01R\x04size\x88\x01\x01B\t\n" +
-	"\a_offsetB\a\n" +
-	"\x05_size\"1\n" +
+	"Pagination\x12\x16\n" +
+	"\x06offset\x18\x01 \x01(\rR\x06offset\x12\x12\n" +
+	"\x04size\x18\x02 \x01(\rR\x04size\"1\n" +
 	"\x1bGetTransactionByHashRequest\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\tR\x04hash\"b\n" +
 	"\x1cGetTransactionByHashResponse\x12B\n" +
@@ -1557,21 +1560,20 @@ const file_messages_proto_rawDesc = "" +
 	"\x02lt\x18\x03 \x01(\tH\x01R\x02lt\x12\x12\n" +
 	"\x03lte\x18\x04 \x01(\tH\x01R\x03lteB\r\n" +
 	"\vlower_boundB\r\n" +
-	"\vupper_bound\"\xe2\x03\n" +
+	"\vupper_bound\"\xce\x03\n" +
 	"!GetTransactionsForIdentityRequest\x12\x1a\n" +
 	"\bidentity\x18\x01 \x01(\tR\bidentity\x12]\n" +
 	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryR\afilters\x12Z\n" +
-	"\x06ranges\x18\x03 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryR\x06ranges\x12D\n" +
+	"\x06ranges\x18\x03 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryR\x06ranges\x12?\n" +
 	"\n" +
-	"pagination\x18\x04 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationH\x00R\n" +
-	"pagination\x88\x01\x01\x1a:\n" +
+	"pagination\x18\x04 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationR\n" +
+	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
 	"\vRangesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
-	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01B\r\n" +
-	"\v_pagination\"D\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01\"D\n" +
 	"\x04Hits\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\rR\x05total\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\rR\x04from\x12\x12\n" +
@@ -1674,14 +1676,12 @@ func file_messages_proto_init() {
 	}
 	file_messages_proto_msgTypes[5].OneofWrappers = []any{}
 	file_messages_proto_msgTypes[6].OneofWrappers = []any{}
-	file_messages_proto_msgTypes[7].OneofWrappers = []any{}
 	file_messages_proto_msgTypes[12].OneofWrappers = []any{
 		(*Range_Gt)(nil),
 		(*Range_Gte)(nil),
 		(*Range_Lt)(nil),
 		(*Range_Lte)(nil),
 	}
-	file_messages_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
