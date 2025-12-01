@@ -59,10 +59,13 @@ message RangeUint32 {
     optional uint32 lte = 4;
 }
 
-// paging
-
+// Allows to specify what part of the data should be returned.
+// Pagination size and offset input is restricted and needs to follow certain rules.
+// The number of maximum results (offset + size) is limited to 10000.
 message Pagination {
+    // The offset specifies the starting point of the returned data. It needs to be a multiple of the page size.
     uint32 offset = 1;
+    // The size specifies how many results should be returned. It needs to be a multiple of 10.
     uint32 size = 2;
 }
 
