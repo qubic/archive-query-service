@@ -3,14 +3,15 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
-	"net"
-	"net/http"
 )
 
 type StartConfig struct {
@@ -20,8 +21,8 @@ type StartConfig struct {
 
 func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, interceptors ...grpc.UnaryServerInterceptor) error {
 	srv := grpc.NewServer(
-		grpc.MaxRecvMsgSize(600*1024*1024),
-		grpc.MaxSendMsgSize(600*1024*1024),
+		grpc.MaxRecvMsgSize(1*1024*1024),  // limit receive size to 1 mb (request)
+		grpc.MaxSendMsgSize(10*1024*1024), // limit send size to 10 mb (response)
 		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 	api.RegisterArchiveQueryServiceServer(srv, s)
