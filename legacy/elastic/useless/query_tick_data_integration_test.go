@@ -1,7 +1,7 @@
 //go:build !ci
 // +build !ci
 
-package elastic
+package useless
 
 import (
 	"context"
@@ -16,12 +16,13 @@ import (
 	"github.com/ardanlabs/conf"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/joho/godotenv"
+	"github.com/qubic/archive-query-service/legacy/elastic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	elasticClient *Client
+	elasticClient *elastic.Client
 )
 
 func TestElasticClient_QueryEmptyTicks_ReturnEmptyTicksAtBounds(t *testing.T) {
@@ -52,7 +53,7 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	const envPrefix = "QUBIC_LTS_QUERY_SERVICE"
-	err := godotenv.Load("../.env.local")
+	err := godotenv.Load("../../.env.local")
 	if err != nil {
 		log.Printf("[WARN] no env file found")
 	}
@@ -83,5 +84,5 @@ func setup() {
 	if err != nil {
 		log.Fatalf("error creating elastic client: %v", err)
 	}
-	elasticClient = NewElasticClient(cfg.Elastic.TransactionsIndex, cfg.Elastic.TickDataIndex, cfg.Elastic.ComputorListIndex, esClient)
+	elasticClient = elastic.NewElasticClient(cfg.Elastic.TransactionsIndex, cfg.Elastic.TickDataIndex, cfg.Elastic.ComputorListIndex, esClient)
 }
