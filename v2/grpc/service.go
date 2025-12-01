@@ -113,7 +113,9 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 
 	from, size, err := s.pageSizeLimits.ValidatePagination(request.GetPagination())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page: %v", err)
+		// debug log temporarily. we need to find out how many users use strange pagination parameters.
+		log.Printf("[DEBUG] Invalid pagination: %v. Request: %v", err, request)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
 	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
