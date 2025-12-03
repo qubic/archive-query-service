@@ -8,7 +8,7 @@ import (
 
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/computors.mock.go -package=mock -source computors.go
 type ComputorsListRepository interface {
-	GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error)
+	GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorList, error)
 }
 
 type ComputorsListService struct {
@@ -21,6 +21,6 @@ func NewComputorsListService(repo ComputorsListRepository) *ComputorsListService
 	}
 }
 
-func (s *ComputorsListService) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error) {
+func (s *ComputorsListService) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorList, error) {
 	return s.repo.GetComputorsListsForEpoch(ctx, epoch)
 }

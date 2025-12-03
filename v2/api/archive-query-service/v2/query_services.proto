@@ -6,8 +6,29 @@ option go_package = "github.com/qubic/archive-query-service/api";
 import "messages.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
+import "protoc_gen_openapiv2/options/annotations.proto";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Qubic Query API"
+    description: "API for querying archived Qubic data."
+    version: "1.0.0"
+  }
+  host: "rpc.qubic.org"
+  base_path: "/query/v1"
+  schemes: HTTPS
+  consumes: "application/json"
+  produces: "application/json"
+  external_docs: {
+    description: "Github";
+    url: "https://github.com/qubic/archive-query-service";
+  }
+};
+
+// Qubic Query API
 service ArchiveQueryService {
+
+  // Get a single transaction by its hash.
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
     option (google.api.http) = {
       post: "/getTransactionByHash"
@@ -16,6 +37,7 @@ service ArchiveQueryService {
     };
   }
 
+  // Get the transactions that are in included in one tick.
   rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
     option (google.api.http) = {
       post: "/getTransactionsForTick"
@@ -24,6 +46,7 @@ service ArchiveQueryService {
     };
   }
 
+  // Get the transactions for one identity sorted by tick number descending.
   rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
     option (google.api.http) = {
       post: "/getTransactionsForIdentity"
@@ -31,6 +54,7 @@ service ArchiveQueryService {
     };
   }
 
+  // Get the tick data for one tick.
   rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
     option (google.api.http) = {
       post: "/getTickData"
@@ -38,19 +62,22 @@ service ArchiveQueryService {
     };
   }
 
-  rpc GetComputorsListsForEpoch(GetComputorsListForEpochRequest) returns (GetComputorsListForEpochResponse){
+  // Get the list(s) of computors for one epoch.
+  rpc GetComputorsListsForEpoch(GetComputorListsForEpochRequest) returns (GetComputorListsForEpochResponse){
     option(google.api.http) = {
       post: "/getComputorListsForEpoch"
       body: "*"
     };
   }
 
+  // Get the last processed tick that is available in the archive.
   rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
     option (google.api.http) = {
       get: "/getLastProcessedTick"
     };
   }
 
+  // Get the tick intervals that are available in the archive.
   rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTickIntervalsResponse) {
     option (google.api.http) = {
       get: "/getProcessedTickIntervals"
@@ -58,6 +85,7 @@ service ArchiveQueryService {
     };
   }
 
+  // Health check. This is for internal use only and can change any time.
   rpc GetHealth(google.protobuf.Empty) returns (HealthResponse) {
     option (google.api.http) = {
       get: "/health"

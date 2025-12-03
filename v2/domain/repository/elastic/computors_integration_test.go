@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -13,9 +17,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcelastic "github.com/testcontainers/testcontainers-go/modules/elasticsearch"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"strings"
-	"testing"
-	"time"
 )
 
 var testComputorList1 = computorsList{
@@ -136,6 +137,6 @@ func (s *computorsSuite) Test_GetEpochComputorsList() {
 	expected := computorsListToAPIObject(testComputorList1)
 
 	// Wrap in slice, as that is what the GetComputorsListsForEpoch method returns
-	assert.Equal(s.T(), []*api.ComputorsList{expected}, cl, cmpopts.IgnoreUnexported(api.ComputorsList{}))
+	assert.Equal(s.T(), []*api.ComputorList{expected}, cl, cmpopts.IgnoreUnexported(api.ComputorList{}))
 
 }

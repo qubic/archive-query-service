@@ -30,7 +30,7 @@ type computorsListSearchResponse struct {
 	} `json:"hits"`
 }
 
-func (r *Repository) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error) {
+func (r *Repository) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorList, error) {
 	query, err := createComputorsListQuery(epoch)
 	if err != nil {
 		return nil, fmt.Errorf("creating query %w", err)

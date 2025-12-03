@@ -137,7 +137,7 @@ func local_request_ArchiveQueryService_GetTickData_0(ctx context.Context, marsha
 }
 
 func request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetComputorsListForEpochRequest
+	var protoReq GetComputorListsForEpochRequest
 	var metadata runtime.ServerMetadata
 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
@@ -150,7 +150,7 @@ func request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context
 }
 
 func local_request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetComputorsListForEpochRequest
+	var protoReq GetComputorListsForEpochRequest
 	var metadata runtime.ServerMetadata
 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {

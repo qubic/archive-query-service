@@ -206,10 +206,10 @@ func (m *MockComputorsListService) EXPECT() *MockComputorsListServiceMockRecorde
 }
 
 // GetComputorsListsForEpoch mocks base method.
-func (m *MockComputorsListService) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error) {
+func (m *MockComputorsListService) GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetComputorsListsForEpoch", ctx, epoch)
-	ret0, _ := ret[0].([]*api.ComputorsList)
+	ret0, _ := ret[0].([]*api.ComputorList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
