@@ -33,14 +33,24 @@ const (
 // ArchiveQueryServiceClient is the client API for ArchiveQueryService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Qubic Query API
 type ArchiveQueryServiceClient interface {
+	// Get a single transaction by its hash.
 	GetTransactionByHash(ctx context.Context, in *GetTransactionByHashRequest, opts ...grpc.CallOption) (*GetTransactionByHashResponse, error)
+	// Get the transactions that are in included in one tick.
 	GetTransactionsForTick(ctx context.Context, in *GetTransactionsForTickRequest, opts ...grpc.CallOption) (*GetTransactionsForTickResponse, error)
+	// Get the transactions for one identity sorted by tick number descending.
 	GetTransactionsForIdentity(ctx context.Context, in *GetTransactionsForIdentityRequest, opts ...grpc.CallOption) (*GetTransactionsForIdentityResponse, error)
+	// Get the tick data for one tick.
 	GetTickData(ctx context.Context, in *GetTickDataRequest, opts ...grpc.CallOption) (*GetTickDataResponse, error)
-	GetComputorsListsForEpoch(ctx context.Context, in *GetComputorsListForEpochRequest, opts ...grpc.CallOption) (*GetComputorsListForEpochResponse, error)
+	// Get the list(s) of computors for one epoch.
+	GetComputorsListsForEpoch(ctx context.Context, in *GetComputorListsForEpochRequest, opts ...grpc.CallOption) (*GetComputorListsForEpochResponse, error)
+	// Get the last processed tick that is available in the archive.
 	GetLastProcessedTick(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLastProcessedTickResponse, error)
+	// Get the tick intervals that are available in the archive.
 	GetProcessedTickIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTickIntervalsResponse, error)
+	// Health check. This is for internal use only and can change any time.
 	GetHealth(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
@@ -92,9 +102,9 @@ func (c *archiveQueryServiceClient) GetTickData(ctx context.Context, in *GetTick
 	return out, nil
 }
 
-func (c *archiveQueryServiceClient) GetComputorsListsForEpoch(ctx context.Context, in *GetComputorsListForEpochRequest, opts ...grpc.CallOption) (*GetComputorsListForEpochResponse, error) {
+func (c *archiveQueryServiceClient) GetComputorsListsForEpoch(ctx context.Context, in *GetComputorListsForEpochRequest, opts ...grpc.CallOption) (*GetComputorListsForEpochResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetComputorsListForEpochResponse)
+	out := new(GetComputorListsForEpochResponse)
 	err := c.cc.Invoke(ctx, ArchiveQueryService_GetComputorsListsForEpoch_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -135,14 +145,24 @@ func (c *archiveQueryServiceClient) GetHealth(ctx context.Context, in *emptypb.E
 // ArchiveQueryServiceServer is the server API for ArchiveQueryService service.
 // All implementations must embed UnimplementedArchiveQueryServiceServer
 // for forward compatibility.
+//
+// Qubic Query API
 type ArchiveQueryServiceServer interface {
+	// Get a single transaction by its hash.
 	GetTransactionByHash(context.Context, *GetTransactionByHashRequest) (*GetTransactionByHashResponse, error)
+	// Get the transactions that are in included in one tick.
 	GetTransactionsForTick(context.Context, *GetTransactionsForTickRequest) (*GetTransactionsForTickResponse, error)
+	// Get the transactions for one identity sorted by tick number descending.
 	GetTransactionsForIdentity(context.Context, *GetTransactionsForIdentityRequest) (*GetTransactionsForIdentityResponse, error)
+	// Get the tick data for one tick.
 	GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error)
-	GetComputorsListsForEpoch(context.Context, *GetComputorsListForEpochRequest) (*GetComputorsListForEpochResponse, error)
+	// Get the list(s) of computors for one epoch.
+	GetComputorsListsForEpoch(context.Context, *GetComputorListsForEpochRequest) (*GetComputorListsForEpochResponse, error)
+	// Get the last processed tick that is available in the archive.
 	GetLastProcessedTick(context.Context, *emptypb.Empty) (*GetLastProcessedTickResponse, error)
+	// Get the tick intervals that are available in the archive.
 	GetProcessedTickIntervals(context.Context, *emptypb.Empty) (*GetProcessedTickIntervalsResponse, error)
+	// Health check. This is for internal use only and can change any time.
 	GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()
 }
@@ -166,7 +186,7 @@ func (UnimplementedArchiveQueryServiceServer) GetTransactionsForIdentity(context
 func (UnimplementedArchiveQueryServiceServer) GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTickData not implemented")
 }
-func (UnimplementedArchiveQueryServiceServer) GetComputorsListsForEpoch(context.Context, *GetComputorsListForEpochRequest) (*GetComputorsListForEpochResponse, error) {
+func (UnimplementedArchiveQueryServiceServer) GetComputorsListsForEpoch(context.Context, *GetComputorListsForEpochRequest) (*GetComputorListsForEpochResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetComputorsListsForEpoch not implemented")
 }
 func (UnimplementedArchiveQueryServiceServer) GetLastProcessedTick(context.Context, *emptypb.Empty) (*GetLastProcessedTickResponse, error) {
@@ -272,7 +292,7 @@ func _ArchiveQueryService_GetTickData_Handler(srv interface{}, ctx context.Conte
 }
 
 func _ArchiveQueryService_GetComputorsListsForEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetComputorsListForEpochRequest)
+	in := new(GetComputorListsForEpochRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -284,7 +304,7 @@ func _ArchiveQueryService_GetComputorsListsForEpoch_Handler(srv interface{}, ctx
 		FullMethod: ArchiveQueryService_GetComputorsListsForEpoch_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ArchiveQueryServiceServer).GetComputorsListsForEpoch(ctx, req.(*GetComputorsListForEpochRequest))
+		return srv.(ArchiveQueryServiceServer).GetComputorsListsForEpoch(ctx, req.(*GetComputorListsForEpochRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
