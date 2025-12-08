@@ -69,9 +69,14 @@ func run() error {
 			Port      int    `conf:"default:9999"`
 		}
 		Redis struct {
-			Address  string `conf:"default:localhost:6379"`
-			Password string `conf:"mask,optional"`
-			DB       int    `conf:"default:0"`
+			Address      string        `conf:"default:localhost:6379"`
+			Password     string        `conf:"mask,optional"`
+			DB           int           `conf:"default:0"`
+			PoolSize     int           `conf:"default:10"`
+			MinIdleCons  int           `conf:"default:5"`
+			PoolTimeout  time.Duration `conf:"default:200s"`
+			ReadTimeout  time.Duration `conf:"default:100ms"`
+			WriteTimeout time.Duration `conf:"default:300ms"`
 		}
 	}
 
@@ -171,9 +176,14 @@ func run() error {
 			return fmt.Errorf("creating ttl map from json file: %w", err)
 		}
 		redisClient := redis.NewClient(&redis.Options{
-			Addr:     cfg.Redis.Address,
-			Password: cfg.Redis.Password,
-			DB:       cfg.Redis.DB,
+			Addr:         cfg.Redis.Address,
+			Password:     cfg.Redis.Password,
+			DB:           cfg.Redis.DB,
+			PoolSize:     cfg.Redis.PoolSize,
+			MinIdleConns: cfg.Redis.MinIdleCons,
+			PoolTimeout:  cfg.Redis.PoolTimeout,
+			ReadTimeout:  cfg.Redis.ReadTimeout,
+			WriteTimeout: cfg.Redis.WriteTimeout,
 		})
 		// check if redis client is reachable
 		if err := redisClient.Ping(context.Background()).Err(); err != nil {
