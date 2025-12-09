@@ -12,6 +12,7 @@ message NextAvailableTick {
     uint32 next_tick_number = 1;
 }
 
+// Transaction
 message Transaction {
   string hash = 1;
   uint64 amount = 2;

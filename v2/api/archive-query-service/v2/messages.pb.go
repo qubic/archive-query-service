@@ -110,6 +110,7 @@ func (x *NextAvailableTick) GetNextTickNumber() uint32 {
 	return 0
 }
 
+// Transaction
 type Transaction struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	Hash        string                 `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
