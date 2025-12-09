@@ -183,7 +183,7 @@ message Range {
 message GetTransactionsForIdentityRequest {
 
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    example: '\"{\\"identity\\": \\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\\",\\"filters\\": { \\"source\\": \\"IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB\\",\\"inputType\\": \\"0\\"}, \\"ranges\\": { \\"amount\\": { \\"gt\\": \\"1000000\\" }, \\"tickNumber\\": { \\"gte\\": \\"25563000\\", \\"lte\\": \\"28300000\\" } }, \\"pagination\\": { \\"offset\\": 0, \\"size\\": 10 } } \"'
+    example: '\"{\\"identity\\": \\"AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ\\",\\"filters\\": { \\"destination\\": \\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\\",\\"inputType\\": \\"0\\"}, \\"ranges\\": { \\"amount\\": { \\"gte\\": \\"1000000000\\" } }, \\"pagination\\": { \\"offset\\": 0, \\"size\\": 10 } } \"'
   };
 
   // The identity to get the transactions for. Incoming and outgoing transactions are queried by default.

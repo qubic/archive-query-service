@@ -1541,7 +1541,7 @@ const file_messages_proto_rawDesc = "" +
 	"\x02lt\x18\x03 \x01(\tH\x01R\x02lt\x12\x12\n" +
 	"\x03lte\x18\x04 \x01(\tH\x01R\x03lteB\r\n" +
 	"\vlower_boundB\r\n" +
-	"\vupper_bound\"\xc6\x06\n" +
+	"\vupper_bound\"\x8d\x06\n" +
 	"!GetTransactionsForIdentityRequest\x12\x1a\n" +
 	"\bidentity\x18\x01 \x01(\tR\bidentity\x12]\n" +
 	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryR\afilters\x12Z\n" +
@@ -1554,7 +1554,7 @@ const file_messages_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
 	"\vRangesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
-	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01:\xf5\x02\x92A\xf1\x022\xee\x02\"{\\\"identity\\\": \\\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\\\",\\\"filters\\\": { \\\"source\\\": \\\"IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB\\\",\\\"inputType\\\": \\\"0\\\"}, \\\"ranges\\\": { \\\"amount\\\": { \\\"gt\\\": \\\"1000000\\\" }, \\\"tickNumber\\\": { \\\"gte\\\": \\\"25563000\\\", \\\"lte\\\": \\\"28300000\\\" } }, \\\"pagination\\\": { \\\"offset\\\": 0, \\\"size\\\": 10 } } \"\"D\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01:\xbc\x02\x92A\xb8\x022\xb5\x02\"{\\\"identity\\\": \\\"AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ\\\",\\\"filters\\\": { \\\"destination\\\": \\\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\\\",\\\"inputType\\\": \\\"0\\\"}, \\\"ranges\\\": { \\\"amount\\\": { \\\"gte\\\": \\\"1000000000\\\" } }, \\\"pagination\\\": { \\\"offset\\\": 0, \\\"size\\\": 10 } } \"\"D\n" +
 	"\x04Hits\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\rR\x05total\x12\x12\n" +
 	"\x04from\x18\x02 \x01(\rR\x04from\x12\x12\n" +
