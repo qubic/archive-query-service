@@ -41,8 +41,8 @@ func run() error {
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
-			StatusDataCacheTtl    time.Duration `conf:"default:1s"`
-			EmptyTicksTtl         time.Duration `conf:"default:24h"`
+			StatusDataCacheTtl    time.Duration `conf:"default:1s"`  // nolint:revive
+			EmptyTicksTtl         time.Duration `conf:"default:24h"` // nolint:revive
 			MaxRecvSizeInMb       int           `conf:"default:1"`
 			MaxSendSizeInMb       int           `conf:"default:10"`
 		}
