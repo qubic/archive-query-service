@@ -12,10 +12,10 @@ import (
 )
 
 type ComputorsServiceStub struct {
-	computors []*api.ComputorsList
+	computors []*api.ComputorList
 }
 
-func (c *ComputorsServiceStub) GetComputorsListsForEpoch(_ context.Context, _ uint32) ([]*api.ComputorsList, error) {
+func (c *ComputorsServiceStub) GetComputorsListsForEpoch(_ context.Context, _ uint32) ([]*api.ComputorList, error) {
 	return c.computors, nil
 }
 
@@ -23,20 +23,20 @@ func TestArchiverQueryService_GetComputorsList(t *testing.T) {
 	expected := &api.TickData{TickNumber: 42}
 
 	compsListService := &ComputorsServiceStub{
-		computors: []*api.ComputorsList{{Identities: []string{"foo"}}},
+		computors: []*api.ComputorList{{Identities: []string{"foo"}}},
 	}
 	service := NewArchiveQueryService(nil, nil, nil, compsListService, NewPageSizeLimits(1000, 10))
-	response, err := service.GetComputorsListsForEpoch(context.Background(), &api.GetComputorsListForEpochRequest{Epoch: 42})
+	response, err := service.GetComputorsListsForEpoch(context.Background(), &api.GetComputorListsForEpochRequest{Epoch: 42})
 	require.NoError(t, err)
 	require.NotEmpty(t, expected, response.ComputorsLists)
 }
 
 func TestArchiverQueryService_GetComputorsList_GivenNoComputors_ThenReturnNotFound(t *testing.T) {
 	compsListService := &ComputorsServiceStub{
-		computors: []*api.ComputorsList{},
+		computors: []*api.ComputorList{},
 	}
 	service := NewArchiveQueryService(nil, nil, nil, compsListService, NewPageSizeLimits(1000, 10))
-	_, err := service.GetComputorsListsForEpoch(context.Background(), &api.GetComputorsListForEpochRequest{Epoch: 666})
+	_, err := service.GetComputorsListsForEpoch(context.Background(), &api.GetComputorListsForEpochRequest{Epoch: 666})
 	assert.Error(t, err)
 	require.Equal(t, status.Error(codes.NotFound, "computor lists not found"), err)
 }

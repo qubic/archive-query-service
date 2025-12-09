@@ -6,8 +6,31 @@ option go_package = "github.com/qubic/archive-query-service/api";
 import "messages.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
+import "protoc_gen_openapiv2/options/annotations.proto";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Qubic Query API"
+    description: "API for querying archived Qubic data."
+    version: "1.0.0"
+  }
+  host: "rpc.qubic.org"
+  base_path: "/query/v1"
+  schemes: HTTPS
+  consumes: "application/json"
+  produces: "application/json"
+  external_docs: {
+    description: "Github";
+    url: "https://github.com/qubic/archive-query-service";
+  }
+};
+
+// Qubic Query API
 service ArchiveQueryService {
+
+  // Get transaction by hash
+  //
+  // Get a single transaction by its hash.
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
     option (google.api.http) = {
       post: "/getTransactionByHash"
@@ -16,6 +39,9 @@ service ArchiveQueryService {
     };
   }
 
+  // Get transactions for tick
+  //
+  // Get the transactions that are in included in one tick.
   rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
     option (google.api.http) = {
       post: "/getTransactionsForTick"
@@ -24,6 +50,9 @@ service ArchiveQueryService {
     };
   }
 
+  // Get transactions for identity
+  //
+  // Get the transactions for one identity sorted by tick number descending.
   rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
     option (google.api.http) = {
       post: "/getTransactionsForIdentity"
@@ -31,6 +60,9 @@ service ArchiveQueryService {
     };
   }
 
+  // Get tick data
+  //
+  // Get the tick data for one tick.
   rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
     option (google.api.http) = {
       post: "/getTickData"
@@ -38,19 +70,38 @@ service ArchiveQueryService {
     };
   }
 
-  rpc GetComputorsListsForEpoch(GetComputorsListForEpochRequest) returns (GetComputorsListForEpochResponse){
+  // Get computor lists
+  //
+  // Get the list(s) of computors for one epoch. These are the computors (IDs signed by the arbitrator) that
+  // are allowed to make quorum decisions. It is possible that this list changes within the epoch in case of
+  // arbitrator intervention.
+  rpc GetComputorsListsForEpoch(GetComputorListsForEpochRequest) returns (GetComputorListsForEpochResponse){
     option(google.api.http) = {
       post: "/getComputorListsForEpoch"
       body: "*"
     };
   }
 
+  // Get last processed tick
+  //
+  // Get the last processed tick and other processing information from the archive.
+  // All data queried from the archive is only fully processed up to this tick.
+  // Before calling the service you should check the last processed tick to be sure to get
+  // valid data and do not request data for future ticks that are not processed yet. You can use
+  // the epoch and initial tick information in the response to switch to a new interval.
   rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
     option (google.api.http) = {
       get: "/getLastProcessedTick"
     };
   }
 
+  // Get processed tick intervals
+  //
+  // Get the tick intervals that are available in the archive. A new tick interval is typically
+  // created on epoch change or network restart within the epoch. Use this endpoint to skip the
+  // tick numbers that are not part of the intervals. This endpoint is only necessary for users
+  // that need to process all available ticks. For most users it is enough to switch to a new
+  // interval by using the `get last processed tick` endpoint.
   rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTickIntervalsResponse) {
     option (google.api.http) = {
       get: "/getProcessedTickIntervals"
@@ -58,6 +109,9 @@ service ArchiveQueryService {
     };
   }
 
+  // Get health
+  //
+  // Health check. This is for internal use only and can change any time. Do not rely on this endpoint.
   rpc GetHealth(google.protobuf.Empty) returns (HealthResponse) {
     option (google.api.http) = {
       get: "/health"
