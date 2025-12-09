@@ -8,6 +8,10 @@ on:
     paths:
       - 'v2/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 name: Test v2
 jobs:
   test-nocache:
@@ -39,5 +43,15 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.5
+          version: v2.6
           working-directory: v2
+  govulncheck:
+    runs-on: ubuntu-latest
+    name: Run govulncheck v2
+    steps:
+      - id: govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: '1.25' # Change this to your project's Go version
+          go-package: ./...
+          work-dir: v2

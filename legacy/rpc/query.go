@@ -53,7 +53,13 @@ func (qs *QueryService) performGetTickDataByTickNumberQuery(ctx context.Context,
 	return res, err
 }
 
-func (qs *QueryService) performIdentitiesTransactionsQuery(ctx context.Context, ID string, pageSize, pageNumber int, desc bool, reqStartTick, reqEndTick uint32) (elastic.TransactionsSearchResponse, error) {
+func (qs *QueryService) performIdentitiesTransactionsQuery(
+	ctx context.Context,
+	id string,
+	pageSize, pageNumber int,
+	desc bool,
+	reqStartTick, reqEndTick uint32,
+) (elastic.TransactionsSearchResponse, error) {
 	statusMaxTick, err := qs.cache.GetMaxTick(ctx)
 	if err != nil {
 		return elastic.TransactionsSearchResponse{}, fmt.Errorf("getting max tick from cache: %w", err)
@@ -66,7 +72,7 @@ func (qs *QueryService) performIdentitiesTransactionsQuery(ctx context.Context, 
 		queryEndTick = statusMaxTick
 	}
 
-	res, err := qs.elasticClient.QueryIdentityTransactions(ctx, ID, pageSize, pageNumber, desc, reqStartTick, queryEndTick)
+	res, err := qs.elasticClient.QueryIdentityTransactions(ctx, id, pageSize, pageNumber, desc, reqStartTick, queryEndTick)
 	if err != nil {
 		qs.TotalElasticErrorCount.Add(1)
 		qs.ConsecutiveElasticErrorCount.Add(1)

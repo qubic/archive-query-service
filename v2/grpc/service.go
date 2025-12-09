@@ -41,25 +41,27 @@ type StatusService interface {
 }
 
 type ComputorsListService interface {
-	GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorsList, error)
+	GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorList, error)
 }
 
 type ArchiveQueryService struct {
 	srv            *grpc.Server
 	grpcListenAddr net.Addr
 	api.UnimplementedArchiveQueryServiceServer
-	txService     TransactionsService
-	tdService     TickDataService
-	statusService StatusService
-	clService     ComputorsListService
+	txService      TransactionsService
+	tdService      TickDataService
+	statusService  StatusService
+	clService      ComputorsListService
+	pageSizeLimits PageSizeLimits
 }
 
-func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService) *ArchiveQueryService {
+func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService, pageSizeLimits PageSizeLimits) *ArchiveQueryService {
 	return &ArchiveQueryService{
-		txService:     txService,
-		tdService:     tdService,
-		statusService: statusService,
-		clService:     clService,
+		txService:      txService,
+		tdService:      tdService,
+		statusService:  statusService,
+		clService:      clService,
+		pageSizeLimits: pageSizeLimits,
 	}
 }
 
@@ -109,9 +111,11 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
-	from, size, err := validatePagination(request.GetPagination())
+	from, size, err := s.pageSizeLimits.ValidatePagination(request.GetPagination())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page: %v", err)
+		// debug log temporarily. we need to find out how many users use strange pagination parameters.
+		log.Printf("[DEBUG] Invalid pagination: %v. Request: %v", err, request)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
 	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
@@ -160,7 +164,7 @@ func (s *ArchiveQueryService) GetProcessedTickIntervals(ctx context.Context, _ *
 	return &api.GetProcessedTickIntervalsResponse{ProcessedTickIntervals: intervals}, nil
 }
 
-func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, request *api.GetComputorsListForEpochRequest) (*api.GetComputorsListForEpochResponse, error) {
+func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, request *api.GetComputorListsForEpochRequest) (*api.GetComputorListsForEpochResponse, error) {
 	computorListsForEpoch, err := s.clService.GetComputorsListsForEpoch(ctx, request.Epoch)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get computors lists: %v", err)
@@ -170,7 +174,7 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 		return nil, status.Error(codes.NotFound, "computor lists not found")
 	}
 
-	return &api.GetComputorsListForEpochResponse{
+	return &api.GetComputorListsForEpochResponse{
 		ComputorsLists: computorListsForEpoch,
 	}, nil
 }

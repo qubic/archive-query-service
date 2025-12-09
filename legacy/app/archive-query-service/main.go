@@ -37,7 +37,7 @@ func run() error {
 			ReadTimeout           time.Duration `conf:"default:5s"`
 			WriteTimeout          time.Duration `conf:"default:5s"`
 			ShutdownTimeout       time.Duration `conf:"default:5s"`
-			HttpHost              string        `conf:"default:0.0.0.0:8000"`
+			HttpHost              string        `conf:"default:0.0.0.0:8000"` // nolint:revive
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
@@ -164,7 +164,7 @@ func run() error {
 	go func() {
 		log.Printf("main: Starting status and metrics endpoints on port [%d]\n", cfg.Metrics.Port)
 
-		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, request *http.Request) {
+		http.HandleFunc("/v1/status", func(writer http.ResponseWriter, _ *http.Request) {
 
 			consecutiveErrorCount := int(queryService.ConsecutiveElasticErrorCount.Load())
 

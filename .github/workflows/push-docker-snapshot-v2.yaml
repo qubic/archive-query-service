@@ -3,7 +3,7 @@ name: Deploy v2 prod images to GHCR
 on:
   push:
     branches:
-      - '62-poc-add-caching-to-one-query-service-v2-endpoint'
+      - 'v2-limit-pagination-parameters'
 
 jobs:
   docker-publish:
@@ -33,4 +33,4 @@ jobs:
           context: ./v2
           file: ./v2/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v2:caching-poc
+          tags: ghcr.io/qubic/archive-query-service-v2:snapshot

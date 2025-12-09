@@ -3,33 +3,12 @@ package grpc
 import (
 	"errors"
 	"fmt"
+	"strconv"
+
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/qubic/go-node-connector/types"
-	"strconv"
 )
-
-const maxPageSize uint32 = 1024
-const maxHitsSize uint32 = 10000
-const defaultPageSize = 10
-
-func validatePagination(page *api.Pagination) (from uint32, size uint32, err error) {
-	from = page.GetOffset()
-	if from >= maxHitsSize {
-		return 0, 0, fmt.Errorf("offset [%d] exceeds maximum [%d]", from, maxHitsSize)
-	}
-	size = page.GetSize()
-	if size > maxPageSize {
-		return 0, 0, fmt.Errorf("size [%d] exceeds maximum [%d]", size, maxPageSize)
-	}
-	if size == 0 {
-		size = defaultPageSize
-	}
-	if from+size > maxHitsSize {
-		return 0, 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum [%d]", from, size, maxHitsSize)
-	}
-	return from, size, nil
-}
 
 var allowedTermFilters = [4]string{"source", "destination", "amount", "inputType"}
 

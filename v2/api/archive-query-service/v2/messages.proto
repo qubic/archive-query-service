@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package qubic.v2.archive.pb;
 option go_package = "github.com/qubic/archive-query-service/api";
+import "protoc_gen_openapiv2/options/annotations.proto";
 
 message LastProcessedTick {
     uint32 tick_number = 1;
@@ -11,142 +12,267 @@ message NextAvailableTick {
     uint32 next_tick_number = 1;
 }
 
+// Transaction
 message Transaction {
-    string hash = 1;
-    uint64 amount = 2;
-    string source = 3;
-    string destination = 4;
-    uint32 tick_number = 5;
-    uint64 timestamp = 6;
-    uint32 input_type = 7;
-    uint32 input_size = 8;
-    string input_data = 9;
-    string signature = 10;
-    bool money_flew = 11;
+  string hash = 1;
+  uint64 amount = 2;
+  string source = 3;
+  string destination = 4;
+  uint32 tick_number = 5;
+  uint64 timestamp = 6;
+  uint32 input_type = 7;
+  uint32 input_size = 8;
+  string input_data = 9;
+  string signature = 10;
+  // Money flew is an additional information provided by some nodes with the tx status addon patch.
+  bool money_flew = 11;
 }
 
+// TickData
 message TickData {
-    uint32 tick_number = 1;
-    uint32 epoch = 2;
-    uint32 computor_index = 3;
-    uint64 timestamp = 4;
-    string var_struct = 5;
-    string time_lock = 6;
-    repeated string transaction_hashes = 7;
-    repeated int64 contract_fees = 8;
-    string signature = 9;
+  uint32 tick_number = 1;
+  uint32 epoch = 2;
+  uint32 computor_index = 3;
+  uint64 timestamp = 4;
+  string var_struct = 5;
+  string time_lock = 6;
+  repeated string transaction_hashes = 7;
+  repeated int64 contract_fees = 8;
+  string signature = 9;
 }
 
+// ProcessedTickInterval
 message ProcessedTickInterval {
-    uint32 epoch = 1;
-    uint32 first_tick = 2;
-    uint32 last_tick = 3;
+  // the epoch the interval is in.
+  uint32 epoch = 1;
+  // the initial processed tick of the interval.
+  uint32 first_tick = 2;
+  // the last processed tick of the interval.
+  uint32 last_tick = 3;
 }
 
-// aggregations
-
-message RangeUint64 {
-    optional uint64 gt = 1;
-    optional uint64 gte = 2;
-    optional uint64 lt = 3;
-    optional uint64 lte = 4;
-}
-
-message RangeUint32 {
-    optional uint32 gt = 1;
-    optional uint32 gte = 2;
-    optional uint32 lt = 3;
-    optional uint32 lte = 4;
-}
-
-// paging
-
+// Pagination
+//
+// Pagination size and offset input is restricted and needs to follow certain rules.
+// The number of maximum results (offset + size) is limited to 10000.
 message Pagination {
-    optional uint32 offset = 1;
-    optional uint32 size = 2;
+  // The offset specifies the starting point of the returned data. It needs to be a multiple of the page size. Defaults to zero.
+  uint32 offset = 1;
+  // The size specifies how many results should be returned. It needs to be a multiple of 10. Defaults to 10.
+  uint32 size = 2;
 }
 
-// requests and responses
-
+// GetTransactionByHashRequest
 message GetTransactionByHashRequest {
-    string hash = 1;
+  // Hash of the transaction.
+  string hash = 1;
 }
 
+// GetTransactionByHashResponse
 message GetTransactionByHashResponse {
-    Transaction transaction = 1;
+  // the transaction for the requested hash.
+  Transaction transaction = 1;
 }
 
+// GetTransactionsForTickRequest
 message GetTransactionsForTickRequest {
-    uint32 tick_number = 1;
+  // the tick number to get the transactions for.
+  uint32 tick_number = 1;
 }
 
+// GetTransactionsForTickResponse
 message GetTransactionsForTickResponse {
-    repeated Transaction transactions = 1;
+  // the transactions for the requested tick number.
+  repeated Transaction transactions = 1;
 }
 
+// Range
 message Range {
-    oneof lower_bound {
-        string gt = 1;
-        string gte = 2;
-    }
-    oneof upper_bound {
-        string lt = 3;
-        string lte = 4;
-    }
+  oneof lower_bound {
+    // greater than.
+    string gt = 1;
+    // greater than or equal.
+    string gte = 2;
+  }
+  oneof upper_bound {
+    // less than.
+    string lt = 3;
+    // less than or equal.
+    string lte = 4;
+  }
 }
 
+//    GetTransactionsForIdentityRequest
+//
+//    ###  Request structure
+//
+//    | Name       | Type               | Necessity | Description                                                                                                       |
+//    |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
+//    | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
+//    | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
+//    | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
+//    | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
+//
+//    Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
+//    Data type for all values is string.
+//
+//    ### Filters
+//
+//    Filters restrict the results by single values.
+//
+//    #### Allowed properties
+//
+//    | Name        |  Type   | Format                 | Description                                                        |
+//    |-------------|---------|------------------------|--------------------------------------------------------------------|
+//    | source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
+//    | destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
+//    | amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
+//    | inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
+//
+//    #### Examples
+//
+//    ```
+//    "source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
+//    "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+//    "amount": "1000000"
+//    "inputType": "0"
+//    ```
+//
+//    ### Ranges
+//
+//    Ranges restrict the results by a range of values. On range per property is supported.
+//
+//    #### Allowed properties
+//
+//    | Name       | Type   | Format                                   | Description                                 |
+//    |------------|--------|------------------------------------------|---------------------------------------------|
+//    | amount     | string | Numeric                                  | Only find transactions in amount range.     |
+//    | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
+//    | inputType  | string | Numeric                                  | Only find transactions in input type range. |
+//    | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
+//
+//    #### Range definition
+//
+//    A range with size of 0 or 1 is not allowed.
+//
+//    | Name      | Type   | Necessity | Description                               |
+//    |-----------|--------|-----------|-------------------------------------------|
+//    | field | string | required  | Name of the field you wish to search for. |
+//    | gt        | string | optional  | Greater than.                             |
+//    | gte       | string | optional  | Greater than or equal to.                 |
+//    | lt        | string | optional  | Less than.                                |
+//    | lte       | string | optional  | Less than or equal to.                    |
+//
+//    Only one lower bound and one upper bound can be specified.
+//
+//    #### Examples
+//
+//    ```
+//    "amount": { "gt": "1000000" }
+//    "tickNumber": { "gte": "25563000", "lte": "28300000" }
+//    "inputType": { "gt": "0" }
+//    "timestamp": { "lt": "1757376000000" }
+//    ```
+//
+//    ### Pagination
+//
+//    | Name   | Type   | Necessity | Description                                                                                         |
+//    |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
+//    | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
+//    | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default).                         |
 message GetTransactionsForIdentityRequest {
-    string identity = 1;
-    map<string, string> filters = 2;
-    map<string, Range> ranges = 3;
-    optional Pagination pagination = 4;
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    example: '\"{\\"identity\\": \\"AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ\\",\\"filters\\": { \\"destination\\": \\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\\",\\"inputType\\": \\"0\\"}, \\"ranges\\": { \\"amount\\": { \\"gte\\": \\"1000000000\\" } }, \\"pagination\\": { \\"offset\\": 0, \\"size\\": 10 } } \"'
+  };
+
+  // The identity to get the transactions for. Incoming and outgoing transactions are queried by default.
+  string identity = 1;
+
+  // Filters restrict the results by single values.
+  map<string, string> filters = 2;
+  // Ranges restrict the results by a maximum and minimum value.
+  map<string, Range> ranges = 3;
+  // Optional paging information.
+  Pagination pagination = 4;
 }
 
+// Hits
+//
+// Provides information about the number of results.
 message Hits {
-    uint32 total = 1;
-    uint32 from = 2;
-    uint32 size = 3;
+  // the total number of hits available in the archive. Capped at 10000.
+  uint32 total = 1;
+  // starting offset of the hits that were returned.
+  uint32 from = 2;
+  // number of returned hits.
+  uint32 size = 3;
 }
 
+// GetTransactionsForIdentityResponse
 message GetTransactionsForIdentityResponse {
-    uint32 valid_for_tick = 1;
-    Hits hits = 2;
-    repeated Transaction transactions = 3;
+  // the response is valid for this tick number.
+  uint32 valid_for_tick = 1;
+  // information about the returned results.
+  Hits hits = 2;
+  // list of transactions that matched the search criteria.
+  repeated Transaction transactions = 3;
 }
 
+// GetTickDataRequest
 message GetTickDataRequest {
-    uint32 tick_number = 1;
+  // the number of tick the tick data is requested for.
+  uint32 tick_number = 1;
 }
 
+// GetTickDataResponse
 message GetTickDataResponse {
-    TickData tick_data = 1;
+  // the tick data of the requested tick.
+  TickData tick_data = 1;
 }
 
+// GetProcessedTickIntervalsResponse
 message GetProcessedTickIntervalsResponse {
-    repeated ProcessedTickInterval processed_tick_intervals = 1;
+  // a list of tick intervals that were processed.
+  repeated ProcessedTickInterval processed_tick_intervals = 1;
 }
 
+// GetLastProcessedTickResponse
 message GetLastProcessedTickResponse {
-    uint32 tick_number = 1;
-    uint32 epoch = 2;
-    uint32 interval_initial_tick = 3;
+  // the last processed tick that is available in the archive.
+  uint32 tick_number = 1;
+  // the epoch the last processed tick is in.
+  uint32 epoch = 2;
+  // the initial tick of the current tick interval.
+  uint32 interval_initial_tick = 3;
 }
 
-message GetComputorsListForEpochRequest {
-    uint32 epoch = 1;
+// GetComputorListsForEpochRequest
+message GetComputorListsForEpochRequest {
+  // the epoch number to get the computor lists for.
+  uint32 epoch = 1;
 }
 
-message ComputorsList {
-    uint32 epoch = 1;
-    uint32 tick_number = 2;
-    repeated string identities = 3;
-    string signature = 4;
+// ComputorList
+message ComputorList {
+  // epoch number.
+  uint32 epoch = 1;
+  // tick number when the list was received by the archive after it was published.
+  uint32 tick_number = 2;
+  // list of computor identities (signed by arbitrator).
+  repeated string identities = 3;
+  // signature of the arbitrator.
+  string signature = 4;
 }
 
-message GetComputorsListForEpochResponse {
-    repeated ComputorsList computors_lists = 1;
+// GetComputorListsForEpochResponse
+message GetComputorListsForEpochResponse {
+  // the lists of computors that voted in this epoch.
+  repeated ComputorList computors_lists = 1;
 }
 
+// HealthResponse
 message HealthResponse {
-    string status = 1;
+  // health status information.
+  string status = 1;
 }

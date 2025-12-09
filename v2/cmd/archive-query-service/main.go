@@ -40,7 +40,7 @@ func run() error {
 			ReadTimeout           time.Duration `conf:"default:5s"`
 			WriteTimeout          time.Duration `conf:"default:5s"`
 			ShutdownTimeout       time.Duration `conf:"default:5s"`
-			HttpHost              string        `conf:"default:0.0.0.0:8000"` //nolint:revive
+			HttpHost              string        `conf:"default:0.0.0.0:8000"` // nolint:revive
 			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
 			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
 			StatusServiceGrpcHost string        `conf:"default:localhost:9901"`
@@ -49,6 +49,10 @@ func run() error {
 			CacheTTLFile          string        `conf:"default:cache_ttl.json"`
 			MaxRecvSizeInMb       int           `conf:"default:1"`
 			MaxSendSizeInMb       int           `conf:"default:10"`
+		}
+		Pagination struct {
+			MaxPageSize     uint32 `conf:"default:1000"`
+			DefaultPageSize uint32 `conf:"default:10"`
 		}
 		ElasticSearch struct {
 			Address                               []string      `conf:"default:https://localhost:9200"`
@@ -67,9 +71,14 @@ func run() error {
 			Port      int    `conf:"default:9999"`
 		}
 		Redis struct {
-			Address  string `conf:"default:localhost:6379"`
-			Password string `conf:"mask,optional"`
-			DB       int    `conf:"default:0"`
+			Address      string        `conf:"default:localhost:6379"`
+			Password     string        `conf:"mask,optional"`
+			DB           int           `conf:"default:0"`
+			PoolSize     int           `conf:"default:10"`
+			MinIdleCons  int           `conf:"default:5"`
+			PoolTimeout  time.Duration `conf:"default:200s"`
+			ReadTimeout  time.Duration `conf:"default:100ms"`
+			WriteTimeout time.Duration `conf:"default:300ms"`
 		}
 	}
 
@@ -145,7 +154,8 @@ func run() error {
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)
-	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService)
+	pageSizeLimits := rpc.NewPageSizeLimits(cfg.Pagination.MaxPageSize, cfg.Pagination.DefaultPageSize)
+	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, pageSizeLimits)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
@@ -164,9 +174,14 @@ func run() error {
 			return fmt.Errorf("creating ttl map from json file: %w", err)
 		}
 		redisClient := redis.NewClient(&redis.Options{
-			Addr:     cfg.Redis.Address,
-			Password: cfg.Redis.Password,
-			DB:       cfg.Redis.DB,
+			Addr:         cfg.Redis.Address,
+			Password:     cfg.Redis.Password,
+			DB:           cfg.Redis.DB,
+			PoolSize:     cfg.Redis.PoolSize,
+			MinIdleConns: cfg.Redis.MinIdleCons,
+			PoolTimeout:  cfg.Redis.PoolTimeout,
+			ReadTimeout:  cfg.Redis.ReadTimeout,
+			WriteTimeout: cfg.Redis.WriteTimeout,
 		})
 		// check if redis client is reachable
 		if err := redisClient.Ping(context.Background()).Err(); err != nil {

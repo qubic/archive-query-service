@@ -43,8 +43,8 @@ func tickDataToAPITickData(tickData tickData) *api.TickData {
 	}
 }
 
-func computorsListHitsToAPIObjects(hits []computorsListHit) []*api.ComputorsList {
-	computorsLists := make([]*api.ComputorsList, len(hits))
+func computorsListHitsToAPIObjects(hits []computorsListHit) []*api.ComputorList {
+	computorsLists := make([]*api.ComputorList, len(hits))
 	for i, hit := range hits {
 		computorsLists[i] = computorsListToAPIObject(hit.Source)
 	}
@@ -52,8 +52,8 @@ func computorsListHitsToAPIObjects(hits []computorsListHit) []*api.ComputorsList
 	return computorsLists
 }
 
-func computorsListToAPIObject(cl computorsList) *api.ComputorsList {
-	return &api.ComputorsList{
+func computorsListToAPIObject(cl computorsList) *api.ComputorList {
+	return &api.ComputorList{
 		Epoch:      cl.Epoch,
 		TickNumber: cl.TickNumber,
 		Identities: cl.Identities,

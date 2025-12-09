@@ -94,8 +94,8 @@ func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to
 		qs.ConsecutiveElasticErrorCount.Add(1)
 		return nil, fmt.Errorf("querying ticks from [%d] to [%d] in epoch [%d]: %w",
 			from, to, epoch, err)
-	} else {
-		qs.ConsecutiveElasticErrorCount.Store(0)
 	}
+
+	qs.ConsecutiveElasticErrorCount.Store(0)
 	return ticks, nil
 }
