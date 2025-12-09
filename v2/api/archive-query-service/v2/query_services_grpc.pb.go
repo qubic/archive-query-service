@@ -36,21 +36,47 @@ const (
 //
 // Qubic Query API
 type ArchiveQueryServiceClient interface {
+	// Get transaction by hash
+	//
 	// Get a single transaction by its hash.
 	GetTransactionByHash(ctx context.Context, in *GetTransactionByHashRequest, opts ...grpc.CallOption) (*GetTransactionByHashResponse, error)
+	// Get transactions for tick
+	//
 	// Get the transactions that are in included in one tick.
 	GetTransactionsForTick(ctx context.Context, in *GetTransactionsForTickRequest, opts ...grpc.CallOption) (*GetTransactionsForTickResponse, error)
+	// Get transactions for identity
+	//
 	// Get the transactions for one identity sorted by tick number descending.
 	GetTransactionsForIdentity(ctx context.Context, in *GetTransactionsForIdentityRequest, opts ...grpc.CallOption) (*GetTransactionsForIdentityResponse, error)
+	// Get tick data
+	//
 	// Get the tick data for one tick.
 	GetTickData(ctx context.Context, in *GetTickDataRequest, opts ...grpc.CallOption) (*GetTickDataResponse, error)
-	// Get the list(s) of computors for one epoch.
+	// Get computor lists
+	//
+	// Get the list(s) of computors for one epoch. These are the computors (IDs signed by the arbitrator) that
+	// are allowed to make quorum decisions. It is possible that this list changes within the epoch in case of
+	// arbitrator intervention.
 	GetComputorsListsForEpoch(ctx context.Context, in *GetComputorListsForEpochRequest, opts ...grpc.CallOption) (*GetComputorListsForEpochResponse, error)
-	// Get the last processed tick that is available in the archive.
+	// Get last processed tick
+	//
+	// Get the last processed tick and other processing information from the archive.
+	// All data queried from the archive is only fully processed up to this tick.
+	// Before calling the service you should check the last processed tick to be sure to get
+	// valid data and do not request data for future ticks that are not processed yet. You can use
+	// the epoch and initial tick information in the response to switch to a new interval.
 	GetLastProcessedTick(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLastProcessedTickResponse, error)
-	// Get the tick intervals that are available in the archive.
+	// Get processed tick intervals
+	//
+	// Get the tick intervals that are available in the archive. A new tick interval is typically
+	// created on epoch change or network restart within the epoch. Use this endpoint to skip the
+	// tick numbers that are not part of the intervals. This endpoint is only necessary for users
+	// that need to process all available ticks. For most users it is enough to switch to a new
+	// interval by using the `get last processed tick` endpoint.
 	GetProcessedTickIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTickIntervalsResponse, error)
-	// Health check. This is for internal use only and can change any time.
+	// Get health
+	//
+	// Health check. This is for internal use only and can change any time. Do not rely on this endpoint.
 	GetHealth(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
@@ -148,21 +174,47 @@ func (c *archiveQueryServiceClient) GetHealth(ctx context.Context, in *emptypb.E
 //
 // Qubic Query API
 type ArchiveQueryServiceServer interface {
+	// Get transaction by hash
+	//
 	// Get a single transaction by its hash.
 	GetTransactionByHash(context.Context, *GetTransactionByHashRequest) (*GetTransactionByHashResponse, error)
+	// Get transactions for tick
+	//
 	// Get the transactions that are in included in one tick.
 	GetTransactionsForTick(context.Context, *GetTransactionsForTickRequest) (*GetTransactionsForTickResponse, error)
+	// Get transactions for identity
+	//
 	// Get the transactions for one identity sorted by tick number descending.
 	GetTransactionsForIdentity(context.Context, *GetTransactionsForIdentityRequest) (*GetTransactionsForIdentityResponse, error)
+	// Get tick data
+	//
 	// Get the tick data for one tick.
 	GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error)
-	// Get the list(s) of computors for one epoch.
+	// Get computor lists
+	//
+	// Get the list(s) of computors for one epoch. These are the computors (IDs signed by the arbitrator) that
+	// are allowed to make quorum decisions. It is possible that this list changes within the epoch in case of
+	// arbitrator intervention.
 	GetComputorsListsForEpoch(context.Context, *GetComputorListsForEpochRequest) (*GetComputorListsForEpochResponse, error)
-	// Get the last processed tick that is available in the archive.
+	// Get last processed tick
+	//
+	// Get the last processed tick and other processing information from the archive.
+	// All data queried from the archive is only fully processed up to this tick.
+	// Before calling the service you should check the last processed tick to be sure to get
+	// valid data and do not request data for future ticks that are not processed yet. You can use
+	// the epoch and initial tick information in the response to switch to a new interval.
 	GetLastProcessedTick(context.Context, *emptypb.Empty) (*GetLastProcessedTickResponse, error)
-	// Get the tick intervals that are available in the archive.
+	// Get processed tick intervals
+	//
+	// Get the tick intervals that are available in the archive. A new tick interval is typically
+	// created on epoch change or network restart within the epoch. Use this endpoint to skip the
+	// tick numbers that are not part of the intervals. This endpoint is only necessary for users
+	// that need to process all available ticks. For most users it is enough to switch to a new
+	// interval by using the `get last processed tick` endpoint.
 	GetProcessedTickIntervals(context.Context, *emptypb.Empty) (*GetProcessedTickIntervalsResponse, error)
-	// Health check. This is for internal use only and can change any time.
+	// Get health
+	//
+	// Health check. This is for internal use only and can change any time. Do not rely on this endpoint.
 	GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()
 }

@@ -1316,9 +1316,10 @@ type ComputorList struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// epoch number.
 	Epoch uint32 `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	// tick number when the list was received after it was published.
-	TickNumber uint32   `protobuf:"varint,2,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
-	Identities []string `protobuf:"bytes,3,rep,name=identities,proto3" json:"identities,omitempty"` // list of computor identities.
+	// tick number when the list was received by the archive after it was published.
+	TickNumber uint32 `protobuf:"varint,2,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
+	// list of computor identities (signed by arbitrator).
+	Identities []string `protobuf:"bytes,3,rep,name=identities,proto3" json:"identities,omitempty"`
 	// signature of the arbitrator.
 	Signature     string `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields protoimpl.UnknownFields

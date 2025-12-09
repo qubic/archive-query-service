@@ -256,9 +256,10 @@ message GetComputorListsForEpochRequest {
 message ComputorList {
   // epoch number.
   uint32 epoch = 1;
-  // tick number when the list was received after it was published.
+  // tick number when the list was received by the archive after it was published.
   uint32 tick_number = 2;
-  repeated string identities = 3; // list of computor identities.
+  // list of computor identities (signed by arbitrator).
+  repeated string identities = 3;
   // signature of the arbitrator.
   string signature = 4;
 }

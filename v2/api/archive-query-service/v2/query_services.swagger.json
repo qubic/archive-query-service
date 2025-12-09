@@ -24,7 +24,8 @@
   "paths": {
     "/getComputorListsForEpoch": {
       "post": {
-        "summary": "Get the list(s) of computors for one epoch.",
+        "summary": "Get computor lists",
+        "description": "Get the list(s) of computors for one epoch. These are the computors (IDs signed by the arbitrator) that\nare allowed to make quorum decisions. It is possible that this list changes within the epoch in case of\narbitrator intervention.",
         "operationId": "ArchiveQueryService_GetComputorsListsForEpoch",
         "responses": {
           "200": {
@@ -57,7 +58,8 @@
     },
     "/getLastProcessedTick": {
       "get": {
-        "summary": "Get the last processed tick that is available in the archive.",
+        "summary": "Get last processed tick",
+        "description": "Get the last processed tick and other processing information from the archive.\nAll data queried from the archive is only fully processed up to this tick.\nBefore calling the service you should check the last processed tick to be sure to get\nvalid data and do not request data for future ticks that are not processed yet. You can use\nthe epoch and initial tick information in the response to switch to a new interval.",
         "operationId": "ArchiveQueryService_GetLastProcessedTick",
         "responses": {
           "200": {
@@ -80,7 +82,8 @@
     },
     "/getProcessedTickIntervals": {
       "get": {
-        "summary": "Get the tick intervals that are available in the archive.",
+        "summary": "Get processed tick intervals",
+        "description": "Get the tick intervals that are available in the archive. A new tick interval is typically\ncreated on epoch change or network restart within the epoch. Use this endpoint to skip the\ntick numbers that are not part of the intervals. This endpoint is only necessary for users\nthat need to process all available ticks. For most users it is enough to switch to a new\ninterval by using the `get last processed tick` endpoint.",
         "operationId": "ArchiveQueryService_GetProcessedTickIntervals",
         "responses": {
           "200": {
@@ -107,7 +110,8 @@
     },
     "/getTickData": {
       "post": {
-        "summary": "Get the tick data for one tick.",
+        "summary": "Get tick data",
+        "description": "Get the tick data for one tick.",
         "operationId": "ArchiveQueryService_GetTickData",
         "responses": {
           "200": {
@@ -140,7 +144,8 @@
     },
     "/getTransactionByHash": {
       "post": {
-        "summary": "Get a single transaction by its hash.",
+        "summary": "Get transaction by hash",
+        "description": "Get a single transaction by its hash.",
         "operationId": "ArchiveQueryService_GetTransactionByHash",
         "responses": {
           "200": {
@@ -173,7 +178,8 @@
     },
     "/getTransactionsForIdentity": {
       "post": {
-        "summary": "Get the transactions for one identity sorted by tick number descending.",
+        "summary": "Get transactions for identity",
+        "description": "Get the transactions for one identity sorted by tick number descending.",
         "operationId": "ArchiveQueryService_GetTransactionsForIdentity",
         "responses": {
           "200": {
@@ -207,7 +213,8 @@
     },
     "/getTransactionsForTick": {
       "post": {
-        "summary": "Get the transactions that are in included in one tick.",
+        "summary": "Get transactions for tick",
+        "description": "Get the transactions that are in included in one tick.",
         "operationId": "ArchiveQueryService_GetTransactionsForTick",
         "responses": {
           "200": {
@@ -244,7 +251,8 @@
     },
     "/health": {
       "get": {
-        "summary": "Health check. This is for internal use only and can change any time.",
+        "summary": "Get health",
+        "description": "Health check. This is for internal use only and can change any time. Do not rely on this endpoint.",
         "operationId": "ArchiveQueryService_GetHealth",
         "responses": {
           "200": {
@@ -278,14 +286,14 @@
         "tickNumber": {
           "type": "integer",
           "format": "int64",
-          "description": "tick number when the list was received after it was published."
+          "description": "tick number when the list was received by the archive after it was published."
         },
         "identities": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "list of computor identities."
+          "description": "list of computor identities (signed by arbitrator)."
         },
         "signature": {
           "type": "string",
