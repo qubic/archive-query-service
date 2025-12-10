@@ -201,7 +201,6 @@ QUBIC_LTS_QUERY_SERVICE_V2_REDIS_DB="0"
 3. The service checks connectivity to `Redis` by calling the `Ping` method.
 4. The `RedisCacheInterceptor` is initialized and added to the gRPC middleware chain.
 
-
 ## Docker usage
 
 ```yaml
@@ -215,6 +214,70 @@ volumes:
   - ./cache_ttl.json:/config/cache_ttl.json
 ```
 
+## Redis memory consumption
 
+Here are some exemplary numbers for the sizes of single keys in redis:
+
+```text
+tick data with 7 txs:
+memory usage tdr:39100056
+(integer) 824
+~ 118 bytes/tx
+
+tick data with 25 txs:
+memory usage tdr:39100201
+(integer) 1848
+~ 74 bytes/tx
+
+tick data with 201 txs:
+memory usage "tdr:38749621"
+(integer) 14392
+~ 72 bytes/tx
+
+get tick transactions with 7 txs:
+memory usage "ttfr:39100056"
+(integer) 3640
+~ 520 bytes/tx
+
+get tick transactions with 25 txs:
+memory usage "ttfr:39100201"
+(integer) 10296
+~ 411 bytes/tx
+
+get tick transactions with 201 txs:
+memory usage "ttfr:38749621"
+(integer) 65592
+~ 326 bytes/tx
+
+get transactions for identity - 10 qutil txs:
+memory usage ttfir:6fcf36b1e745709d16f3400070e62972f46da37140647af1ea44f3816f0bef65
+(integer) 20600
+~ 2060 bytes/tx
+
+get transactions for identity - 100 qutil txs:
+memory usage ttfir:c05fba64d71cd1d975e06519d9d85e46e25788b54088c00f0e7f527627dba1b9
+(integer) 196728
+~ 1970 bytes/tx
+
+get transactions for identity - 1000 qutil txs:
+memory usage ttfir:5a20fbc30d395470b536fb2835a842c8128a5b8dab8f909cf0a18d4742f9c486
+(integer) 1835128
+~ 1840 bytex/tx
+
+get transactions for identity - 10 transfer txs:
+memory usage ttfir:fe103e0f08fbfdeb8b1dcce399113666bdde819e0c496972b610d004dfc32b70
+(integer) 3192
+~ 320 bytes/tx
+
+get transactions for identity - 100 transfer txs:
+memory usage ttfir:0f16aff44a459bd9d08f9bb11fb2a8724d2c3c1d62470d17bbbcda16cbd06264
+(integer) 32888
+~ 330 bytes/tx
+
+get transactions for identity ~ 1000 transfer txs:
+memory usage ttfir:587e16dd40545e1fcf6cc91b53387fc9f1daf5e7a6c4945c7007f8aadb641567
+(integer) 327800
+~ 330 bytes/tx
+```
 
 
