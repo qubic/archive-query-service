@@ -74,7 +74,7 @@ func run() error {
 			DB           int           `conf:"default:0"`
 			PoolSize     int           `conf:"default:10"`
 			MinIdleCons  int           `conf:"default:5"`
-			PoolTimeout  time.Duration `conf:"default:200s"`
+			PoolTimeout  time.Duration `conf:"default:200ms"`
 			ReadTimeout  time.Duration `conf:"default:100ms"`
 			WriteTimeout time.Duration `conf:"default:300ms"`
 		}
