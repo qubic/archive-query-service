@@ -47,6 +47,8 @@ func run() error {
 			StatusDataCacheTTL    time.Duration `conf:"default:1s"`
 			CacheEnabled          bool          `conf:"default:false"`
 			CacheTTLFile          string        `conf:"default:cache_ttl.json"`
+			MaxRecvSizeInMb       int           `conf:"default:1"`
+			MaxSendSizeInMb       int           `conf:"default:10"`
 		}
 		Pagination struct {
 			MaxPageSize     uint32 `conf:"default:1000"`
@@ -157,10 +159,6 @@ func run() error {
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
-	startCfg := rpc.StartConfig{
-		ListenAddrGRPC: cfg.Server.GrpcHost,
-		ListenAddrHTTP: cfg.Server.HttpHost,
-	}
 
 	var interceptors = []grpc.UnaryServerInterceptor{
 		srvMetrics.UnaryServerInterceptor(),
@@ -192,6 +190,13 @@ func run() error {
 
 		cacheInterceptor := rpc.NewRedisCacheInterceptor(redisClient, ttlMap)
 		interceptors = append([]grpc.UnaryServerInterceptor{cacheInterceptor.GetInterceptor}, interceptors...)
+	}
+
+	startCfg := rpc.StartConfig{
+		ListenAddrGRPC: cfg.Server.GrpcHost,
+		ListenAddrHTTP: cfg.Server.HttpHost,
+		MaxRecvMsgSize: cfg.Server.MaxRecvSizeInMb * 1024 * 1024,
+		MaxSendMsgSize: cfg.Server.MaxSendSizeInMb * 1024 * 1024,
 	}
 
 	srvErrorsChan := make(chan error, 1)

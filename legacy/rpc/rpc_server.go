@@ -29,20 +29,23 @@ var ErrNotFound = errors.New("store resource not found")
 
 var _ protobuf.TransactionsServiceServer = &Server{}
 
-type Server struct {
-	protobuf.UnimplementedTransactionsServiceServer
-	listenAddrGRPC string
-	listenAddrHTTP string
-	qb             *QueryService
-	statusService  statusPb.StatusServiceClient
+type StartConfig struct {
+	ListenAddrGRPC string
+	ListenAddrHTTP string
+	MaxRecvMsgSize int
+	MaxSendMsgSize int
 }
 
-func NewServer(listenAddrGRPC, listenAddrHTTP string, qb *QueryService, statusClient statusPb.StatusServiceClient) *Server {
+type Server struct {
+	protobuf.UnimplementedTransactionsServiceServer
+	qb            *QueryService
+	statusService statusPb.StatusServiceClient
+}
+
+func NewServer(qb *QueryService, statusClient statusPb.StatusServiceClient) *Server {
 	return &Server{
-		listenAddrGRPC: listenAddrGRPC,
-		listenAddrHTTP: listenAddrHTTP,
-		qb:             qb,
-		statusService:  statusClient,
+		qb:            qb,
+		statusService: statusClient,
 	}
 }
 
@@ -688,17 +691,17 @@ func recomputeSendManyMoneyFlew(tx *protobuf.Transaction) (bool, error) {
 	return true, nil
 }
 
-func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
+func (s *Server) Start(cfg StartConfig, interceptors ...grpc.UnaryServerInterceptor) error {
 
 	srv := grpc.NewServer(
-		grpc.MaxRecvMsgSize(600*1024*1024),
-		grpc.MaxSendMsgSize(600*1024*1024),
+		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
 		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 	protobuf.RegisterTransactionsServiceServer(srv, s)
 	reflection.Register(srv)
 
-	lis, err := net.Listen("tcp", s.listenAddrGRPC)
+	lis, err := net.Listen("tcp", cfg.ListenAddrGRPC)
 	if err != nil {
 		return fmt.Errorf("listening on grpc port: %w", err)
 	}
@@ -709,7 +712,7 @@ func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
 		}
 	}()
 
-	if s.listenAddrHTTP != "" {
+	if cfg.ListenAddrHTTP != "" {
 		go func() {
 			mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 				MarshalOptions: protojson.MarshalOptions{EmitDefaultValues: true, EmitUnpopulated: true},
@@ -717,21 +720,20 @@ func (s *Server) Start(interceptors ...grpc.UnaryServerInterceptor) error {
 			opts := []grpc.DialOption{
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithDefaultCallOptions(
-					grpc.MaxCallRecvMsgSize(600*1024*1024),
-					grpc.MaxCallSendMsgSize(600*1024*1024),
+					grpc.MaxCallRecvMsgSize(cfg.MaxRecvMsgSize),
+					grpc.MaxCallSendMsgSize(cfg.MaxSendMsgSize),
 				),
 			}
-
 			if err := protobuf.RegisterTransactionsServiceHandlerFromEndpoint(
 				context.Background(),
 				mux,
-				s.listenAddrGRPC,
+				cfg.ListenAddrGRPC,
 				opts,
 			); err != nil {
 				panic(err)
 			}
 
-			if err := http.ListenAndServe(s.listenAddrHTTP, mux); err != nil {
+			if err := http.ListenAndServe(cfg.ListenAddrHTTP, mux); err != nil {
 				panic(err)
 			}
 		}()
