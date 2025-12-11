@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Qubic Query API",
-    "description": "API for querying archived Qubic data.",
+    "description": "API for querying archived Qubic Data.",
     "version": "1.0.0"
   },
   "tags": [
