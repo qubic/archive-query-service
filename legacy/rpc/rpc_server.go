@@ -53,7 +53,7 @@ func (s *Server) GetIdentityTransactions(ctx context.Context, req *protobuf.GetI
 	var pageSize uint32
 	switch {
 	case req.GetPageSize() > maxPageSize:
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize)
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size %d (maximum is %d).", req.GetPageSize(), maxPageSize)
 	case req.GetPageSize() == 0:
 		pageSize = defaultPageSize
 	default:
@@ -92,7 +92,7 @@ func (s *Server) GetIdentityTransfersInTickRangeV2(ctx context.Context, req *pro
 	var pageSize uint32
 	switch {
 	case req.GetPageSize() > maxPageSize:
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size (maximum is %d).", maxPageSize) // max size
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid page size %d (maximum is %d).", req.GetPageSize(), maxPageSize) // max size
 	case req.GetPageSize() == 0:
 		pageSize = defaultPageSize // default
 	default:
@@ -443,18 +443,15 @@ const maxTickListPageSize = int32(1000)
 
 func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEpochTickListRequestV2) (*protobuf.GetEpochTickListResponseV2, error) {
 
-	if request.PageSize == 1 && request.Page > 1 {
-		// log.Printf("[DEBUG] Get ticks: invalid page size 1 for page [%d].", request.Page)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
-	}
-
-	if request.PageSize > 1 && request.PageSize != 36 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
-		log.Printf("[DEBUG] Get ticks: invalid page size: [%d].", request.PageSize)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be a multiple of 10. max: %d", maxTickListPageSize)
+	if request.PageSize > maxTickListPageSize {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size %d exceeds maximum %d.", request.PageSize, maxTickListPageSize)
 	}
 
 	page := max(1, request.Page)
-	pageSize := max(10, request.PageSize)
+	pageSize := request.PageSize
+	if pageSize == 0 {
+		pageSize = 10
+	}
 
 	intervals, err := s.qb.cache.GetTickIntervals(ctx)
 	if err != nil {
@@ -548,18 +545,15 @@ func getTickListReversedPageData(filteredIntervals []*statusPb.TickInterval, sta
 
 func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEpochEmptyTickListRequestV2) (*protobuf.GetEpochEmptyTickListResponseV2, error) {
 
-	if request.PageSize == 1 && request.Page > 1 {
-		// log.Printf("[DEBUG] Get empty ticks: invalid page size 1 for page [%d].", request.Page)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. Size 1 is only allowed for first page.")
-	}
-
-	if request.PageSize > 1 && (request.PageSize%10 != 0 || request.PageSize > maxTickListPageSize) {
-		log.Printf("[DEBUG] Get empty ticks: invalid page size: [%d].", request.PageSize)
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page size. value must be modulo 10. max: %d", maxTickListPageSize)
+	if request.PageSize > maxTickListPageSize {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid page size %d exceeds maximum %d.", request.PageSize, maxTickListPageSize)
 	}
 
 	page := max(1, request.Page)
-	pageSize := max(10, request.PageSize)
+	pageSize := request.PageSize
+	if pageSize == 0 {
+		pageSize = 10
+	}
 
 	intervals, err := s.qb.cache.GetTickIntervals(ctx)
 	if err != nil {

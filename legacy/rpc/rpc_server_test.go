@@ -454,17 +454,6 @@ func TestRpcServer_GetEpochTickListV2_GivenInvalidPageSize_ThenError(t *testing.
 	require.ErrorContains(t, err, "InvalidArgument")
 	require.ErrorContains(t, err, "page size")
 
-	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 11})
-	require.Error(t, err)
-	require.ErrorContains(t, err, "InvalidArgument")
-	require.ErrorContains(t, err, "page size")
-
-	// page size 1 is only allowed for page 0 or page 1
-	_, err = server.GetEpochTickListV2(context.Background(), &protobuf.GetEpochTickListRequestV2{Epoch: 123, PageSize: 1, Page: 2})
-	require.Error(t, err)
-	require.ErrorContains(t, err, "InvalidArgument")
-	require.ErrorContains(t, err, "page size")
-
 }
 
 func TestRpcServer_GetEpochTickListV2_GivenValidPageSize_ThenNoError(t *testing.T) {
