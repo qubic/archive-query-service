@@ -46,24 +46,13 @@ func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (uint32
 	return offset, pageSize, nil
 }
 
-func (psl PageSizeLimits) validatePageSize(pageSize, offset uint32) (uint32, error) {
+func (psl PageSizeLimits) validatePageSize(pageSize, _ uint32) (uint32, error) {
 	if pageSize > psl.maxPageSize {
 		return 0, fmt.Errorf("page size [%d] exceeds allowed maximum [%d]", pageSize, psl.maxPageSize)
 	}
 
 	if pageSize == 0 {
 		return psl.defaultPageSize, nil
-	}
-
-	if pageSize == 1 {
-		if offset != 0 {
-			return 0, fmt.Errorf("page size [1] is only allowed for offset [0]")
-		}
-		return pageSize, nil
-	}
-
-	if pageSize%10 != 0 {
-		return 0, fmt.Errorf("page size [%d] must be a multiple of [10]", pageSize)
 	}
 
 	return pageSize, nil
@@ -76,10 +65,6 @@ func (psl PageSizeLimits) validatePageOffset(pageSize, offset uint32) (uint32, e
 
 	if offset+pageSize > maxHitsSize {
 		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum allowed [%d]", offset, pageSize, maxHitsSize)
-	}
-
-	if pageSize > 1 && offset%pageSize != 0 {
-		return 0, fmt.Errorf("offset [%d] must be a multiple of the page size [%d]", offset, pageSize)
 	}
 
 	return offset, nil

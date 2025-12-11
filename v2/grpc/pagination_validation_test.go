@@ -55,6 +55,31 @@ func TestPageSizeLimits_ValidatePagination_GivenValidPageSize_ThenNoError(t *tes
 			expectedPageSize: 10,
 			expectedOffset:   0,
 		},
+		"TestPageSizeNotModuloTen_1": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    11,
+			inputOffset:      0,
+			expectedPageSize: 11,
+		},
+		"TestPageSizeNotModuloTen_2": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    101,
+			inputOffset:      0,
+			expectedPageSize: 101,
+		},
+		"TestPageSizeNotModuloTen_3": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    999,
+			inputOffset:      0,
+			expectedPageSize: 999,
+		},
+		"TestPageSizeOneForNonZeroOffset": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1,
+			inputOffset:      1,
+			expectedPageSize: 1,
+			expectedOffset:   1,
+		},
 	}
 
 	for testName, testData := range test {
@@ -86,26 +111,6 @@ func TestPageSizeLimits_ValidatePagination_GivenInvalidPageSize_ThenError(t *tes
 			pageSizeLimits: defaultPageLimits,
 			inputPageSize:  1010,
 			inputOffset:    0,
-		},
-		"TestPageSizeNotModuloTen_1": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  11,
-			inputOffset:    0,
-		},
-		"TestPageSizeNotModuloTen_2": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  101,
-			inputOffset:    0,
-		},
-		"TestPageSizeNotModuloTen_3": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  999,
-			inputOffset:    0,
-		},
-		"TestPageSizeOneForNonZeroOffset": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  1,
-			inputOffset:    1,
 		},
 	}
 
@@ -175,6 +180,42 @@ func TestPageSizeLimits_ValidatePagination_GivenValidOffset_ThenNoError(t *testi
 			expectedPageSize: 30,
 			expectedOffset:   90,
 		},
+
+		"TestValidOffsetForPageSize1000": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    1000,
+			inputOffset:      100,
+			expectedPageSize: 1000,
+			expectedOffset:   100,
+		},
+		"TestInvalidOffsetForPageSize100": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    100,
+			inputOffset:      10,
+			expectedPageSize: 100,
+			expectedOffset:   10,
+		},
+		"TestInvalidOffsetForPageSize10": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    10,
+			inputOffset:      95,
+			expectedPageSize: 10,
+			expectedOffset:   95,
+		},
+		"TestInvalidOffsetForPageSize30": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    30,
+			inputOffset:      100,
+			expectedPageSize: 30,
+			expectedOffset:   100,
+		},
+		"TestInvalidOffsetForDefaultPageSize": {
+			pageSizeLimits:   defaultPageLimits,
+			inputPageSize:    0, // defaults to 10
+			inputOffset:      5,
+			expectedPageSize: 10,
+			expectedOffset:   5,
+		},
 	}
 
 	for testName, testData := range test {
@@ -218,36 +259,6 @@ func TestPageSizeLimits_ValidatePagination_GivenInvalidOffset_ThenError(t *testi
 			inputPageSize:  100,
 			inputOffset:    9990,
 			errorMsg:       "exceeds maximum allowed",
-		},
-		"TestInvalidOffsetForPageSize1000": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  1000,
-			inputOffset:    100,
-			errorMsg:       "multiple of the page size [1000]",
-		},
-		"TestInvalidOffsetForPageSize100": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  100,
-			inputOffset:    10,
-			errorMsg:       "multiple of the page size [100]",
-		},
-		"TestInvalidOffsetForPageSize10": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  10,
-			inputOffset:    95,
-			errorMsg:       "multiple of the page size [10]",
-		},
-		"TestInvalidOffsetForPageSize30": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  30,
-			inputOffset:    100,
-			errorMsg:       "multiple of the page size [30]",
-		},
-		"TestInvalidOffsetForDefaultPageSize": {
-			pageSizeLimits: defaultPageLimits,
-			inputPageSize:  0, // defaults to 10
-			inputOffset:    5,
-			errorMsg:       "multiple of the page size [10]",
 		},
 	}
 
