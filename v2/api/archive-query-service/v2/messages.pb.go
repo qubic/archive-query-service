@@ -411,13 +411,12 @@ func (x *ProcessedTickInterval) GetLastTick() uint32 {
 
 // Pagination
 //
-// Pagination size and offset input is restricted and needs to follow certain rules.
 // The number of maximum results (offset + size) is limited to 10000.
 type Pagination struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The offset specifies the starting point of the returned data. It needs to be a multiple of the page size. Defaults to zero.
+	// The offset specifies the starting point of the returned data. Defaults to zero.
 	Offset uint32 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	// The size specifies how many results should be returned. It needs to be a multiple of 10. Defaults to 10.
+	// The size specifies how many results should be returned. Defaults to 10.
 	Size          uint32 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -784,84 +783,6 @@ func (*Range_Lt) isRange_UpperBound() {}
 
 func (*Range_Lte) isRange_UpperBound() {}
 
-// GetTransactionsForIdentityRequest
-//
-// ###  Request structure
-//
-// | Name       | Type               | Necessity | Description                                                                                                       |
-// |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
-// | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
-// | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
-// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
-// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
-//
-// Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
-// Data type for all values is string.
-//
-// ### Filters
-//
-// Filters restrict the results by single values.
-//
-// #### Allowed properties
-//
-// | Name        |  Type   | Format                 | Description                                                        |
-// |-------------|---------|------------------------|--------------------------------------------------------------------|
-// | source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
-// | destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
-// | amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
-// | inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
-//
-// #### Examples
-//
-// ```
-// "source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
-// "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
-// "amount": "1000000"
-// "inputType": "0"
-// ```
-//
-// ### Ranges
-//
-// Ranges restrict the results by a range of values. On range per property is supported.
-//
-// #### Allowed properties
-//
-// | Name       | Type   | Format                                   | Description                                 |
-// |------------|--------|------------------------------------------|---------------------------------------------|
-// | amount     | string | Numeric                                  | Only find transactions in amount range.     |
-// | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
-// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
-// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
-//
-// #### Range definition
-//
-// A range with size of 0 or 1 is not allowed.
-//
-// | Name      | Type   | Necessity | Description                               |
-// |-----------|--------|-----------|-------------------------------------------|
-// | field | string | required  | Name of the field you wish to search for. |
-// | gt        | string | optional  | Greater than.                             |
-// | gte       | string | optional  | Greater than or equal to.                 |
-// | lt        | string | optional  | Less than.                                |
-// | lte       | string | optional  | Less than or equal to.                    |
-//
-// Only one lower bound and one upper bound can be specified.
-//
-// #### Examples
-//
-// ```
-// "amount": { "gt": "1000000" }
-// "tickNumber": { "gte": "25563000", "lte": "28300000" }
-// "inputType": { "gt": "0" }
-// "timestamp": { "lt": "1757376000000" }
-// ```
-//
-// ### Pagination
-//
-// | Name   | Type   | Necessity | Description                                                                                         |
-// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default).                         |
 type GetTransactionsForIdentityRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The identity to get the transactions for. Incoming and outgoing transactions are queried by default.

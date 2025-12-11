@@ -47,6 +47,83 @@ type ArchiveQueryServiceClient interface {
 	// Get transactions for identity
 	//
 	// Get the transactions for one identity sorted by tick number descending.
+	//
+	//	###  Request structure
+	//
+	//	| Name       | Type               | Necessity | Description                                                                                                       |
+	//	|------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
+	//	| identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
+	//	| filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
+	//	| ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
+	//	| pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
+	//
+	//	Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
+	//	Data type for all values is string.
+	//
+	//	### Filters
+	//
+	//	Filters restrict the results by single values.
+	//
+	//	#### Allowed properties
+	//
+	//	| Name        |  Type   | Format                 | Description                                                        |
+	//	|-------------|---------|------------------------|--------------------------------------------------------------------|
+	//	| source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
+	//	| destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
+	//	| amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
+	//	| inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
+	//
+	//	#### Examples
+	//
+	//	```
+	//	"source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
+	//	"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+	//	"amount": "1000000"
+	//	"inputType": "0"
+	//	```
+	//
+	//	### Ranges
+	//
+	//	Ranges restrict the results by a range of values. On range per property is supported.
+	//
+	//	#### Allowed properties
+	//
+	//	| Name       | Type   | Format                                   | Description                                 |
+	//	|------------|--------|------------------------------------------|---------------------------------------------|
+	//	| amount     | string | Numeric                                  | Only find transactions in amount range.     |
+	//	| tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
+	//	| inputType  | string | Numeric                                  | Only find transactions in input type range. |
+	//	| timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
+	//
+	//	#### Range definition
+	//
+	//	A range with size of 0 or 1 is not allowed.
+	//
+	//	| Name      | Type   | Necessity | Description                               |
+	//	|-----------|--------|-----------|-------------------------------------------|
+	//	| field | string | required  | Name of the field you wish to search for. |
+	//	| gt        | string | optional  | Greater than.                             |
+	//	| gte       | string | optional  | Greater than or equal to.                 |
+	//	| lt        | string | optional  | Less than.                                |
+	//	| lte       | string | optional  | Less than or equal to.                    |
+	//
+	//	Only one lower bound and one upper bound can be specified.
+	//
+	//	#### Examples
+	//
+	//	```
+	//	"amount": { "gt": "1000000" }
+	//	"tickNumber": { "gte": "25563000", "lte": "28300000" }
+	//	"inputType": { "gt": "0" }
+	//	"timestamp": { "lt": "1757376000000" }
+	//	```
+	//
+	//	### Pagination
+	//
+	//	| Name   | Type   | Necessity | Description                                                                                         |
+	//	|--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
+	//	| offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
+	//	| size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetTransactionsForIdentity(ctx context.Context, in *GetTransactionsForIdentityRequest, opts ...grpc.CallOption) (*GetTransactionsForIdentityResponse, error)
 	// Get tick data
 	//
@@ -185,6 +262,83 @@ type ArchiveQueryServiceServer interface {
 	// Get transactions for identity
 	//
 	// Get the transactions for one identity sorted by tick number descending.
+	//
+	//	###  Request structure
+	//
+	//	| Name       | Type               | Necessity | Description                                                                                                       |
+	//	|------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
+	//	| identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
+	//	| filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
+	//	| ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
+	//	| pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
+	//
+	//	Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
+	//	Data type for all values is string.
+	//
+	//	### Filters
+	//
+	//	Filters restrict the results by single values.
+	//
+	//	#### Allowed properties
+	//
+	//	| Name        |  Type   | Format                 | Description                                                        |
+	//	|-------------|---------|------------------------|--------------------------------------------------------------------|
+	//	| source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
+	//	| destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
+	//	| amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
+	//	| inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
+	//
+	//	#### Examples
+	//
+	//	```
+	//	"source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
+	//	"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+	//	"amount": "1000000"
+	//	"inputType": "0"
+	//	```
+	//
+	//	### Ranges
+	//
+	//	Ranges restrict the results by a range of values. On range per property is supported.
+	//
+	//	#### Allowed properties
+	//
+	//	| Name       | Type   | Format                                   | Description                                 |
+	//	|------------|--------|------------------------------------------|---------------------------------------------|
+	//	| amount     | string | Numeric                                  | Only find transactions in amount range.     |
+	//	| tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
+	//	| inputType  | string | Numeric                                  | Only find transactions in input type range. |
+	//	| timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
+	//
+	//	#### Range definition
+	//
+	//	A range with size of 0 or 1 is not allowed.
+	//
+	//	| Name      | Type   | Necessity | Description                               |
+	//	|-----------|--------|-----------|-------------------------------------------|
+	//	| field | string | required  | Name of the field you wish to search for. |
+	//	| gt        | string | optional  | Greater than.                             |
+	//	| gte       | string | optional  | Greater than or equal to.                 |
+	//	| lt        | string | optional  | Less than.                                |
+	//	| lte       | string | optional  | Less than or equal to.                    |
+	//
+	//	Only one lower bound and one upper bound can be specified.
+	//
+	//	#### Examples
+	//
+	//	```
+	//	"amount": { "gt": "1000000" }
+	//	"tickNumber": { "gte": "25563000", "lte": "28300000" }
+	//	"inputType": { "gt": "0" }
+	//	"timestamp": { "lt": "1757376000000" }
+	//	```
+	//
+	//	### Pagination
+	//
+	//	| Name   | Type   | Necessity | Description                                                                                         |
+	//	|--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
+	//	| offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
+	//	| size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetTransactionsForIdentity(context.Context, *GetTransactionsForIdentityRequest) (*GetTransactionsForIdentityResponse, error)
 	// Get tick data
 	//
