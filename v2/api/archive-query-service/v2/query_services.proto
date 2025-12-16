@@ -28,7 +28,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 // Qubic Query API
 service ArchiveQueryService {
 
-  // Get transaction by hash
+  // Get Transaction By Hash
   //
   // Get a single transaction by its hash.
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
@@ -39,7 +39,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get transactions for tick
+  // Get Transactions For Tick
   //
   // Get the transactions that are in included in one tick.
   rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
@@ -50,7 +50,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get transactions for identity
+  // Get Transactions For Identity
   //
   // Get the transactions for one identity sorted by tick number descending.
   //
@@ -138,7 +138,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get tick data
+  // Get Tick Data
   //
   // Get the tick data for one tick.
   rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
@@ -148,7 +148,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get computor lists
+  // Get Epoch Computors
   //
   // Get the list(s) of computors for one epoch. These are the computors (IDs signed by the arbitrator) that
   // are allowed to make quorum decisions. It is possible that this list changes within the epoch in case of
@@ -160,7 +160,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get last processed tick
+  // Get Last Processed Tick
   //
   // Get the last processed tick and other processing information from the archive.
   // All data queried from the archive is only fully processed up to this tick.
@@ -173,7 +173,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get processed tick intervals
+  // Get Processed Tick Intervals
   //
   // Get the tick intervals that are available in the archive. A new tick interval is typically
   // created on epoch change or network restart within the epoch. Use this endpoint to skip the
@@ -187,7 +187,7 @@ service ArchiveQueryService {
     };
   }
 
-  // Get health
+  // Get Health
   //
   // Health check. This is for internal use only and can change any time. Do not rely on this endpoint.
   rpc GetHealth(google.protobuf.Empty) returns (HealthResponse) {

@@ -10,6 +10,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -25,212 +26,227 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
+var (
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
+)
 
 func request_ArchiveQueryService_GetTransactionByHash_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionByHashRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTransactionByHashRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetTransactionByHash(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetTransactionByHash_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionByHashRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTransactionByHashRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetTransactionByHash(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetTransactionsForTick_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionsForTickRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTransactionsForTickRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetTransactionsForTick(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetTransactionsForTick_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionsForTickRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTransactionsForTickRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetTransactionsForTick(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetTransactionsForIdentity_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionsForIdentityRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTransactionsForIdentityRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetTransactionsForIdentity(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetTransactionsForIdentity_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTransactionsForIdentityRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTransactionsForIdentityRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetTransactionsForIdentity(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetTickData_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTickDataRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTickDataRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetTickData(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetTickData_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetTickDataRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetTickDataRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetTickData(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetComputorListsForEpochRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetComputorListsForEpochRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetComputorsListsForEpoch(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetComputorsListsForEpoch_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetComputorListsForEpochRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetComputorListsForEpochRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetComputorsListsForEpoch(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetLastProcessedTick_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetLastProcessedTick(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetLastProcessedTick_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.GetLastProcessedTick(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetProcessedTickIntervals_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetProcessedTickIntervals(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetProcessedTickIntervals_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.GetProcessedTickIntervals(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_ArchiveQueryService_GetHealth_0(ctx context.Context, marshaler runtime.Marshaler, client ArchiveQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetHealth(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_ArchiveQueryService_GetHealth_0(ctx context.Context, marshaler runtime.Marshaler, server ArchiveQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq emptypb.Empty
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.GetHealth(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterArchiveQueryServiceHandlerServer registers the http handlers for service ArchiveQueryService to "mux".
 // UnaryRPC     :call ArchiveQueryServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterArchiveQueryServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ArchiveQueryServiceServer) error {
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTransactionByHash_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTransactionByHash_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionByHash", runtime.WithHTTPPathPattern("/getTransactionByHash"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionByHash", runtime.WithHTTPPathPattern("/getTransactionByHash"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -242,20 +258,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_ArchiveQueryService_GetTransactionByHash_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionByHash_0{resp}, mux.GetForwardResponseOptions()...)
-
+		forward_ArchiveQueryService_GetTransactionByHash_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionByHash_0{resp.(*GetTransactionByHashResponse)}, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTransactionsForTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTransactionsForTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForTick", runtime.WithHTTPPathPattern("/getTransactionsForTick"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForTick", runtime.WithHTTPPathPattern("/getTransactionsForTick"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -267,20 +278,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_ArchiveQueryService_GetTransactionsForTick_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionsForTick_0{resp}, mux.GetForwardResponseOptions()...)
-
+		forward_ArchiveQueryService_GetTransactionsForTick_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionsForTick_0{resp.(*GetTransactionsForTickResponse)}, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTransactionsForIdentity_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTransactionsForIdentity_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForIdentity", runtime.WithHTTPPathPattern("/getTransactionsForIdentity"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForIdentity", runtime.WithHTTPPathPattern("/getTransactionsForIdentity"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -292,20 +298,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetTransactionsForIdentity_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTickData_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTickData_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTickData", runtime.WithHTTPPathPattern("/getTickData"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTickData", runtime.WithHTTPPathPattern("/getTickData"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -317,20 +318,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetTickData_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetComputorsListsForEpoch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetComputorsListsForEpoch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorListsForEpoch"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorListsForEpoch"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -342,20 +338,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetComputorsListsForEpoch_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_ArchiveQueryService_GetLastProcessedTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_ArchiveQueryService_GetLastProcessedTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetLastProcessedTick", runtime.WithHTTPPathPattern("/getLastProcessedTick"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetLastProcessedTick", runtime.WithHTTPPathPattern("/getLastProcessedTick"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -367,20 +358,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetLastProcessedTick_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_ArchiveQueryService_GetProcessedTickIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_ArchiveQueryService_GetProcessedTickIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTickIntervals"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTickIntervals"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -392,20 +378,15 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp}, mux.GetForwardResponseOptions()...)
-
+		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp.(*GetProcessedTickIntervalsResponse)}, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_ArchiveQueryService_GetHealth_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_ArchiveQueryService_GetHealth_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetHealth", runtime.WithHTTPPathPattern("/health"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetHealth", runtime.WithHTTPPathPattern("/health"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -417,9 +398,7 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetHealth_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -428,25 +407,24 @@ func RegisterArchiveQueryServiceHandlerServer(ctx context.Context, mux *runtime.
 // RegisterArchiveQueryServiceHandlerFromEndpoint is same as RegisterArchiveQueryServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterArchiveQueryServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.DialContext(ctx, endpoint, opts...)
+	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
-
 	return RegisterArchiveQueryServiceHandler(ctx, mux, conn)
 }
 
@@ -460,16 +438,13 @@ func RegisterArchiveQueryServiceHandler(ctx context.Context, mux *runtime.ServeM
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "ArchiveQueryServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "ArchiveQueryServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "ArchiveQueryServiceClient" to call the correct interceptors.
+// "ArchiveQueryServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ArchiveQueryServiceClient) error {
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTransactionByHash_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTransactionByHash_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionByHash", runtime.WithHTTPPathPattern("/getTransactionByHash"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionByHash", runtime.WithHTTPPathPattern("/getTransactionByHash"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -480,18 +455,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_ArchiveQueryService_GetTransactionByHash_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionByHash_0{resp}, mux.GetForwardResponseOptions()...)
-
+		forward_ArchiveQueryService_GetTransactionByHash_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionByHash_0{resp.(*GetTransactionByHashResponse)}, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTransactionsForTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTransactionsForTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForTick", runtime.WithHTTPPathPattern("/getTransactionsForTick"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForTick", runtime.WithHTTPPathPattern("/getTransactionsForTick"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -502,18 +472,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_ArchiveQueryService_GetTransactionsForTick_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionsForTick_0{resp}, mux.GetForwardResponseOptions()...)
-
+		forward_ArchiveQueryService_GetTransactionsForTick_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetTransactionsForTick_0{resp.(*GetTransactionsForTickResponse)}, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTransactionsForIdentity_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTransactionsForIdentity_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForIdentity", runtime.WithHTTPPathPattern("/getTransactionsForIdentity"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTransactionsForIdentity", runtime.WithHTTPPathPattern("/getTransactionsForIdentity"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -524,18 +489,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetTransactionsForIdentity_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetTickData_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetTickData_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTickData", runtime.WithHTTPPathPattern("/getTickData"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetTickData", runtime.WithHTTPPathPattern("/getTickData"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -546,18 +506,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetTickData_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_ArchiveQueryService_GetComputorsListsForEpoch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_ArchiveQueryService_GetComputorsListsForEpoch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorListsForEpoch"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch", runtime.WithHTTPPathPattern("/getComputorListsForEpoch"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -568,18 +523,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetComputorsListsForEpoch_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_ArchiveQueryService_GetLastProcessedTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_ArchiveQueryService_GetLastProcessedTick_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetLastProcessedTick", runtime.WithHTTPPathPattern("/getLastProcessedTick"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetLastProcessedTick", runtime.WithHTTPPathPattern("/getLastProcessedTick"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -590,18 +540,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetLastProcessedTick_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_ArchiveQueryService_GetProcessedTickIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_ArchiveQueryService_GetProcessedTickIntervals_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTickIntervals"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals", runtime.WithHTTPPathPattern("/getProcessedTickIntervals"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -612,18 +557,13 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
-		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp}, mux.GetForwardResponseOptions()...)
-
+		forward_ArchiveQueryService_GetProcessedTickIntervals_0(annotatedContext, mux, outboundMarshaler, w, req, response_ArchiveQueryService_GetProcessedTickIntervals_0{resp.(*GetProcessedTickIntervalsResponse)}, mux.GetForwardResponseOptions()...)
 	})
-
-	mux.Handle("GET", pattern_ArchiveQueryService_GetHealth_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_ArchiveQueryService_GetHealth_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetHealth", runtime.WithHTTPPathPattern("/health"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/qubic.v2.archive.pb.ArchiveQueryService/GetHealth", runtime.WithHTTPPathPattern("/health"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -634,73 +574,56 @@ func RegisterArchiveQueryServiceHandlerClient(ctx context.Context, mux *runtime.
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_ArchiveQueryService_GetHealth_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
 type response_ArchiveQueryService_GetTransactionByHash_0 struct {
-	proto.Message
+	*GetTransactionByHashResponse
 }
 
 func (m response_ArchiveQueryService_GetTransactionByHash_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*GetTransactionByHashResponse)
+	response := m.GetTransactionByHashResponse
 	return response.Transaction
 }
 
 type response_ArchiveQueryService_GetTransactionsForTick_0 struct {
-	proto.Message
+	*GetTransactionsForTickResponse
 }
 
 func (m response_ArchiveQueryService_GetTransactionsForTick_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*GetTransactionsForTickResponse)
+	response := m.GetTransactionsForTickResponse
 	return response.Transactions
 }
 
 type response_ArchiveQueryService_GetProcessedTickIntervals_0 struct {
-	proto.Message
+	*GetProcessedTickIntervalsResponse
 }
 
 func (m response_ArchiveQueryService_GetProcessedTickIntervals_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*GetProcessedTickIntervalsResponse)
+	response := m.GetProcessedTickIntervalsResponse
 	return response.ProcessedTickIntervals
 }
 
 var (
-	pattern_ArchiveQueryService_GetTransactionByHash_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTransactionByHash"}, ""))
-
-	pattern_ArchiveQueryService_GetTransactionsForTick_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTransactionsForTick"}, ""))
-
+	pattern_ArchiveQueryService_GetTransactionByHash_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTransactionByHash"}, ""))
+	pattern_ArchiveQueryService_GetTransactionsForTick_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTransactionsForTick"}, ""))
 	pattern_ArchiveQueryService_GetTransactionsForIdentity_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTransactionsForIdentity"}, ""))
-
-	pattern_ArchiveQueryService_GetTickData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTickData"}, ""))
-
-	pattern_ArchiveQueryService_GetComputorsListsForEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getComputorListsForEpoch"}, ""))
-
-	pattern_ArchiveQueryService_GetLastProcessedTick_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getLastProcessedTick"}, ""))
-
-	pattern_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTickIntervals"}, ""))
-
-	pattern_ArchiveQueryService_GetHealth_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"health"}, ""))
+	pattern_ArchiveQueryService_GetTickData_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getTickData"}, ""))
+	pattern_ArchiveQueryService_GetComputorsListsForEpoch_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getComputorListsForEpoch"}, ""))
+	pattern_ArchiveQueryService_GetLastProcessedTick_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getLastProcessedTick"}, ""))
+	pattern_ArchiveQueryService_GetProcessedTickIntervals_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"getProcessedTickIntervals"}, ""))
+	pattern_ArchiveQueryService_GetHealth_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"health"}, ""))
 )
 
 var (
-	forward_ArchiveQueryService_GetTransactionByHash_0 = runtime.ForwardResponseMessage
-
-	forward_ArchiveQueryService_GetTransactionsForTick_0 = runtime.ForwardResponseMessage
-
+	forward_ArchiveQueryService_GetTransactionByHash_0       = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetTransactionsForTick_0     = runtime.ForwardResponseMessage
 	forward_ArchiveQueryService_GetTransactionsForIdentity_0 = runtime.ForwardResponseMessage
-
-	forward_ArchiveQueryService_GetTickData_0 = runtime.ForwardResponseMessage
-
-	forward_ArchiveQueryService_GetComputorsListsForEpoch_0 = runtime.ForwardResponseMessage
-
-	forward_ArchiveQueryService_GetLastProcessedTick_0 = runtime.ForwardResponseMessage
-
-	forward_ArchiveQueryService_GetProcessedTickIntervals_0 = runtime.ForwardResponseMessage
-
-	forward_ArchiveQueryService_GetHealth_0 = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetTickData_0                = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetComputorsListsForEpoch_0  = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetLastProcessedTick_0       = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetProcessedTickIntervals_0  = runtime.ForwardResponseMessage
+	forward_ArchiveQueryService_GetHealth_0                  = runtime.ForwardResponseMessage
 )
