@@ -1,8 +1,9 @@
 # Constants
 PROTO_DIR := $(shell pwd)/api/archive-query-service/v2
 
-# Apple arm64 specific
-OPT_ARGS := $(shell [ "$$(uname -s)" = "Darwin" ] && [ "$$(uname -m)" = "arm64" ] && echo "--proto_path=/opt/homebrew/Cellar/protobuf/33.1/include")
+# Apple arm64 specific - dynamically detect protobuf version
+PROTOBUF_VERSION := $(shell ls /opt/homebrew/Cellar/protobuf/ 2>/dev/null | head -1)
+OPT_ARGS := $(shell [ "$$(uname -s)" = "Darwin" ] && [ "$$(uname -m)" = "arm64" ] && [ -n "$(PROTOBUF_VERSION)" ] && echo "--proto_path=/opt/homebrew/Cellar/protobuf/$(PROTOBUF_VERSION)/include")
 
 # Tasks
 .PHONY: all mock-gen proto-gen proto-clean swagger-gen test-cover
