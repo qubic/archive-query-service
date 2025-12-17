@@ -7,7 +7,13 @@
   },
   "tags": [
     {
-      "name": "ArchiveQueryService"
+      "name": "ArchiveQueryService",
+      "description": "Access historical Qubic blockchain data including transactions, ticks, and computor lists.",
+      "externalDocs": {
+        "description": "GitHub repository",
+        "url": "https://github.com/qubic/archive-query-service/"
+      },
+      "x-displayName": "Query API"
     }
   ],
   "host": "rpc.qubic.org",
