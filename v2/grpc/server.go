@@ -3,25 +3,28 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
-	"net"
-	"net/http"
 )
 
 type StartConfig struct {
 	ListenAddrGRPC string
 	ListenAddrHTTP string
+	MaxRecvMsgSize int // limit receive size (request)
+	MaxSendMsgSize int // limit send size (response)
 }
 
 func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, interceptors ...grpc.UnaryServerInterceptor) error {
 	srv := grpc.NewServer(
-		grpc.MaxRecvMsgSize(600*1024*1024),
-		grpc.MaxSendMsgSize(600*1024*1024),
+		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
 		grpc.ChainUnaryInterceptor(interceptors...),
 	)
 	api.RegisterArchiveQueryServiceServer(srv, s)
@@ -46,8 +49,8 @@ func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, intercept
 			opts := []grpc.DialOption{
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithDefaultCallOptions(
-					grpc.MaxCallRecvMsgSize(600*1024*1024),
-					grpc.MaxCallSendMsgSize(600*1024*1024),
+					grpc.MaxCallRecvMsgSize(cfg.MaxRecvMsgSize),
+					grpc.MaxCallSendMsgSize(cfg.MaxSendMsgSize),
 				),
 			}
 

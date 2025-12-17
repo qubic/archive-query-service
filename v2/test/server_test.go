@@ -46,6 +46,8 @@ func (s *ServerTestSuite) SetupSuite() {
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
 	startCfg := rpc.StartConfig{
 		ListenAddrGRPC: "127.0.0.1:0", // Use a random port for testing
+		MaxRecvMsgSize: 1 * 1024 * 1024,
+		MaxSendMsgSize: 1 * 1024 * 1024,
 	}
 
 	err := rpcServer.Start(startCfg, srvErrorsChan,
