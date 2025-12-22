@@ -136,6 +136,9 @@ service ArchiveQueryService {
   rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
     option (openapi.v3.operation) = {
       summary: "Get Transactions For Identity"
+      responses: {
+        //default: {}
+      }
     };
 
     option (google.api.http) = {

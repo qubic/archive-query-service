@@ -34,7 +34,7 @@ proto-clean:
 openapi-v3-gen:
 	@echo "Generating OpenAPI v3 files..."
 	cd "$(PROTO_DIR)" && \
-	protoc --openapi_out=output_mode=source_relative:. $(OPT_ARGS) -I "$(PROTO_DIR)" \
+	protoc --openapi_out=output_mode=source_relative,default_response=false:. $(OPT_ARGS) -I "$(PROTO_DIR)" \
 		query_services.proto
 
 test-cover:
