@@ -23,6 +23,18 @@ option (openapi.v3.document) = {
     description: "GitHub";
     url: "https://github.com/qubic/archive-query-service"
   }
+  tags: {
+    name: "ArchiveQueryService"
+    description: "Access historical Qubic blockchain data including transactions, ticks, and computor lists."
+    external_docs: {
+      description: "GitHub repository"
+      url: "https://github.com/qubic/archive-query-service/"
+    }
+    extensions: {
+      key: "x-displayName"
+      value: { string_value: "Query API" }
+    }
+  }
 };
 
 // Qubic Query API
