@@ -37,9 +37,12 @@ const file_query_services_proto_rawDesc = "" +
 	"\x14GetLastProcessedTick\x12\x16.google.protobuf.Empty\x1a1.qubic.v2.archive.pb.GetLastProcessedTickResponse\"9\xbaG\x19\x12\x17Get Last Processed Tick\x82\xd3\xe4\x93\x02\x17\x12\x15/getLastProcessedTick\x12\xca\x01\n" +
 	"\x19GetProcessedTickIntervals\x12\x16.google.protobuf.Empty\x1a6.qubic.v2.archive.pb.GetProcessedTickIntervalsResponse\"]\xbaG\x1e\x12\x1cGet Processed Tick Intervals\x82\xd3\xe4\x93\x026b\x18processed_tick_intervals\x12\x1a/getProcessedTickIntervals\x12\xcd\x01\n" +
 	"\tGetHealth\x12\x16.google.protobuf.Empty\x1a#.qubic.v2.archive.pb.HealthResponse\"\x82\x01\xbaGp\x12\n" +
-	"Get Health\x1abHealth check. This is for internal use only and can change any time. Do not rely on this endpoint.\x82\xd3\xe4\x93\x02\t\x12\a/healthB\xcd\x01\xbaG\x9d\x01\x12?\n" +
+	"Get Health\x1abHealth check. This is for internal use only and can change any time. Do not rely on this endpoint.\x82\xd3\xe4\x93\x02\t\x12\a/healthB\xa5\x03\xbaG\xf5\x02\x12?\n" +
 	"\x0fQubic Query API\x12%API for querying archived Qubic data.2\x051.0.0\x1a \n" +
-	"\x1ehttps://rpc.qubic.org/query/v1B8\n" +
+	"\x1ehttps://rpc.qubic.org/query/v1:\xd5\x01\n" +
+	"\x13ArchiveQueryService\x12ZAccess historical Qubic blockchain data including transactions, ticks, and computor lists.\x1aD\n" +
+	"\x11GitHub repository\x12/https://github.com/qubic/archive-query-service/\"\x1c\n" +
+	"\rx-displayName\x12\v\x12\tQuery APIB8\n" +
 	"\x06GitHub\x12.https://github.com/qubic/archive-query-serviceZ*github.com/qubic/archive-query-service/apib\x06proto3"
 
 var file_query_services_proto_goTypes = []any{

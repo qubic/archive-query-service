@@ -523,6 +523,13 @@ components:
             description: Transaction
 tags:
     - name: ArchiveQueryService
+      description: Access historical Qubic blockchain data including transactions, ticks, and computor lists.
+      externalDocs:
+        description: GitHub repository
+        url: https://github.com/qubic/archive-query-service/
+      x-displayName: Query API
+    - name: ArchiveQueryService
+      description: Qubic Query API
 externalDocs:
     description: GitHub
     url: https://github.com/qubic/archive-query-service
