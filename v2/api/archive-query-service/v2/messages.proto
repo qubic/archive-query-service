@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package qubic.v2.archive.pb;
 option go_package = "github.com/qubic/archive-query-service/api";
-import "protoc_gen_openapiv2/options/annotations.proto";
+import "openapiv3/annotations.proto";
 
 message LastProcessedTick {
-    uint32 tick_number = 1;
+  uint32 tick_number = 1;
 }
 
 message NextAvailableTick {
-    uint32 next_tick_number = 1;
+  uint32 next_tick_number = 1;
 }
 
 // Transaction
@@ -24,8 +24,7 @@ message Transaction {
   uint32 input_size = 8;
   string input_data = 9;
   string signature = 10;
-  // Money flew is an additional information provided by some nodes with the tx status addon patch.
-  bool money_flew = 11;
+  bool money_flew = 11 [(openapi.v3.property) = {description:"Money flew is an additional information provided by some nodes with the tx status addon patch."}];
 }
 
 // TickData
@@ -43,159 +42,126 @@ message TickData {
 
 // ProcessedTickInterval
 message ProcessedTickInterval {
-  // the epoch the interval is in.
-  uint32 epoch = 1;
-  // the initial processed tick of the interval.
-  uint32 first_tick = 2;
-  // the last processed tick of the interval.
-  uint32 last_tick = 3;
+  uint32 epoch = 1 [(openapi.v3.property) = {description:"The epoch the interval is in."}];
+  uint32 first_tick = 2 [(openapi.v3.property) = {description:"The initial processed tick of the interval."}];
+  uint32 last_tick = 3 [(openapi.v3.property) = {description:"The last processed tick of the interval."}];
 }
 
 // Pagination
-//
-// The number of maximum results (offset + size) is limited to 10000.
 message Pagination {
-  // The offset specifies the starting point of the returned data. Defaults to zero.
-  uint32 offset = 1;
-  // The size specifies how many results should be returned. Defaults to 10.
-  uint32 size = 2;
+  option (openapi.v3.schema) = {
+    description: "The number of maximum results (offset + size) is limited to 10000."
+  };
+  uint32 offset = 1 [(openapi.v3.property) = {description:"The offset specifies the starting point of the returned data. Defaults to zero."}];
+  uint32 size = 2 [(openapi.v3.property) = {description:"The size specifies how many results should be returned. Defaults to 10."}];
 }
 
 // GetTransactionByHashRequest
 message GetTransactionByHashRequest {
-  // Hash of the transaction.
-  string hash = 1;
+  string hash = 1 [(openapi.v3.property) = {description:"The hash of the transaction."}];
 }
 
 // GetTransactionByHashResponse
 message GetTransactionByHashResponse {
-  // the transaction for the requested hash.
-  Transaction transaction = 1;
+  Transaction transaction = 1 [(openapi.v3.property) = {description:"The transaction for the requested hash."}];
 }
 
 // GetTransactionsForTickRequest
 message GetTransactionsForTickRequest {
   // the tick number to get the transactions for.
-  uint32 tick_number = 1;
+  uint32 tick_number = 1 [(openapi.v3.property) = {description:"The tick number to get the transactions for."}];
 }
 
 // GetTransactionsForTickResponse
 message GetTransactionsForTickResponse {
-  // the transactions for the requested tick number.
-  repeated Transaction transactions = 1;
+  repeated Transaction transactions = 1 [(openapi.v3.property) = {description:"The transactions for the requested tick number."}];
 }
 
 // Range
 message Range {
   oneof lower_bound {
-    // greater than.
-    string gt = 1;
-    // greater than or equal.
-    string gte = 2;
+    string gt = 1 [(openapi.v3.property) = {description:"Greater than."}];
+    string gte = 2 [(openapi.v3.property) = {description:"Greater than or equal."}];
   }
   oneof upper_bound {
-    // less than.
-    string lt = 3;
-    // less than or equal.
-    string lte = 4;
+    string lt = 3 [(openapi.v3.property) = {description:"Less than."}];
+    string lte = 4 [(openapi.v3.property) = {description:"Less than or equal."}];
   }
 }
 
 // GetTransactionsForIdentityRequest
-
 message GetTransactionsForIdentityRequest {
+  option (openapi.v3.schema) = {
+    example: {
+      yaml: "identity: AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ\nfilters:\n  destination: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\n  inputType: \"0\"\nranges:\n  amount:\n    gte: \"1000000000\"\npagination:\n  offset: 0\n  size: 10"
+    };
+};
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    example: '\"{\\"identity\\": \\"AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ\\",\\"filters\\": { \\"destination\\": \\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\\",\\"inputType\\": \\"0\\"}, \\"ranges\\": { \\"amount\\": { \\"gte\\": \\"1000000000\\" } }, \\"pagination\\": { \\"offset\\": 0, \\"size\\": 10 } } \"'
-  };
-
-  // The identity to get the transactions for. Incoming and outgoing transactions are queried by default.
-  string identity = 1;
-  // Filters restrict the results by single values.
-  map<string, string> filters = 2;
-  // Ranges restrict the results by a maximum and minimum value.
-  map<string, Range> ranges = 3;
-  // Optional paging information.
-  Pagination pagination = 4;
-
+  string identity = 1 [(openapi.v3.property) = {description:"The identity to get the transactions for. Incoming and outgoing transactions are queried by default."}];
+  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values."}];
+  map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value."}];
+  Pagination pagination = 4 [(openapi.v3.property) = {description:"Optional paging information ."}];
 }
 
 // Hits
-//
-// Provides information about the number of results.
 message Hits {
-  // the total number of hits available in the archive. Capped at 10000.
-  uint32 total = 1;
-  // starting offset of the hits that were returned.
-  uint32 from = 2;
-  // number of returned hits.
-  uint32 size = 3;
+  option (openapi.v3.schema) = {
+    description: "Provides information about the number of results."
+  };
+
+  uint32 total = 1 [(openapi.v3.property) = {description:"The total number of hits available in the archive. Capped at 10000."}];
+  uint32 from = 2 [(openapi.v3.property) = {description:"Starting offset of the hits that were returned."}];
+  uint32 size = 3 [(openapi.v3.property) = {description:"Number of returned hits."}];
 }
 
 // GetTransactionsForIdentityResponse
 message GetTransactionsForIdentityResponse {
-  // the response is valid for this tick number.
-  uint32 valid_for_tick = 1;
-  // information about the returned results.
-  Hits hits = 2;
-  // list of transactions that matched the search criteria.
-  repeated Transaction transactions = 3;
+  uint32 valid_for_tick = 1 [(openapi.v3.property) = {description:"The response is valid for this tick number."}];
+  Hits hits = 2 [(openapi.v3.property) = {description:"Information about the returned results."}];
+  repeated Transaction transactions = 3 [(openapi.v3.property) = {description:"List of transactions that matched the search criteria."}];
 }
 
 // GetTickDataRequest
 message GetTickDataRequest {
-  // the number of tick the tick data is requested for.
-  uint32 tick_number = 1;
+  uint32 tick_number = 1 [(openapi.v3.property) = {description:"The number of tick the tick data is requested for."}];
 }
 
 // GetTickDataResponse
 message GetTickDataResponse {
-  // the tick data of the requested tick.
-  TickData tick_data = 1;
+  TickData tick_data = 1 [(openapi.v3.property) = {description:"The tick data of the requested tick."}];
 }
 
 // GetProcessedTickIntervalsResponse
 message GetProcessedTickIntervalsResponse {
-  // a list of tick intervals that were processed.
-  repeated ProcessedTickInterval processed_tick_intervals = 1;
+  repeated ProcessedTickInterval processed_tick_intervals = 1 [(openapi.v3.property) = {description:"A list of tick intervals that were processed."}];
 }
 
 // GetLastProcessedTickResponse
 message GetLastProcessedTickResponse {
-  // the last processed tick that is available in the archive.
-  uint32 tick_number = 1;
-  // the epoch the last processed tick is in.
-  uint32 epoch = 2;
-  // the initial tick of the current tick interval.
-  uint32 interval_initial_tick = 3;
+  uint32 tick_number = 1 [(openapi.v3.property) = {description:"The last processed tick that is available in the archive."}];
+  uint32 epoch = 2 [(openapi.v3.property) = {description:"The epoch the last processed tick is in."}];
+  uint32 interval_initial_tick = 3 [(openapi.v3.property) = {description:"The initial tick of the current tick interval."}];
 }
 
 // GetComputorListsForEpochRequest
 message GetComputorListsForEpochRequest {
-  // the epoch number to get the computor lists for.
-  uint32 epoch = 1;
+  uint32 epoch = 1 [(openapi.v3.property) = {description:"The epoch number to get the computor lists for."}];
 }
 
 // ComputorList
 message ComputorList {
-  // epoch number.
-  uint32 epoch = 1;
-  // tick number when the list was received by the archive after it was published.
-  uint32 tick_number = 2;
-  // list of computor identities (signed by arbitrator).
-  repeated string identities = 3;
-  // signature of the arbitrator.
-  string signature = 4;
+  uint32 epoch = 1 [(openapi.v3.property) = {description:"Epoch number."}];
+  uint32 tick_number = 2 [(openapi.v3.property) = {description:"Tick number when the list was received by the archive after it was published."}];
+  repeated string identities = 3 [(openapi.v3.property) = {description:"List of computor identities (signed by arbitrator)."}];
+  string signature = 4 [(openapi.v3.property) = {description:"Signature of the arbitrator."}];
 }
 
 // GetComputorListsForEpochResponse
 message GetComputorListsForEpochResponse {
-  // the lists of computors that voted in this epoch.
-  repeated ComputorList computors_lists = 1;
+  repeated ComputorList computors_lists = 1 [(openapi.v3.property) = {description:"The lists of computors that voted in this epoch."}];
 }
 
 // HealthResponse
 message HealthResponse {
-  // health status information.
-  string status = 1;
+  string status = 1 [(openapi.v3.property) = {description:"Health status information."}];
 }
