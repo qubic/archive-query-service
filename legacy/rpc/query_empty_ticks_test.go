@@ -204,3 +204,38 @@ func TestQueryService_GetEmptyTicks_GivenMultipleIntervals_ThenQueryMultipleTime
 	}, emptyTicks)
 
 }
+
+// TestQueryService_GetEmptyTicks_RaceCondition_EmptyIntervals reproduces issue #89 (Pattern 2)
+// This test simulates the scenario where intervals slice is empty due to concurrent cache updates
+func TestQueryService_GetEmptyTicks_RaceCondition_EmptyIntervals(t *testing.T) {
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{
+			emptyTicks: map[string][]uint32{},
+		},
+		cache: NewStatusCache(nil, time.Second, time.Second),
+	}
+
+	// Simulate: Empty ticks exist in cache from previous request
+	qs.cache.SetEmptyTicks(&EmptyTicks{
+		Epoch:     191,
+		StartTick: 100,
+		EndTick:   200,
+		Ticks:     map[uint32]bool{101: true, 102: true},
+	})
+
+	// Simulate: Concurrent cache update results in empty intervals being passed
+	// This can happen when the status service returns no intervals momentarily
+	emptyIntervals := []*statusPb.TickInterval{}
+
+	// This should fail with "illegal argument" because:
+	// - len(intervals) == 0
+	// - but emptyTicks != nil
+	emptyTicks, err := qs.GetEmptyTicks(context.Background(), 191, emptyIntervals)
+
+	// Current behavior: returns error "illegal argument for epoch [191]"
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "illegal argument for epoch [191]")
+	require.Nil(t, emptyTicks)
+
+	// Expected behavior after fix: should handle empty intervals gracefully
+}

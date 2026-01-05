@@ -3,7 +3,7 @@ name: Deploy v1 snapshot image to GHCR
 on:
   push:
     branches:
-      - 'feature/update-v1-module-name'
+      - '89-error-on-querying-ticks-endpoint-query-service-v1'
 
 jobs:
   docker-publish:
@@ -33,4 +33,4 @@ jobs:
           context: ./legacy
           file: ./legacy/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v1:snapshot
+          tags: ghcr.io/qubic/archive-query-service-v2:89-error-on-querying-ticks-endpoint-query-service-v1

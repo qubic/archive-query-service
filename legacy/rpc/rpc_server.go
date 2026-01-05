@@ -486,7 +486,7 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 
 	emptyTicks, err := s.qb.GetEmptyTicks(ctx, request.Epoch, filteredIntervals)
 	if err != nil {
-		log.Printf("[ERROR] getting empty ticks for epoch [%d]: %v", request.Epoch, err)
+		log.Printf("[ERROR] getting empty ticks for epoch [%d], unfiltered intervals %+v: %v", request.Epoch, intervals, err)
 		return nil, internalErrorGettingTickIntervals()
 	}
 
@@ -586,7 +586,7 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 
 	emptyTicks, err := s.qb.GetEmptyTicks(ctx, request.Epoch, filteredIntervals)
 	if err != nil {
-		log.Printf("[ERROR] getting empty ticks for epoch [%d]: %v", request.Epoch, err)
+		log.Printf("[ERROR] getting empty ticks for epoch [%d], unfiltered intervals %+v: %v", request.Epoch, intervals, err)
 		return nil, internalErrorGettingTickIntervals()
 	}
 
