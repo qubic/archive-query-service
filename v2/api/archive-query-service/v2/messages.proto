@@ -22,9 +22,9 @@ message Transaction {
   uint64 timestamp = 6;
   uint32 input_type = 7;
   uint32 input_size = 8;
-  string input_data = 9;
-  string signature = 10;
-  bool money_flew = 11 [(openapi.v3.property) = {description:"Money flew is an additional information provided by some nodes with the tx status addon patch."}];
+  string input_data = 9 [(openapi.v3.property) = {description: "Binary data encoded as Base64"}];
+  string signature = 10 [(openapi.v3.property) = {description: "Binary data encoded as Base64"}];
+  bool money_flew = 11 [(openapi.v3.property) = {description: "Money flew is an additional information provided by some nodes with the tx status addon patch."}];
 }
 
 // TickData
@@ -95,7 +95,7 @@ message GetTransactionsForIdentityRequest {
     example: {
       yaml: "identity: AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ\nfilters:\n  destination: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\n  inputType: \"0\"\nranges:\n  amount:\n    gte: \"1000000000\"\npagination:\n  offset: 0\n  size: 10"
     };
-};
+  };
 
   string identity = 1 [(openapi.v3.property) = {description:"The identity to get the transactions for. Incoming and outgoing transactions are queried by default."}];
   map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values."}];

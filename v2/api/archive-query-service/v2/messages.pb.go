@@ -1368,7 +1368,7 @@ const file_messages_proto_rawDesc = "" +
 	"\vtick_number\x18\x01 \x01(\rR\n" +
 	"tickNumber\"=\n" +
 	"\x11NextAvailableTick\x12(\n" +
-	"\x10next_tick_number\x18\x01 \x01(\rR\x0enextTickNumber\"\xb3\x03\n" +
+	"\x10next_tick_number\x18\x01 \x01(\rR\x0enextTickNumber\"\xfd\x03\n" +
 	"\vTransaction\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x04R\x06amount\x12\x16\n" +
@@ -1380,11 +1380,11 @@ const file_messages_proto_rawDesc = "" +
 	"\n" +
 	"input_type\x18\a \x01(\rR\tinputType\x12\x1d\n" +
 	"\n" +
-	"input_size\x18\b \x01(\rR\tinputSize\x12\x1d\n" +
+	"input_size\x18\b \x01(\rR\tinputSize\x12B\n" +
 	"\n" +
-	"input_data\x18\t \x01(\tR\tinputData\x12\x1c\n" +
+	"input_data\x18\t \x01(\tB#\xbaG \x92\x02\x1dBinary data encoded as Base64R\tinputData\x12A\n" +
 	"\tsignature\x18\n" +
-	" \x01(\tR\tsignature\x12\x83\x01\n" +
+	" \x01(\tB#\xbaG \x92\x02\x1dBinary data encoded as Base64R\tsignature\x12\x83\x01\n" +
 	"\n" +
 	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\xb4\x02\n" +
 	"\bTickData\x12\x1f\n" +
