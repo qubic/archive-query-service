@@ -20,10 +20,10 @@ message Transaction {
   string destination = 4;
   uint32 tick_number = 5;
   uint64 timestamp = 6;
-  uint32 input_type = 7;
-  uint32 input_size = 8;
-  string input_data = 9 [(openapi.v3.property) = {description: "Binary data encoded as Base64"}];
-  string signature = 10 [(openapi.v3.property) = {description: "Binary data encoded as Base64"}];
+  uint32 input_type = 7 [(openapi.v3.property) = {description: "Smart contract procedure index. (The smart contract procedure this transaction is supposed to trigger)"}];
+  uint32 input_size = 8 [(openapi.v3.property) = {description: "Size of input_data byte array."}];
+  string input_data = 9 [(openapi.v3.property) = {description: "Base64 encoded byte array containing a smart contract payload."}];
+  string signature = 10 [(openapi.v3.property) = {description: "Base64 encoded byte array representing the transactions's signature."}];
   bool money_flew = 11 [(openapi.v3.property) = {description: "Money flew is an additional information provided by some nodes with the tx status addon patch."}];
 }
 

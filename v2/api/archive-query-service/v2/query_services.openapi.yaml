@@ -509,16 +509,18 @@ components:
                     type: string
                 inputType:
                     type: integer
+                    description: Smart contract procedure index. (The smart contract procedure this transaction is supposed to trigger)
                     format: uint32
                 inputSize:
                     type: integer
+                    description: Size of input_data byte array.
                     format: uint32
                 inputData:
                     type: string
-                    description: Binary data encoded as Base64
+                    description: Base64 encoded byte array containing a smart contract payload.
                 signature:
                     type: string
-                    description: Binary data encoded as Base64
+                    description: Base64 encoded byte array representing the transactions's signature.
                 moneyFlew:
                     type: boolean
                     description: Money flew is an additional information provided by some nodes with the tx status addon patch.

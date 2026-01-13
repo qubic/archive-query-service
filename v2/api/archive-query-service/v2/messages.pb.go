@@ -1368,7 +1368,7 @@ const file_messages_proto_rawDesc = "" +
 	"\vtick_number\x18\x01 \x01(\rR\n" +
 	"tickNumber\"=\n" +
 	"\x11NextAvailableTick\x12(\n" +
-	"\x10next_tick_number\x18\x01 \x01(\rR\x0enextTickNumber\"\xfd\x03\n" +
+	"\x10next_tick_number\x18\x01 \x01(\rR\x0enextTickNumber\"\xda\x05\n" +
 	"\vTransaction\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x04R\x06amount\x12\x16\n" +
@@ -1376,15 +1376,15 @@ const file_messages_proto_rawDesc = "" +
 	"\vdestination\x18\x04 \x01(\tR\vdestination\x12\x1f\n" +
 	"\vtick_number\x18\x05 \x01(\rR\n" +
 	"tickNumber\x12\x1c\n" +
-	"\ttimestamp\x18\x06 \x01(\x04R\ttimestamp\x12\x1d\n" +
+	"\ttimestamp\x18\x06 \x01(\x04R\ttimestamp\x12\x8b\x01\n" +
 	"\n" +
-	"input_type\x18\a \x01(\rR\tinputType\x12\x1d\n" +
+	"input_type\x18\a \x01(\rBl\xbaGi\x92\x02fSmart contract procedure index. (The smart contract procedure this transaction is supposed to trigger)R\tinputType\x12C\n" +
 	"\n" +
-	"input_size\x18\b \x01(\rR\tinputSize\x12B\n" +
+	"input_size\x18\b \x01(\rB$\xbaG!\x92\x02\x1eSize of input_data byte array.R\tinputSize\x12c\n" +
 	"\n" +
-	"input_data\x18\t \x01(\tB#\xbaG \x92\x02\x1dBinary data encoded as Base64R\tinputData\x12A\n" +
+	"input_data\x18\t \x01(\tBD\xbaGA\x92\x02>Base64 encoded byte array containing a smart contract payload.R\tinputData\x12h\n" +
 	"\tsignature\x18\n" +
-	" \x01(\tB#\xbaG \x92\x02\x1dBinary data encoded as Base64R\tsignature\x12\x83\x01\n" +
+	" \x01(\tBJ\xbaGG\x92\x02DBase64 encoded byte array representing the transactions's signature.R\tsignature\x12\x83\x01\n" +
 	"\n" +
 	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\xb4\x02\n" +
 	"\bTickData\x12\x1f\n" +
