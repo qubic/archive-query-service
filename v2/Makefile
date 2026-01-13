@@ -6,9 +6,9 @@ PROTOBUF_VERSION := $(shell ls /opt/homebrew/Cellar/protobuf/ 2>/dev/null | head
 OPT_ARGS := $(shell [ "$$(uname -s)" = "Darwin" ] && [ "$$(uname -m)" = "arm64" ] && [ -n "$(PROTOBUF_VERSION)" ] && echo "--proto_path=/opt/homebrew/Cellar/protobuf/$(PROTOBUF_VERSION)/include")
 
 # Tasks
-.PHONY: all mock-gen proto-gen proto-clean swagger-gen test-cover
+.PHONY: all mock-gen proto-gen proto-clean openapi-v3-gen test-cover
 
-all: proto-gen mock-gen swagger-gen
+all: proto-gen mock-gen openapi-v3-gen
 clean: proto-clean
 
 mock-gen:
@@ -31,10 +31,10 @@ proto-clean:
     rm -f *.pb.go && \
     rm -f *.pb.gw.go
 
-swagger-gen:
-	@echo "Generating openapi swagger files..."
+openapi-v3-gen:
+	@echo "Generating OpenAPI v3 files..."
 	cd "$(PROTO_DIR)" && \
-	protoc --openapiv2_out=logtostderr=true:. $(OPT_ARGS) -I "$(PROTO_DIR)" \
+	protoc --openapi_out=output_mode=source_relative,default_response=false:. $(OPT_ARGS) -I "$(PROTO_DIR)" \
 		query_services.proto
 
 test-cover:

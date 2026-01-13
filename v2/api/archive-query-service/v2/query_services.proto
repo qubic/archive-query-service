@@ -6,44 +6,50 @@ option go_package = "github.com/qubic/archive-query-service/api";
 import "messages.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-import "protoc_gen_openapiv2/options/annotations.proto";
+import "openapiv3/annotations.proto";
 
-option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+option (openapi.v3.document) = {
   info: {
     title: "Qubic Query API"
     description: "API for querying archived Qubic data."
     version: "1.0.0"
   }
-  host: "rpc.qubic.org"
-  base_path: "/query/v1"
-  schemes: HTTPS
-  consumes: "application/json"
-  produces: "application/json"
+  servers: [
+    {
+      url: "https://rpc.qubic.org/query/v1"
+    }
+  ]
   external_docs: {
-    description: "Github";
-    url: "https://github.com/qubic/archive-query-service";
+    description: "GitHub";
+    url: "https://github.com/qubic/archive-query-service"
   }
-  tags: {
-    name: "ArchiveQueryService"
-    description: "Access historical Qubic blockchain data including transactions, ticks, and computor lists."
-    external_docs: {
-      description: "GitHub repository"
-      url: "https://github.com/qubic/archive-query-service/"
+  tags:[
+    {
+      name: "ArchiveQueryService"
+      description: "Access historical Qubic blockchain data including transactions, ticks, and computor lists."
+      external_docs: {
+        description: "GitHub repository"
+        url: "https://github.com/qubic/archive-query-service/"
+      }
+      specification_extension: {
+        name: "x-displayName"
+        value: {
+          yaml: "Query API"
+        }
+      }
     }
-    extensions: {
-      key: "x-displayName"
-      value: { string_value: "Query API" }
-    }
-  }
+  ]
 };
 
 // Qubic Query API
 service ArchiveQueryService {
 
-  // Get Transaction By Hash
-  //
-  // Get a single transaction by its hash.
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Transaction By Hash"
+      description: "Get a single transaction by its hash."
+    };
+
     option (google.api.http) = {
       post: "/getTransactionByHash"
       body: "*"
@@ -51,10 +57,12 @@ service ArchiveQueryService {
     };
   }
 
-  // Get Transactions For Tick
-  //
-  // Get the transactions that are in included in one tick.
   rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Transactions For Tick"
+      description: "Get the transactions that are in included in one tick."
+    };
+
     option (google.api.http) = {
       post: "/getTransactionsForTick"
       body: "*"
@@ -62,150 +70,160 @@ service ArchiveQueryService {
     };
   }
 
-  // Get Transactions For Identity
-  //
+
   // Get the transactions for one identity sorted by tick number descending.
   //
-  //    ###  Request structure
+  //  ###  Request structure
   //
-  //    | Name       | Type               | Necessity | Description                                                                                                       |
-  //    |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
-  //    | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
-  //    | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
-  //    | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
-  //    | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
+  //  | Name       | Type               | Necessity | Description                                                                                                       |
+  //  |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
+  //  | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
+  //  | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
+  //  | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
+  //  | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
   //
-  //    Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
-  //    Data type for all values is string.
+  //  Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
+  //  Data type for all values is string.
   //
-  //    ### Filters
+  //  ### Filters
   //
-  //    Filters restrict the results by single values.
+  //  Filters restrict the results by single values.
   //
-  //    #### Allowed properties
+  //  #### Allowed properties
   //
-  //    | Name        |  Type   | Format                 | Description                                                        |
-  //    |-------------|---------|------------------------|--------------------------------------------------------------------|
-  //    | source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
-  //    | destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
-  //    | amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
-  //    | inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
+  //  | Name        |  Type   | Format                 | Description                                                        |
+  //  |-------------|---------|------------------------|--------------------------------------------------------------------|
+  //  | source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
+  //  | destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
+  //  | amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
+  //  | inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
   //
-  //    #### Examples
+  //  #### Examples
   //
-  //    ```
-  //    "source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
-  //    "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
-  //    "amount": "1000000"
-  //    "inputType": "0"
-  //    ```
+  //  ```
+  //  "source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
+  //  "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+  //  "amount": "1000000"
+  //  "inputType": "0"
+  //  ```
   //
-  //    ### Ranges
+  //  ### Ranges
   //
-  //    Ranges restrict the results by a range of values. On range per property is supported.
+  //  Ranges restrict the results by a range of values. On range per property is supported.
   //
-  //    #### Allowed properties
+  //  #### Allowed properties
   //
-  //    | Name       | Type   | Format                                   | Description                                 |
-  //    |------------|--------|------------------------------------------|---------------------------------------------|
-  //    | amount     | string | Numeric                                  | Only find transactions in amount range.     |
-  //    | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
-  //    | inputType  | string | Numeric                                  | Only find transactions in input type range. |
-  //    | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
+  //  | Name       | Type   | Format                                   | Description                                 |
+  //  |------------|--------|------------------------------------------|---------------------------------------------|
+  //  | amount     | string | Numeric                                  | Only find transactions in amount range.     |
+  //  | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
+  //  | inputType  | string | Numeric                                  | Only find transactions in input type range. |
+  //  | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
   //
-  //    #### Range definition
+  //  #### Range definition
   //
-  //    A range with size of 0 or 1 is not allowed.
+  //  A range with size of 0 or 1 is not allowed.
   //
-  //    | Name      | Type   | Necessity | Description                               |
-  //    |-----------|--------|-----------|-------------------------------------------|
-  //    | field | string | required  | Name of the field you wish to search for. |
-  //    | gt        | string | optional  | Greater than.                             |
-  //    | gte       | string | optional  | Greater than or equal to.                 |
-  //    | lt        | string | optional  | Less than.                                |
-  //    | lte       | string | optional  | Less than or equal to.                    |
+  //  | Name      | Type   | Necessity | Description                               |
+  //  |-----------|--------|-----------|-------------------------------------------|
+  //  | field | string | required  | Name of the field you wish to search for. |
+  //  | gt        | string | optional  | Greater than.                             |
+  //  | gte       | string | optional  | Greater than or equal to.                 |
+  //  | lt        | string | optional  | Less than.                                |
+  //  | lte       | string | optional  | Less than or equal to.                    |
   //
-  //    Only one lower bound and one upper bound can be specified.
+  //  Only one lower bound and one upper bound can be specified.
   //
-  //    #### Examples
+  //  #### Examples
   //
-  //    ```
-  //    "amount": { "gt": "1000000" }
-  //    "tickNumber": { "gte": "25563000", "lte": "28300000" }
-  //    "inputType": { "gt": "0" }
-  //    "timestamp": { "lt": "1757376000000" }
-  //    ```
+  //  ```
+  //  "amount": { "gt": "1000000" }
+  //  "tickNumber": { "gte": "25563000", "lte": "28300000" }
+  //  "inputType": { "gt": "0" }
+  //  "timestamp": { "lt": "1757376000000" }
+  //  ```
   //
-  //    ### Pagination
+  //  ### Pagination
   //
-  //    | Name   | Type   | Necessity | Description                                                                                         |
-  //    |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-  //    | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-  //    | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
-  //
+  //  | Name   | Type   | Necessity | Description                                                                                         |
+  //  |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
+  //  | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
+  //  | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
   rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Transactions For Identity"
+    };
+
     option (google.api.http) = {
       post: "/getTransactionsForIdentity"
       body: "*"
     };
   }
 
-  // Get Tick Data
-  //
-  // Get the tick data for one tick.
   rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Tick Data"
+      description: "Get the tick data for one tick."
+    };
+
     option (google.api.http) = {
       post: "/getTickData"
       body: "*"
     };
   }
 
-  // Get Epoch Computors
-  //
   // Get the list(s) of computors for one epoch. These are the computors (IDs signed by the arbitrator) that
   // are allowed to make quorum decisions. It is possible that this list changes within the epoch in case of
   // arbitrator intervention.
   rpc GetComputorsListsForEpoch(GetComputorListsForEpochRequest) returns (GetComputorListsForEpochResponse){
+    option (openapi.v3.operation) = {
+      summary: "Get Epoch Computors"
+    };
+
     option(google.api.http) = {
       post: "/getComputorListsForEpoch"
       body: "*"
     };
   }
 
-  // Get Last Processed Tick
-  //
   // Get the last processed tick and other processing information from the archive.
   // All data queried from the archive is only fully processed up to this tick.
   // Before calling the service you should check the last processed tick to be sure to get
   // valid data and do not request data for future ticks that are not processed yet. You can use
   // the epoch and initial tick information in the response to switch to a new interval.
   rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Last Processed Tick"
+    };
+
     option (google.api.http) = {
       get: "/getLastProcessedTick"
     };
   }
 
-  // Get Processed Tick Intervals
-  //
   // Get the tick intervals that are available in the archive. A new tick interval is typically
   // created on epoch change or network restart within the epoch. Use this endpoint to skip the
   // tick numbers that are not part of the intervals. This endpoint is only necessary for users
   // that need to process all available ticks. For most users it is enough to switch to a new
   // interval by using the `get last processed tick` endpoint.
   rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTickIntervalsResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Processed Tick Intervals"
+    };
+
     option (google.api.http) = {
       get: "/getProcessedTickIntervals"
       response_body: "processed_tick_intervals"
     };
   }
 
-  // Get Health
-  //
-  // Health check. This is for internal use only and can change any time. Do not rely on this endpoint.
   rpc GetHealth(google.protobuf.Empty) returns (HealthResponse) {
+    option (openapi.v3.operation) = {
+      summary: "Get Health"
+      description: "Health check. This is for internal use only and can change any time. Do not rely on this endpoint."
+    };
     option (google.api.http) = {
       get: "/health"
     };
   }
-
 }
