@@ -5,15 +5,22 @@ on:
     branches:
       - main
     paths:
-      - 'v2/api/archive-query-service/v2/query_services.swagger.json' # Only trigger if the swagger file changed
+      - 'v2/api/archive-query-service/v2/query_services.openapi.yaml' # Only trigger if the OpenAPI spec changed
 
 jobs:
   api-docs-update-trigger:
     runs-on: ubuntu-latest
     steps:
-      - name: Dispatch Event
+      - name: Dispatch to qubic/integration
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GH_PAT }}
           repository: qubic/integration
           event-type: api-docs-update
+
+      - name: Dispatch to qubic/docs
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          repository: qubic/docs
+          event-type: query-api-update
