@@ -33,4 +33,4 @@ jobs:
           context: ./legacy
           file: ./legacy/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v2:89-error-on-querying-ticks-endpoint-query-service-v1
+          tags: ghcr.io/qubic/archive-query-service-v1:89-error-on-querying-ticks-endpoint-query-service-v1
