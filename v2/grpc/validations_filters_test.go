@@ -12,8 +12,6 @@ const invalidId = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 func TestValidations_validateFilters_givenAllValid_thenNoError(t *testing.T) {
 	filters := map[string][]string{
 		"source":              {validId},
-		"source-exclude":      {validId},
-		"destination":         {validId},
 		"destination-exclude": {validId},
 		"amount":              {"100"},
 		"inputType":           {"42"},
@@ -24,15 +22,31 @@ func TestValidations_validateFilters_givenAllValid_thenNoError(t *testing.T) {
 
 func TestValidations_validateFilters_givenMultipleValidValues_thenNoError(t *testing.T) {
 	filters := map[string][]string{
-		"source":              {validId, validId},
-		"source-exclude":      {validId, validId},
-		"destination":         {validId, validId},
-		"destination-exclude": {validId, validId},
-		"amount":              {"100", "101"},
-		"inputType":           {"42", "43"},
+		"source-exclude": {validId, validId},
+		"destination":    {validId, validId},
+		"amount":         {"100", "101"},
+		"inputType":      {"42", "43"},
 	}
 	err := validateIdentityTransactionQueryFilters(filters)
 	require.NoError(t, err)
+}
+
+func TestValidations_validateFilters_givenConflictingSourceFilter_thenError(t *testing.T) {
+	filters := map[string][]string{
+		"source":         {validId, validId},
+		"source-exclude": {validId},
+	}
+	err := validateIdentityTransactionQueryFilters(filters)
+	require.Error(t, err)
+}
+
+func TestValidations_validateFilters_givenConflictingDestinationFilter_thenError(t *testing.T) {
+	filters := map[string][]string{
+		"destination":         {validId},
+		"destination-exclude": {validId, validId},
+	}
+	err := validateIdentityTransactionQueryFilters(filters)
+	require.Error(t, err)
 }
 
 func TestValidations_validateFilters_givenUnsupported_thenError(t *testing.T) {

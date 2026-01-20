@@ -66,6 +66,8 @@ func createFilters(filters map[string]string) (map[string][]string, error) {
 	return res, nil
 }
 
+const excludeSuffix = "-exclude"
+
 func validateIdentityTransactionQueryFilters(filters map[string][]string) error {
 	if len(filters) == 0 {
 		return nil
@@ -74,6 +76,13 @@ func validateIdentityTransactionQueryFilters(filters map[string][]string) error 
 	if len(filters) > len(allowedTermFilters) {
 		return errors.New("too many filters")
 	}
+
+	// it's not allowed to use a match-filter and a corresponding exclude-filter at the same time
+	if (filters[FilterSource] != nil && filters[FilterSourceExclude] != nil) ||
+		(filters[FilterDestination] != nil && filters[FilterDestinationExclude] != nil) {
+		return fmt.Errorf("conflicting filters")
+	}
+
 	for key, values := range filters {
 		switch key {
 		case FilterSource, FilterDestination, FilterSourceExclude, FilterDestinationExclude:
