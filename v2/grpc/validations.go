@@ -66,8 +66,6 @@ func createFilters(filters map[string]string) (map[string][]string, error) {
 	return res, nil
 }
 
-const excludeSuffix = "-exclude"
-
 func validateIdentityTransactionQueryFilters(filters map[string][]string) error {
 	if len(filters) == 0 {
 		return nil
