@@ -15,7 +15,7 @@ import (
 type TransactionServiceStub struct {
 	ctx          context.Context
 	identity     string
-	filters      map[string]string
+	filters      map[string][]string
 	ranges       map[string][]*entities.Range
 	transactions []*api.Transaction
 	hits         *entities.Hits
@@ -43,7 +43,7 @@ func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context,
 func (t *TransactionServiceStub) GetTransactionsForIdentity(
 	ctx context.Context,
 	identity string,
-	filters map[string]string,
+	filters map[string][]string,
 	ranges map[string][]*entities.Range,
 	_, _ uint32,
 ) (*entities.TransactionsResult, error) {
@@ -140,7 +140,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 	// verify tx service call
 	assert.Equal(t, ctx, txService.ctx)
 	assert.Equal(t, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", txService.identity)
-	assert.Equal(t, request.GetFilters(), txService.filters)
+	assert.Equal(t, map[string][]string{"inputType": {"1"}}, txService.filters)
 	assert.Equal(t, map[string][]*entities.Range{"amount": {
 		&entities.Range{Operation: "gte", Value: "1"},
 		&entities.Range{Operation: "lt", Value: "10000"},

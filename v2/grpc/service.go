@@ -25,7 +25,7 @@ type TransactionsService interface {
 	GetTransactionsForIdentity(
 		ctx context.Context,
 		identity string,
-		filters map[string]string,
+		filters map[string][]string,
 		ranges map[string][]*entities.Range,
 		from, size uint32,
 	) (*entities.TransactionsResult, error)
@@ -123,7 +123,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, filters, ranges, from, size)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}

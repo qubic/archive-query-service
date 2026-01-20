@@ -87,6 +87,14 @@ func Test_createFilters(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "empty source filter",
+			filters: map[string]string{
+				"source": "",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name: "empty value for other key",
 			filters: map[string]string{
 				"other": "  ",
