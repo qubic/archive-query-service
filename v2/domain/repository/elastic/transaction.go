@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/qubic/archive-query-service/v2/domain"
-	"github.com/qubic/archive-query-service/v2/entities"
 	"log"
 	"sort"
 	"strings"
+
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/domain"
+	"github.com/qubic/archive-query-service/v2/entities"
 )
 
 type transactionGetResponse struct {
@@ -85,7 +86,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	var result transactionsSearchResponse
 	err = r.performElasticSearch(ctx, r.txIndex, &query, &result)
 	if err != nil {
-		return nil, fmt.Errorf("performing elasting search: %w", err)
+		return nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
@@ -109,14 +110,9 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
-func (r *Repository) GetTransactionsForIdentity(
-	ctx context.Context,
-	identity string,
-	maxTick uint32,
-	filters map[string]string,
-	ranges map[string][]*entities.Range,
-	from, size uint32,
-) ([]*api.Transaction, *entities.Hits, error) {
+func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string]string, ranges map[string][]*entities.Range,
+	from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+
 	query, err := createIdentitiesQueryString(identity, filters, ranges, from, size, maxTick)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating query: %w", err)
@@ -150,12 +146,8 @@ func (r *Repository) GetTransactionsForIdentity(
 	return transactionHitsToAPITransactions(result.Hits.Hits), hits, nil
 }
 
-func createIdentitiesQueryString(
-	identity string,
-	filters map[string]string,
-	ranges map[string][]*entities.Range,
-	from, size, maxTick uint32,
-) (string, error) {
+func createIdentitiesQueryString(identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+
 	var query string
 
 	filterStrings := make([]string, 0, len(filters)+len(ranges)+1)
@@ -169,7 +161,7 @@ func createIdentitiesQueryString(
 	}
 	filterStrings = append(filterStrings, rangeFilterStrings...)
 
-	// in case we have source or destination filter the should clause still works
+	// in case we have a source or destination filter, the should clause still works
 	query = `{ 
       "query": {
 		"bool": {

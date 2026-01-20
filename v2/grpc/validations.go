@@ -4,15 +4,69 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/qubic/go-node-connector/types"
 )
 
-var allowedTermFilters = [4]string{"source", "destination", "amount", "inputType"}
+const (
+	FilterSource             = "source"
+	FilterSourceExclude      = "source-exclude"
+	FilterDestination        = "destination"
+	FilterDestinationExclude = "destination-exclude"
+	FilterAmount             = "amount"
+	FilterInputType          = "inputType"
+	FilterTickNumber         = "tickNumber"
+	FilterTimestamp          = "timestamp"
+)
 
-func validateIdentityTransactionQueryFilters(filters map[string]string) error {
+var allowedTermFilters = [6]string{FilterSource, FilterSourceExclude, FilterDestination, FilterDestinationExclude, FilterAmount, FilterInputType}
+
+const maxValuesPerFilter = 5
+
+func createFilters(filters map[string]string) (map[string][]string, error) {
+	res := make(map[string][]string)
+	for k, v := range filters {
+		shouldSplit := k == FilterSource || k == FilterDestination || k == FilterSourceExclude || k == FilterDestinationExclude
+
+		if !shouldSplit {
+			trimmed := strings.TrimSpace(v)
+			if trimmed == "" {
+				return nil, fmt.Errorf("filter %s contains an empty value", k)
+			}
+			res[k] = []string{trimmed}
+			continue
+		}
+
+		// count commas first to avoid input with many strings before splitting
+		valCount := strings.Count(v, ",")
+		if valCount >= maxValuesPerFilter {
+			return nil, fmt.Errorf("filter %s has more than 5 values", k)
+		}
+
+		split := strings.Split(v, ",")
+		values := make([]string, 0, len(split))
+		seen := make(map[string]bool)
+		for _, s := range split {
+			trimmed := strings.TrimSpace(s)
+			if trimmed == "" {
+				return nil, fmt.Errorf("filter %s contains an empty value", k)
+			}
+			if seen[trimmed] {
+				return nil, fmt.Errorf("filter %s contains duplicate value: %s", k, trimmed)
+			}
+			seen[trimmed] = true
+			values = append(values, trimmed)
+		}
+
+		res[k] = values
+	}
+	return res, nil
+}
+
+func validateIdentityTransactionQueryFilters(filters map[string][]string) error {
 	if len(filters) == 0 {
 		return nil
 	}
@@ -20,27 +74,28 @@ func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	if len(filters) > len(allowedTermFilters) {
 		return errors.New("too many filters")
 	}
-	for key, value := range filters {
+	for key, values := range filters {
 		switch key {
-		case "source":
-			err := validateIdentity(value)
-			if err != nil {
-				return fmt.Errorf("invalid source filter: %w", err)
+		case FilterSource, FilterDestination, FilterSourceExclude, FilterDestinationExclude:
+			for _, val := range values {
+				err := validateIdentity(val)
+				if err != nil {
+					return fmt.Errorf("invalid %s filter: %w", key, err)
+				}
 			}
-		case "destination":
-			err := validateIdentity(value)
-			if err != nil {
-				return fmt.Errorf("invalid destination filter: %w", err)
+		case FilterAmount:
+			for _, val := range values {
+				_, err := strconv.ParseUint(val, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid %s filter: %w", key, err)
+				}
 			}
-		case "amount":
-			_, err := strconv.ParseUint(value, 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid amount filter: %w", err)
-			}
-		case "inputType":
-			_, err := strconv.ParseUint(value, 10, 32)
-			if err != nil {
-				return fmt.Errorf("invalid inputType filter: %w", err)
+		case FilterInputType:
+			for _, val := range values {
+				_, err := strconv.ParseUint(val, 10, 32)
+				if err != nil {
+					return fmt.Errorf("invalid %s filter: %w", key, err)
+				}
 			}
 		default:
 			return fmt.Errorf("unsupported filter: [%s]", key)
@@ -49,9 +104,9 @@ func validateIdentityTransactionQueryFilters(filters map[string]string) error {
 	return nil
 }
 
-var allowedRanges = [4]string{"amount", "tickNumber", "inputType", "timestamp"}
+var allowedRanges = [4]string{FilterAmount, FilterTickNumber, FilterInputType, FilterTimestamp}
 
-func validateIdentityTransactionQueryRanges(filters map[string]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
+func validateIdentityTransactionQueryRanges(filters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
 	convertedRanges := map[string][]*entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
@@ -72,34 +127,18 @@ func validateIdentityTransactionQueryRanges(filters map[string]string, ranges ma
 
 	for key, value := range ranges {
 		switch key {
-		case "amount":
+		case FilterAmount, FilterTimestamp:
 			r, err := validateRange(value, 64)
 			if err != nil {
-				return nil, fmt.Errorf("invalid amount range: %w", err)
+				return nil, fmt.Errorf("invalid %s range: %w", key, err)
 			}
 			if len(r) > 0 {
 				convertedRanges[key] = r
 			}
-		case "tickNumber":
+		case FilterTickNumber, FilterInputType:
 			r, err := validateRange(value, 32)
 			if err != nil {
-				return nil, fmt.Errorf("invalid tickNumber range: %w", err)
-			}
-			if len(r) > 0 {
-				convertedRanges[key] = r
-			}
-		case "inputType":
-			r, err := validateRange(value, 32)
-			if err != nil {
-				return nil, fmt.Errorf("invalid inputType range: %w", err)
-			}
-			if len(r) > 0 {
-				convertedRanges[key] = r
-			}
-		case "timestamp":
-			r, err := validateRange(value, 64)
-			if err != nil {
-				return nil, fmt.Errorf("invalid timestamp range: %w", err)
+				return nil, fmt.Errorf("invalid %s range: %w", key, err)
 			}
 			if len(r) > 0 {
 				convertedRanges[key] = r

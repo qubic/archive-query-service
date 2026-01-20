@@ -101,12 +101,17 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid identity: %v", err)
 	}
 
-	err = validateIdentityTransactionQueryFilters(request.GetFilters())
+	filters, err := createFilters(request.GetFilters())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
+	}
+
+	err = validateIdentityTransactionQueryFilters(filters)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid filter: %v", err)
 	}
 
-	ranges, err := validateIdentityTransactionQueryRanges(request.GetFilters(), request.GetRanges())
+	ranges, err := validateIdentityTransactionQueryRanges(filters, request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
