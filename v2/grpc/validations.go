@@ -22,7 +22,7 @@ const (
 	FilterTimestamp          = "timestamp"
 )
 
-var allowedTermFilters = [6]string{FilterSource, FilterSourceExclude, FilterDestination, FilterDestinationExclude, FilterAmount, FilterInputType}
+var allowedTermFilters = [7]string{FilterSource, FilterSourceExclude, FilterDestination, FilterDestinationExclude, FilterAmount, FilterInputType, FilterTickNumber}
 
 const maxValuesPerIdentityFilter = 5
 const maxValueLengthPerIdentityFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
@@ -32,7 +32,34 @@ func createFilters(filters map[string]string) (map[string][]string, error) {
 	for k, v := range filters {
 		shouldSplit := k == FilterSource || k == FilterDestination || k == FilterSourceExclude || k == FilterDestinationExclude
 
-		if !shouldSplit {
+		if shouldSplit {
+			if len(v) > maxValueLengthPerIdentityFilter {
+				return nil, fmt.Errorf("filter %s exceeds maximum length", k)
+			}
+
+			// count commas first to avoid input with many strings before splitting
+			valCount := strings.Count(v, ",")
+			if valCount >= maxValuesPerIdentityFilter {
+				return nil, fmt.Errorf("filter %s has more than 5 values", k)
+			}
+
+			split := strings.Split(v, ",")
+			values := make([]string, 0, len(split))
+			seen := make(map[string]bool)
+			for _, s := range split {
+				trimmed := strings.TrimSpace(s)
+				if trimmed == "" {
+					return nil, fmt.Errorf("filter %s contains an empty value", k)
+				}
+				if seen[trimmed] {
+					return nil, fmt.Errorf("filter %s contains duplicate value: %s", k, trimmed)
+				}
+				seen[trimmed] = true
+				values = append(values, trimmed)
+			}
+
+			res[k] = values
+		} else {
 			trimmed := strings.TrimSpace(v)
 			if trimmed == "" {
 				return nil, fmt.Errorf("filter %s contains an empty value", k)
@@ -40,33 +67,6 @@ func createFilters(filters map[string]string) (map[string][]string, error) {
 			res[k] = []string{trimmed}
 			continue
 		}
-
-		if len(v) > maxValueLengthPerIdentityFilter {
-			return nil, fmt.Errorf("filter %s exceeds maximum length", k)
-		}
-
-		// count commas first to avoid input with many strings before splitting
-		valCount := strings.Count(v, ",")
-		if valCount >= maxValuesPerIdentityFilter {
-			return nil, fmt.Errorf("filter %s has more than 5 values", k)
-		}
-
-		split := strings.Split(v, ",")
-		values := make([]string, 0, len(split))
-		seen := make(map[string]bool)
-		for _, s := range split {
-			trimmed := strings.TrimSpace(s)
-			if trimmed == "" {
-				return nil, fmt.Errorf("filter %s contains an empty value", k)
-			}
-			if seen[trimmed] {
-				return nil, fmt.Errorf("filter %s contains duplicate value: %s", k, trimmed)
-			}
-			seen[trimmed] = true
-			values = append(values, trimmed)
-		}
-
-		res[k] = values
 	}
 	return res, nil
 }
@@ -96,13 +96,19 @@ func validateIdentityTransactionQueryFilters(filters map[string][]string) error 
 				}
 			}
 		case FilterAmount:
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s contains an invalid number of values: %d", key, len(values))
+			}
 			for _, val := range values {
 				_, err := strconv.ParseUint(val, 10, 64)
 				if err != nil {
 					return fmt.Errorf("invalid %s filter: %w", key, err)
 				}
 			}
-		case FilterInputType:
+		case FilterTickNumber, FilterInputType:
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s contains an invalid number of values: %d", key, len(values))
+			}
 			for _, val := range values {
 				_, err := strconv.ParseUint(val, 10, 32)
 				if err != nil {
