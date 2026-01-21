@@ -214,10 +214,9 @@ func getFilterStrings(filters map[string][]string) []string {
 	for _, k := range keys {
 		if len(filters[k]) > 1 {
 			filterStrings = append(filterStrings, fmt.Sprintf(`{"terms":{"%s":["%s"]}}`, k, strings.Join(filters[k], `","`)))
-		} else {
+		} else if len(filters[k]) == 1 {
 			filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, filters[k][0]))
 		}
-
 	}
 	return filterStrings
 }

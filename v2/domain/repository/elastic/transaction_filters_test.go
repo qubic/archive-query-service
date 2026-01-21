@@ -84,6 +84,11 @@ func Test_getFilterStrings(t *testing.T) {
 			want:    []string{},
 		},
 		{
+			name:    "single filter with no values",
+			filters: map[string][]string{"source": {}},
+			want:    []string{},
+		},
+		{
 			name: "single filter with single value",
 			filters: map[string][]string{
 				"source": {"identity1"},
