@@ -43,6 +43,16 @@ func Test_createFilters(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "single value for other keys",
+			filters: map[string]string{
+				"other": "  123 ",
+			},
+			want: map[string][]string{
+				"other": {"123"},
+			},
+			wantErr: false,
+		},
+		{
 			name: "no splitting for other keys",
 			filters: map[string]string{
 				"other": "value1,value2,value3",
@@ -55,10 +65,10 @@ func Test_createFilters(t *testing.T) {
 		{
 			name: "no splitting for other keys with spaces",
 			filters: map[string]string{
-				"another": "  value1, value2  ",
+				"another": "  value1, value2 3 ",
 			},
 			want: map[string][]string{
-				"another": {"value1, value2"},
+				"another": {"value1, value2 3"},
 			},
 			wantErr: false,
 		},
