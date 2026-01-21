@@ -96,20 +96,20 @@ func validateIdentityTransactionQueryFilters(filters map[string][]string) error 
 				}
 			}
 		case FilterAmount:
-			for i, val := range values {
-				if i > 0 {
-					return fmt.Errorf("filter %s contains more than one value", key)
-				}
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s contains an invalid number of values: %d", key, len(values))
+			}
+			for _, val := range values {
 				_, err := strconv.ParseUint(val, 10, 64)
 				if err != nil {
 					return fmt.Errorf("invalid %s filter: %w", key, err)
 				}
 			}
 		case FilterTickNumber, FilterInputType:
-			for i, val := range values {
-				if i > 0 {
-					return fmt.Errorf("filter %s contains more than one value", key)
-				}
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s contains an invalid number of values: %d", key, len(values))
+			}
+			for _, val := range values {
 				_, err := strconv.ParseUint(val, 10, 32)
 				if err != nil {
 					return fmt.Errorf("invalid %s filter: %w", key, err)

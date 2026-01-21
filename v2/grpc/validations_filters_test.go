@@ -65,19 +65,37 @@ func TestValidations_validateFilters_givenInvalidAmount(t *testing.T) {
 func TestValidations_validateFilters_givenMultipleAmounts(t *testing.T) {
 	filters := map[string][]string{"amount": {"1", "4"}}
 	err := validateIdentityTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "more than one value")
+	require.ErrorContains(t, err, "invalid number of values")
+}
+
+func TestValidations_validateFilters_givenEmptyAmounts(t *testing.T) {
+	filters := map[string][]string{"amount": {}}
+	err := validateIdentityTransactionQueryFilters(filters)
+	require.ErrorContains(t, err, "invalid number of values")
 }
 
 func TestValidations_validateFilters_givenMultipleInputTypes(t *testing.T) {
 	filters := map[string][]string{"inputType": {"1", "2"}}
 	err := validateIdentityTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "more than one value")
+	require.ErrorContains(t, err, "invalid number of values")
+}
+
+func TestValidations_validateFilters_givenEmptyInputType(t *testing.T) {
+	filters := map[string][]string{"inputType": {}}
+	err := validateIdentityTransactionQueryFilters(filters)
+	require.ErrorContains(t, err, "invalid number of values")
 }
 
 func TestValidations_validateFilters_givenMultipleTickNumbers(t *testing.T) {
 	filters := map[string][]string{"tickNumber": {"1", "2"}}
 	err := validateIdentityTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "more than one value")
+	require.ErrorContains(t, err, "invalid number of values")
+}
+
+func TestValidations_validateFilters_givenEmptyTickNumber(t *testing.T) {
+	filters := map[string][]string{"tickNumber": {}}
+	err := validateIdentityTransactionQueryFilters(filters)
+	require.ErrorContains(t, err, "invalid number of values")
 }
 
 func TestValidations_validateFilters_givenInvalidSource(t *testing.T) {
