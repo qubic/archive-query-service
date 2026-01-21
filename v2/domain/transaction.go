@@ -17,7 +17,7 @@ type TransactionRepository interface {
 		ctx context.Context,
 		identity string,
 		maxTick uint32,
-		filters map[string]string,
+		filters map[string][]string,
 		ranges map[string][]*entities.Range,
 		from, size uint32,
 	) ([]*api.Transaction, *entities.Hits, error)
@@ -49,17 +49,14 @@ func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, t
 	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
 }
 
-func (s *TransactionService) GetTransactionsForIdentity(
-	ctx context.Context,
-	identity string,
-	filters map[string]string,
-	ranges map[string][]*entities.Range,
-	from, size uint32,
-) (*entities.TransactionsResult, error) {
+func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string][]string,
+	ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error) {
+
 	status, err := s.statusFetcher(ctx)
 	if err != nil || status == nil || status.LastProcessedTick < 1 {
 		return nil, err
 	}
 	txs, hits, err := s.repo.GetTransactionsForIdentity(ctx, identity, status.LastProcessedTick, filters, ranges, from, size)
 	return &entities.TransactionsResult{LastProcessedTick: status.LastProcessedTick, Hits: hits, Transactions: txs}, err
+
 }

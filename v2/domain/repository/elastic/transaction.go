@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
-	"github.com/qubic/archive-query-service/v2/domain"
-	"github.com/qubic/archive-query-service/v2/entities"
 	"log"
 	"sort"
 	"strings"
+
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/domain"
+	"github.com/qubic/archive-query-service/v2/entities"
 )
 
 type transactionGetResponse struct {
@@ -85,7 +86,7 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	var result transactionsSearchResponse
 	err = r.performElasticSearch(ctx, r.txIndex, &query, &result)
 	if err != nil {
-		return nil, fmt.Errorf("performing elasting search: %w", err)
+		return nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
@@ -109,15 +110,10 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	return buf, nil
 }
 
-func (r *Repository) GetTransactionsForIdentity(
-	ctx context.Context,
-	identity string,
-	maxTick uint32,
-	filters map[string]string,
-	ranges map[string][]*entities.Range,
-	from, size uint32,
-) ([]*api.Transaction, *entities.Hits, error) {
-	query, err := createIdentitiesQueryString(identity, filters, ranges, from, size, maxTick)
+func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string][]string, ranges map[string][]*entities.Range,
+	from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+
+	query, err := createIdentitiesQuery(identity, filters, ranges, from, size, maxTick)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating query: %w", err)
 	}
@@ -150,26 +146,28 @@ func (r *Repository) GetTransactionsForIdentity(
 	return transactionHitsToAPITransactions(result.Hits.Hits), hits, nil
 }
 
-func createIdentitiesQueryString(
-	identity string,
-	filters map[string]string,
-	ranges map[string][]*entities.Range,
-	from, size, maxTick uint32,
-) (string, error) {
+func createIdentitiesQuery(identity string, filters map[string][]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+
 	var query string
 
-	filterStrings := make([]string, 0, len(filters)+len(ranges)+1)
+	includeFilters, excludeFilters := splitFilters(filters)
 
+	filterStrings := make([]string, 0, len(includeFilters)+len(ranges)+1)
 	// restrict to max tick (we don't care about potential duplicate tickNumber range filter)
 	filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
-	filterStrings = append(filterStrings, getFilterStrings(filters)...)
+	// normal filters
+	filterStrings = append(filterStrings, getFilterStrings(includeFilters)...)
+	// append range filters
 	rangeFilterStrings, err := getRangeFilterStrings(ranges)
 	if err != nil {
 		return "", err
 	}
 	filterStrings = append(filterStrings, rangeFilterStrings...)
 
-	// in case we have source or destination filter the should clause still works
+	// filters for excluding results
+	excludeFilterStrings := getFilterStrings(excludeFilters)
+
+	// in case we have a source or destination filter, the should clause still works
 	query = `{ 
       "query": {
 		"bool": {
@@ -178,7 +176,8 @@ func createIdentitiesQueryString(
 			{ "term":{"destination":"%s"} }
 		  ],
 		  "minimum_should_match": 1,
-		  "filter": [ %s ]
+		  "filter": [ %s ],
+          "must_not": [ %s ]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -187,16 +186,37 @@ func createIdentitiesQueryString(
 	  "track_total_hits": %d
 	}`
 
-	query = fmt.Sprintf(query, identity, identity, strings.Join(filterStrings, ","), from, size, maxTrackTotalHits)
+	query = fmt.Sprintf(query, identity, identity,
+		strings.Join(filterStrings, ","), strings.Join(excludeFilterStrings, ","),
+		from, size, maxTrackTotalHits)
 	return query, nil
 }
 
-func getFilterStrings(filters map[string]string) []string {
+const excludeSuffix = "-exclude"
+
+func splitFilters(filters map[string][]string) (map[string][]string, map[string][]string) {
+	includeFilters := make(map[string][]string)
+	excludeFilters := make(map[string][]string)
+	for k, v := range filters {
+		if strings.HasSuffix(k, excludeSuffix) {
+			excludeFilters[strings.TrimSuffix(k, excludeSuffix)] = v
+		} else {
+			includeFilters[k] = v
+		}
+	}
+	return includeFilters, excludeFilters
+}
+
+func getFilterStrings(filters map[string][]string) []string {
 	keys := getSortedKeys(filters) // sort for a deterministic filter order
 
 	filterStrings := make([]string, 0, len(filters))
 	for _, k := range keys {
-		filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, filters[k]))
+		if len(filters[k]) > 1 {
+			filterStrings = append(filterStrings, fmt.Sprintf(`{"terms":{"%s":["%s"]}}`, k, strings.Join(filters[k], `","`)))
+		} else if len(filters[k]) == 1 {
+			filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, filters[k][0]))
+		}
 	}
 	return filterStrings
 }

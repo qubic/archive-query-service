@@ -6,18 +6,19 @@ Accept: application/json
 {
     "identity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
     "filters": {
-           "inputType": "0"
+           "inputType": "0",
+           "source-exclude": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ, HOPUKLUXCKGDDEBSYRRPJTSFYEKBTDYCJSVZJLEIZEBJCDLAVOCMKMTBTDLB"
     },
     "ranges": {
         "amount": {
-            "gt": "1000000"
+            "gt": "1000"
         },
         "tickNumber": {
-            "gte": "25563000"
+            "lte": "25563000"
         }
     },
     "pagination": {
-      "size": 3
+      "size": 10
     }
 }
 

@@ -59,7 +59,7 @@ func (mr *MockTransactionsServiceMockRecorder) GetTransactionByHash(ctx, hash an
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error) {
+func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string][]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, filters, ranges, from, size)
 	ret0, _ := ret[0].(*entities.TransactionsResult)

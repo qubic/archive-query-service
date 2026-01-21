@@ -5,6 +5,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -16,9 +20,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcelastic "github.com/testcontainers/testcontainers-go/modules/elasticsearch"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"strings"
-	"testing"
-	"time"
 )
 
 const txHash1 = "zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz"
@@ -234,8 +235,8 @@ func (t *transactionsSuite) Test_GetIdentityTransactions() {
 	txs, hits, err := t.repo.GetTransactionsForIdentity(t.ctx,
 		"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
 		200,
-		map[string]string{"destination": "KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}, // excludes tx 3
-		map[string][]*entities.Range{"tickNumber": {{Operation: "lt", Value: "100"}}},                    // does not match tx 4
+		map[string][]string{"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}}, // excludes tx 3
+		map[string][]*entities.Range{"tickNumber": {{Operation: "lt", Value: "100"}}},                        // does not match tx 4
 		0, 10,
 	)
 	require.NoError(t.T(), err, "getting transactions for identity")
@@ -249,5 +250,30 @@ func (t *transactionsSuite) Test_GetIdentityTransactions() {
 	diff1 := cmp.Diff(transactionToAPITransaction(testTx2), txs[0], cmpopts.IgnoreUnexported(api.Transaction{}))
 	assert.Empty(t.T(), diff1, "queried transaction 1 should match. diff: %s", diff1)
 	diff2 := cmp.Diff(transactionToAPITransaction(testTx1), txs[1], cmpopts.IgnoreUnexported(api.Transaction{}))
-	assert.Empty(t.T(), diff2, "queried transaction 1 should match. diff: %s", diff2)
+	assert.Empty(t.T(), diff2, "queried transaction 2 should match. diff: %s", diff2)
+}
+
+func (t *transactionsSuite) Test_GetIdentityTransactions_GivenExcludeFilters() {
+	txs, hits, err := t.repo.GetTransactionsForIdentity(t.ctx,
+		"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
+		200,
+		map[string][]string{
+			"destination":    {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}, // excludes tx 3
+			"source-exclude": {"ENYTRGQOXEUCDFYZUSJTKTKJIZJABAHZQQANAQCPDBKJRDAZQIFMGIRDWGPO"}, // excludes tx 1
+		},
+		map[string][]*entities.Range{},
+		0, 10,
+	)
+	require.NoError(t.T(), err, "getting transactions for identity with exclude filters")
+	require.Len(t.T(), txs, 2)
+	assert.Equal(t.T(), &entities.Hits{
+		Total:    2,
+		Relation: "eq",
+	}, hits)
+
+	// sorted by tick number desc
+	diff1 := cmp.Diff(transactionToAPITransaction(testTx4), txs[0], cmpopts.IgnoreUnexported(api.Transaction{}))
+	assert.Empty(t.T(), diff1, "result 1 should match transaction 4. diff: %s", diff1)
+	diff2 := cmp.Diff(transactionToAPITransaction(testTx2), txs[1], cmpopts.IgnoreUnexported(api.Transaction{}))
+	assert.Empty(t.T(), diff2, "result 2 should match transaction 2. diff: %s", diff2)
 }

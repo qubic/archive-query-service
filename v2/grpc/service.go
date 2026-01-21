@@ -25,7 +25,7 @@ type TransactionsService interface {
 	GetTransactionsForIdentity(
 		ctx context.Context,
 		identity string,
-		filters map[string]string,
+		filters map[string][]string,
 		ranges map[string][]*entities.Range,
 		from, size uint32,
 	) (*entities.TransactionsResult, error)
@@ -101,12 +101,17 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid identity: %v", err)
 	}
 
-	err = validateIdentityTransactionQueryFilters(request.GetFilters())
+	filters, err := createFilters(request.GetFilters())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
+	}
+
+	err = validateIdentityTransactionQueryFilters(filters)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid filter: %v", err)
 	}
 
-	ranges, err := validateIdentityTransactionQueryRanges(request.GetFilters(), request.GetRanges())
+	ranges, err := validateIdentityTransactionQueryRanges(filters, request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
@@ -118,7 +123,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, request.GetFilters(), ranges, from, size)
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, filters, ranges, from, size)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}

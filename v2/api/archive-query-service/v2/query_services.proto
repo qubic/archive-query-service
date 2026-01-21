@@ -93,10 +93,15 @@ service ArchiveQueryService {
   //
   //  | Name        |  Type   | Format                 | Description                                                        |
   //  |-------------|---------|------------------------|--------------------------------------------------------------------|
-  //  | source      |  string | 60 character identity  | Only find transactions that were sent from the specified identity. |
-  //  | destination |  string | 60 character identity  | Only find transactions that were sent to the specified identity.   |
-  //  | amount      |  string | Numeric                | Only find transactions with the specified amount.                  |
-  //  | inputType   |  string | Numeric                | Only find transactions with the specified input type.              |
+  //  | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions that were sent from the specified identities. |
+  //  | source-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent from the specified identities. |
+  //  | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were sent to the specified identities.   |
+  //  | destination-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent to the specified identities.   |
+  //  | amount      | string | Numeric                | Only find transactions with the specified amount.                  |
+  //  | inputType   | string | Numeric                | Only find transactions with the specified input type.              |
+  //
+  // `source` and `source-exclude` are mutually exclusive.
+  // `destination` and `destination-exclude` are mutually exclusive.
   //
   //  #### Examples
   //
