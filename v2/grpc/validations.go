@@ -24,8 +24,8 @@ const (
 
 var allowedTermFilters = [6]string{FilterSource, FilterSourceExclude, FilterDestination, FilterDestinationExclude, FilterAmount, FilterInputType}
 
-const maxValuesPerIdFilter = 5
-const maxValueLengthPerIdFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
+const maxValuesPerIdentityFilter = 5
+const maxValueLengthPerIdentityFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
 
 func createFilters(filters map[string]string) (map[string][]string, error) {
 	res := make(map[string][]string)
@@ -41,13 +41,13 @@ func createFilters(filters map[string]string) (map[string][]string, error) {
 			continue
 		}
 
-		if len(v) > maxValueLengthPerIdFilter {
+		if len(v) > maxValueLengthPerIdentityFilter {
 			return nil, fmt.Errorf("filter %s exceeds maximum length", k)
 		}
 
 		// count commas first to avoid input with many strings before splitting
 		valCount := strings.Count(v, ",")
-		if valCount >= maxValuesPerIdFilter {
+		if valCount >= maxValuesPerIdentityFilter {
 			return nil, fmt.Errorf("filter %s has more than 5 values", k)
 		}
 
