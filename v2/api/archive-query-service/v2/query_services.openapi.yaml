@@ -144,6 +144,7 @@ paths:
                   | destination-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent to the specified identities.   |
                   | amount      | string | Numeric                | Only find transactions with the specified amount.                  |
                   | inputType   | string | Numeric                | Only find transactions with the specified input type.              |
+                  | tickNumber  | string | Numeric                | Only find transactions with the specified tick number.             |
 
                  `source` and `source-exclude` are mutually exclusive.
                  `destination` and `destination-exclude` are mutually exclusive.
