@@ -70,6 +70,8 @@ message GetTransactionByHashResponse {
 message GetTransactionsForTickRequest {
   // the tick number to get the transactions for.
   uint32 tick_number = 1 [(openapi.v3.property) = {description:"The tick number to get the transactions for."}];
+  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: source, destination, amount, inputType"}];
+  map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType"}];
 }
 
 // GetTransactionsForTickResponse

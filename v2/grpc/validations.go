@@ -23,6 +23,7 @@ const (
 )
 
 var allowedTermFilters = [7]string{FilterSource, FilterSourceExclude, FilterDestination, FilterDestinationExclude, FilterAmount, FilterInputType, FilterTickNumber}
+var allowedTickTermFilters = [4]string{FilterSource, FilterDestination, FilterAmount, FilterInputType}
 
 const maxValuesPerIdentityFilter = 5
 const maxValueLengthPerIdentityFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
@@ -123,6 +124,7 @@ func validateIdentityTransactionQueryFilters(filters map[string][]string) error 
 }
 
 var allowedRanges = [4]string{FilterAmount, FilterTickNumber, FilterInputType, FilterTimestamp}
+var allowedTickRanges = [2]string{FilterAmount, FilterInputType}
 
 func validateIdentityTransactionQueryRanges(filters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
 	convertedRanges := map[string][]*entities.Range{}
@@ -171,6 +173,106 @@ func validateIdentityTransactionQueryRanges(filters map[string][]string, ranges 
 
 func validateIdentity(identity string) error {
 	return validateDigest(identity, false)
+}
+
+// createTickFilters creates filters from a map without splitting on commas (single values only).
+// This is used for GetTransactionsForTick which only accepts single values per filter.
+func createTickFilters(filters map[string]string) (map[string][]string, error) {
+	res := make(map[string][]string)
+	for k, v := range filters {
+		trimmed := strings.TrimSpace(v)
+		if trimmed == "" {
+			return nil, fmt.Errorf("filter %s contains an empty value", k)
+		}
+		res[k] = []string{trimmed}
+	}
+	return res, nil
+}
+
+func validateTickTransactionQueryFilters(filters map[string][]string) error {
+	if len(filters) == 0 {
+		return nil
+	}
+
+	if len(filters) > len(allowedTickTermFilters) {
+		return errors.New("too many filters")
+	}
+
+	for key, values := range filters {
+		switch key {
+		case FilterSource, FilterDestination:
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s must have exactly one value", key)
+			}
+			err := validateIdentity(values[0])
+			if err != nil {
+				return fmt.Errorf("invalid %s filter: %w", key, err)
+			}
+		case FilterAmount:
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s contains an invalid number of values: %d", key, len(values))
+			}
+			_, err := strconv.ParseUint(values[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid %s filter: %w", key, err)
+			}
+		case FilterInputType:
+			if len(values) != 1 {
+				return fmt.Errorf("filter %s contains an invalid number of values: %d", key, len(values))
+			}
+			_, err := strconv.ParseUint(values[0], 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid %s filter: %w", key, err)
+			}
+		default:
+			return fmt.Errorf("unsupported filter: [%s]", key)
+		}
+	}
+	return nil
+}
+
+func validateTickTransactionQueryRanges(filters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
+	convertedRanges := map[string][]*entities.Range{}
+	if len(ranges) == 0 {
+		return nil, nil
+	}
+	if len(ranges) > len(allowedTickRanges) {
+		return nil, errors.New("too many ranges")
+	}
+
+	if filters != nil {
+		for key := range ranges {
+			_, ok := filters[key]
+			if ok {
+				return nil, fmt.Errorf("range [%s] is already declared as filter", key)
+			}
+		}
+	}
+
+	for key, value := range ranges {
+		switch key {
+		case FilterAmount:
+			r, err := validateRange(value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid %s range: %w", key, err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
+			}
+		case FilterInputType:
+			r, err := validateRange(value, 32)
+			if err != nil {
+				return nil, fmt.Errorf("invalid %s range: %w", key, err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
+			}
+		default:
+			return nil, fmt.Errorf("unsupported range: [%s]", key)
+		}
+	}
+
+	return convertedRanges, nil
 }
 
 func validateDigest(digest string, isLowerCase bool) error {

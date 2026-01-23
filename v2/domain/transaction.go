@@ -12,7 +12,7 @@ import (
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/transactions.mock.go -package=mock -source transaction.go
 type TransactionRepository interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
-	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
+	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error)
 	GetTransactionsForIdentity(
 		ctx context.Context,
 		identity string,
@@ -45,8 +45,8 @@ func (s *TransactionService) GetTransactionByHash(ctx context.Context, hash stri
 	return tx, err
 }
 
-func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error) {
-	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber)
+func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber, filters, ranges)
 }
 
 func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string][]string,
