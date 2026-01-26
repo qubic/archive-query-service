@@ -20,11 +20,6 @@ func (r *GetTickDataRequest) GetCacheKey() (string, error) {
 }
 
 func (r *GetTransactionsForTickRequest) GetCacheKey() (string, error) {
-	// For backward compatibility, use simple key when no filters/ranges
-	if len(r.Filters) == 0 && len(r.Ranges) == 0 {
-		return getTransactionsForTickPrefix + ":" + strconv.FormatUint(uint64(r.TickNumber), 10), nil
-	}
-
 	// With filters/ranges, use hash of deterministic protobuf marshal
 	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(r)
 	if err != nil {

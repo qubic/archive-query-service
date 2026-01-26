@@ -97,16 +97,6 @@ func Test_GetCacheKeyNotIdenticalRequestDifferentKey(t *testing.T) {
 	require.NotEmpty(t, diff, "serialized requests should not be equal")
 }
 
-func Test_GetTransactionsForTickRequest_GetCacheKey_NoFilters(t *testing.T) {
-	req := GetTransactionsForTickRequest{
-		TickNumber: 12345,
-	}
-
-	key, err := req.GetCacheKey()
-	require.NoError(t, err)
-	require.Equal(t, "ttfr:12345", key, "simple key format for requests without filters")
-}
-
 func Test_GetTransactionsForTickRequest_GetCacheKey_WithFilters(t *testing.T) {
 	req := GetTransactionsForTickRequest{
 		TickNumber: 12345,
