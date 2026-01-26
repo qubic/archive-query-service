@@ -41,11 +41,11 @@ type ArchiveQueryServiceClient interface {
 	//
 	// ###  Request structure
 	//
-	// | Name       | Type               | Necessity | Description                                                                                                       |
-	// |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
-	// | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
-	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
+	// | Name       | Type               | Necessity | Description                                     |
+	// |------------|--------------------|-----------|-------------------------------------------------|
+	// | identity   | string             | required  | 60 characters uppercase identity.               |
+	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.  |
+	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range. |
 	//
 	// ### Filters
 	//
@@ -91,12 +91,12 @@ type ArchiveQueryServiceClient interface {
 	//
 	// ###  Request structure
 	//
-	// | Name       | Type               | Necessity | Description                                                                                                       |
-	// |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
-	// | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
-	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
-	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
+	// | Name       | Type               | Necessity | Description                                                                    |
+	// |------------|--------------------|-----------|--------------------------------------------------------------------------------|
+	// | identity   | string             | required  | 60 characters uppercase identity.                                              |
+	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.                                 |
+	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.                                |
+	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.  |
 	//
 	// Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
 	//
@@ -290,11 +290,11 @@ type ArchiveQueryServiceServer interface {
 	//
 	// ###  Request structure
 	//
-	// | Name       | Type               | Necessity | Description                                                                                                       |
-	// |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
-	// | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
-	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
+	// | Name       | Type               | Necessity | Description                                     |
+	// |------------|--------------------|-----------|-------------------------------------------------|
+	// | identity   | string             | required  | 60 characters uppercase identity.               |
+	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.  |
+	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range. |
 	//
 	// ### Filters
 	//
@@ -340,12 +340,12 @@ type ArchiveQueryServiceServer interface {
 	//
 	// ###  Request structure
 	//
-	// | Name       | Type               | Necessity | Description                                                                                                       |
-	// |------------|--------------------|-----------|-------------------------------------------------------------------------------------------------------------------|
-	// | identity   | string             | required  | 60 characters uppercase identity.                                                                                 |
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.<br/> Allowed fields are: source, destination, amount, inputType    |
-	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.<br/> Allowed fields are: amount, tickNumber, inputType, timestamp |
-	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.                                     |
+	// | Name       | Type               | Necessity | Description                                                                    |
+	// |------------|--------------------|-----------|--------------------------------------------------------------------------------|
+	// | identity   | string             | required  | 60 characters uppercase identity.                                              |
+	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.                                 |
+	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.                                |
+	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.  |
 	//
 	// Without filters and ranges all transactions from and to that identity ordered by tick number descending are returned.
 	//
