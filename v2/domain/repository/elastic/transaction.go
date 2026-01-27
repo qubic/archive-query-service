@@ -77,8 +77,8 @@ func (r *Repository) GetTransactionByHash(_ context.Context, hash string) (*api.
 	return transactionToAPITransaction(result.Source), nil
 }
 
-func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error) {
-	query, err := createTickTransactionsQuery(tickNumber)
+func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+	query, err := createTickTransactionsQuery(tickNumber, filters, ranges)
 	if err != nil {
 		return nil, fmt.Errorf("creating query: %w", err)
 	}
@@ -91,21 +91,35 @@ func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumbe
 	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
 
-func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
-	query := map[string]interface{}{
-		"track_total_hits": "true",
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"tickNumber": tick,
-			},
-		},
-		"size": 1024,
+func createTickTransactionsQuery(tick uint32, filters map[string][]string, ranges map[string][]*entities.Range) (bytes.Buffer, error) {
+	// Always include tick number as the first filter
+	filterStrings := []string{fmt.Sprintf(`{"term":{"tickNumber":%d}}`, tick)}
+
+	if len(filters) > 0 {
+		filterStrings = append(filterStrings, getFilterStrings(filters)...)
 	}
 
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("encoding query: %w", err)
+	if len(ranges) > 0 {
+		rangeFilterStrings, err := getRangeFilterStrings(ranges)
+		if err != nil {
+			return bytes.Buffer{}, fmt.Errorf("creating range filters: %w", err)
+		}
+		filterStrings = append(filterStrings, rangeFilterStrings...)
 	}
+
+	// Build the bool query with filter clause
+	queryStr := fmt.Sprintf(`{
+		"track_total_hits": true,
+		"query": {
+			"bool": {
+				"filter": [%s]
+			}
+		},
+		"size": 1024
+	}`, strings.Join(filterStrings, ","))
+
+	var buf bytes.Buffer
+	buf.WriteString(queryStr)
 
 	return buf, nil
 }

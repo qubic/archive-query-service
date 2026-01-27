@@ -20,7 +20,14 @@ func (r *GetTickDataRequest) GetCacheKey() (string, error) {
 }
 
 func (r *GetTransactionsForTickRequest) GetCacheKey() (string, error) {
-	return getTransactionsForTickPrefix + ":" + strconv.FormatUint(uint64(r.TickNumber), 10), nil
+	// With filters/ranges, use hash of deterministic protobuf marshal
+	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(r)
+	if err != nil {
+		return "", fmt.Errorf("marshalling request: %w", err)
+	}
+
+	sum := sha256.Sum256(b)
+	return getTransactionsForTickPrefix + ":" + hex.EncodeToString(sum[:]), nil
 }
 
 func (r *GetTransactionsForIdentityRequest) GetCacheKey() (string, error) {

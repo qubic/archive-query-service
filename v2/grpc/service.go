@@ -21,7 +21,7 @@ var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
-	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32) ([]*api.Transaction, error)
+	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error)
 	GetTransactionsForIdentity(
 		ctx context.Context,
 		identity string,
@@ -77,7 +77,22 @@ func (s *ArchiveQueryService) GetTransactionByHash(ctx context.Context, req *api
 }
 
 func (s *ArchiveQueryService) GetTransactionsForTick(ctx context.Context, req *api.GetTransactionsForTickRequest) (*api.GetTransactionsForTickResponse, error) {
-	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber)
+	filters, err := createTickFilters(req.GetFilters())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
+	}
+
+	err = validateTickTransactionQueryFilters(filters)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid filter: %v", err)
+	}
+
+	ranges, err := validateTickTransactionQueryRanges(filters, req.GetRanges())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
+	}
+
+	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, filters, ranges)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for tick [%d]", req.GetTickNumber()), err)
 	}

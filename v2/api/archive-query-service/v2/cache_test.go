@@ -96,3 +96,93 @@ func Test_GetCacheKeyNotIdenticalRequestDifferentKey(t *testing.T) {
 	diff := cmp.Diff(firstSerialized, secondSerialized)
 	require.NotEmpty(t, diff, "serialized requests should not be equal")
 }
+
+func Test_GetTransactionsForTickRequest_GetCacheKey_WithFilters(t *testing.T) {
+	req := GetTransactionsForTickRequest{
+		TickNumber: 12345,
+		Filters: map[string]string{
+			"source": "SOMEIDENTITY",
+		},
+	}
+
+	key, err := req.GetCacheKey()
+	require.NoError(t, err)
+	require.Contains(t, key, "ttfr:", "key should have correct prefix")
+	require.NotEqual(t, "ttfr:12345", key, "key should use hash when filters present")
+}
+
+func Test_GetTransactionsForTickRequest_GetCacheKey_WithRanges(t *testing.T) {
+	req := GetTransactionsForTickRequest{
+		TickNumber: 12345,
+		Ranges: map[string]*Range{
+			"amount": {
+				LowerBound: &Range_Gte{Gte: "1000"},
+			},
+		},
+	}
+
+	key, err := req.GetCacheKey()
+	require.NoError(t, err)
+	require.Contains(t, key, "ttfr:", "key should have correct prefix")
+	require.NotEqual(t, "ttfr:12345", key, "key should use hash when ranges present")
+}
+
+func Test_GetTransactionsForTickRequest_GetCacheKey_IdenticalRequestsSameKey(t *testing.T) {
+	first := GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters: map[string]string{
+			"source": "ID1",
+			"amount": "100",
+		},
+		Ranges: map[string]*Range{
+			"inputType": {
+				LowerBound: &Range_Gt{Gt: "0"},
+			},
+		},
+	}
+
+	second := GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters: map[string]string{
+			"amount": "100",
+			"source": "ID1",
+		},
+		Ranges: map[string]*Range{
+			"inputType": {
+				LowerBound: &Range_Gt{Gt: "0"},
+			},
+		},
+	}
+
+	firstKey, err := first.GetCacheKey()
+	require.NoError(t, err)
+
+	secondKey, err := second.GetCacheKey()
+	require.NoError(t, err)
+
+	require.Equal(t, firstKey, secondKey, "identical requests should have same cache key")
+}
+
+func Test_GetTransactionsForTickRequest_GetCacheKey_DifferentRequestsDifferentKey(t *testing.T) {
+	first := GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters: map[string]string{
+			"source": "ID1",
+		},
+	}
+
+	second := GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters: map[string]string{
+			"source": "ID2",
+		},
+	}
+
+	firstKey, err := first.GetCacheKey()
+	require.NoError(t, err)
+
+	secondKey, err := second.GetCacheKey()
+	require.NoError(t, err)
+
+	require.NotEqual(t, firstKey, secondKey, "different requests should have different cache keys")
+}
