@@ -11,7 +11,7 @@ import "openapiv3/annotations.proto";
 option (openapi.v3.document) = {
   info: {
     title: "Qubic Query API"
-    description: "API for querying historical Qubic blockchain data including transactions, ticks, and computor lists."
+    description: "API for querying historical Qubic ledger data."
     version: "1.0.0"
   }
   servers: [
@@ -26,7 +26,7 @@ option (openapi.v3.document) = {
   tags:[
     {
       name: "Ticks"
-      description: "Query tick data and processing information from the archive."
+      description: "Query tick data from the archive."
     },
     {
       name: "Transactions"
@@ -35,6 +35,10 @@ option (openapi.v3.document) = {
     {
       name: "Network"
       description: "Network status and computor information."
+    },
+    {
+      name: "Archive"
+      description: "Archive processing status and coverage information."
     }
   ]
 };
@@ -249,7 +253,7 @@ service ArchiveQueryService {
   // the epoch and initial tick information in the response to switch to a new interval.
   rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
     option (openapi.v3.operation) = {
-      tags: ["Ticks"]
+      tags: ["Archive"]
       summary: "Get Last Processed Tick"
     };
 
@@ -265,7 +269,7 @@ service ArchiveQueryService {
   // interval by using the `get last processed tick` endpoint.
   rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTickIntervalsResponse) {
     option (openapi.v3.operation) = {
-      tags: ["Ticks"]
+      tags: ["Archive"]
       summary: "Get Processed Tick Intervals"
     };
 
