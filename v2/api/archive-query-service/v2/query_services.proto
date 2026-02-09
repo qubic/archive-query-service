@@ -11,7 +11,7 @@ import "openapiv3/annotations.proto";
 option (openapi.v3.document) = {
   info: {
     title: "Qubic Query API"
-    description: "API for querying archived Qubic data."
+    description: "API for querying historical Qubic ledger data."
     version: "1.0.0"
   }
   servers: [
@@ -25,18 +25,20 @@ option (openapi.v3.document) = {
   }
   tags:[
     {
-      name: "ArchiveQueryService"
-      description: "Access historical Qubic blockchain data including transactions, ticks, and computor lists."
-      external_docs: {
-        description: "GitHub repository"
-        url: "https://github.com/qubic/archive-query-service/"
-      }
-      specification_extension: {
-        name: "x-displayName"
-        value: {
-          yaml: "Query API"
-        }
-      }
+      name: "Ticks"
+      description: "Query tick data from the archive."
+    },
+    {
+      name: "Transactions"
+      description: "Search and retrieve transaction history."
+    },
+    {
+      name: "Network"
+      description: "Network status and computor information."
+    },
+    {
+      name: "Archive"
+      description: "Archive processing status and coverage information."
     }
   ]
 };
@@ -46,6 +48,7 @@ service ArchiveQueryService {
 
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
     option (openapi.v3.operation) = {
+      tags: ["Transactions"]
       summary: "Get Transaction By Hash"
       description: "Get a single transaction by its hash."
     };
@@ -108,6 +111,7 @@ service ArchiveQueryService {
   // For examples how to use filters and ranges see the GetTransactionsForIdentity endpoint documentation.
   rpc GetTransactionsForTick(GetTransactionsForTickRequest) returns (GetTransactionsForTickResponse) {
     option (openapi.v3.operation) = {
+      tags: ["Transactions"]
       summary: "Get Transactions For Tick"
     };
 
@@ -204,6 +208,7 @@ service ArchiveQueryService {
   // | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
   rpc GetTransactionsForIdentity(GetTransactionsForIdentityRequest) returns (GetTransactionsForIdentityResponse) {
     option (openapi.v3.operation) = {
+      tags: ["Transactions"]
       summary: "Get Transactions For Identity"
     };
 
@@ -215,6 +220,7 @@ service ArchiveQueryService {
 
   rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
     option (openapi.v3.operation) = {
+      tags: ["Ticks"]
       summary: "Get Tick Data"
       description: "Get the tick data for one tick."
     };
@@ -230,6 +236,7 @@ service ArchiveQueryService {
   // arbitrator intervention.
   rpc GetComputorsListsForEpoch(GetComputorListsForEpochRequest) returns (GetComputorListsForEpochResponse){
     option (openapi.v3.operation) = {
+      tags: ["Network"]
       summary: "Get Epoch Computors"
     };
 
@@ -246,6 +253,7 @@ service ArchiveQueryService {
   // the epoch and initial tick information in the response to switch to a new interval.
   rpc GetLastProcessedTick(google.protobuf.Empty) returns (GetLastProcessedTickResponse) {
     option (openapi.v3.operation) = {
+      tags: ["Archive"]
       summary: "Get Last Processed Tick"
     };
 
@@ -261,6 +269,7 @@ service ArchiveQueryService {
   // interval by using the `get last processed tick` endpoint.
   rpc GetProcessedTickIntervals(google.protobuf.Empty) returns (GetProcessedTickIntervalsResponse) {
     option (openapi.v3.operation) = {
+      tags: ["Archive"]
       summary: "Get Processed Tick Intervals"
     };
 
