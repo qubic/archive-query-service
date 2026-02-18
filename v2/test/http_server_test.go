@@ -57,8 +57,6 @@ func (s *HTTPServerTestSuite) TearDownSuite() {
 	}
 }
 
-var allOneofKeys = []string{"quTransfer", "assetIssuance", "assetOwnershipChange", "assetPossessionChange", "burning", "contractReserveDeduction"}
-
 func (s *HTTPServerTestSuite) postGetEvents(body string) (map[string]interface{}, int) {
 	t := s.T()
 	t.Helper()
@@ -70,47 +68,6 @@ func (s *HTTPServerTestSuite) postGetEvents(body string) (map[string]interface{}
 	var result map[string]interface{}
 	require.NoError(t, json.Unmarshal(data, &result))
 	return result, resp.StatusCode
-}
-
-func requireEventJSONFields(
-	t *testing.T,
-	eventMap map[string]interface{},
-	expectedCommon map[string]interface{},
-	expectedOneofKey string,
-	expectedOneofData map[string]interface{},
-	allKeys []string,
-) {
-	t.Helper()
-
-	// Build actual common-field map from eventMap
-	commonKeys := []string{"epoch", "tickNumber", "timestamp", "emittingContractIndex", "transactionHash", "logId", "logDigest", "eventType", "category"}
-	actualCommon := make(map[string]interface{}, len(commonKeys))
-	for _, key := range commonKeys {
-		val, ok := eventMap[key]
-		require.True(t, ok, "common field %q should be present", key)
-		actualCommon[key] = val
-	}
-	if diff := cmp.Diff(expectedCommon, actualCommon); diff != "" {
-		require.Fail(t, "common fields mismatch (-expected +actual):\n"+diff)
-	}
-
-	// Compare oneof sub-message
-	actualOneof, ok := eventMap[expectedOneofKey]
-	require.True(t, ok, "oneof field %q should be present", expectedOneofKey)
-	actualOneofMap, ok := actualOneof.(map[string]interface{})
-	require.True(t, ok, "oneof field %q should be a map", expectedOneofKey)
-	if diff := cmp.Diff(expectedOneofData, actualOneofMap); diff != "" {
-		require.Fail(t, "oneof field "+expectedOneofKey+" mismatch (-expected +actual):\n"+diff)
-	}
-
-	// Other oneof fields should be absent
-	for _, key := range allKeys {
-		if key == expectedOneofKey {
-			continue
-		}
-		_, present := eventMap[key]
-		require.False(t, present, "oneof field %q should NOT be present for event with %q", key, expectedOneofKey)
-	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
@@ -134,18 +91,17 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
-	requireEventJSONFields(t, ev,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "1700000001",
-			"emittingContractIndex": "1", "transactionHash": "txhash1",
-			"logId": "1", "logDigest": "digest1", "eventType": float64(0), "category": float64(0),
-		},
-		"quTransfer",
-		map[string]interface{}{
+	expected := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "1700000001",
+		"emittingContractIndex": "1", "transactionHash": "txhash1",
+		"logId": "1", "logDigest": "digest1", "eventType": float64(0), "category": float64(0),
+		"quTransfer": map[string]interface{}{
 			"source": "SRC_IDENTITY", "destination": "DST_IDENTITY", "amount": "5000",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "event mismatch (-expected +actual):\n"+diff)
+	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
@@ -171,20 +127,19 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
-	requireEventJSONFields(t, ev,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "1700000002",
-			"emittingContractIndex": "1", "transactionHash": "txhash2",
-			"logId": "2", "logDigest": "digest2", "eventType": float64(1), "category": float64(1),
-		},
-		"assetIssuance",
-		map[string]interface{}{
+	expected := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "1700000002",
+		"emittingContractIndex": "1", "transactionHash": "txhash2",
+		"logId": "2", "logDigest": "digest2", "eventType": float64(1), "category": float64(1),
+		"assetIssuance": map[string]interface{}{
 			"assetIssuer": "ISSUER_ID", "numberOfShares": "1000000",
 			"managingContractIndex": "5", "assetName": "QX",
 			"numberOfDecimalPlaces": float64(2), "unitOfMeasurement": "units",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "event mismatch (-expected +actual):\n"+diff)
+	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
@@ -208,19 +163,18 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
-	requireEventJSONFields(t, ev,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "txhash3",
-			"logId": "3", "logDigest": "digest3", "eventType": float64(2), "category": float64(0),
-		},
-		"assetOwnershipChange",
-		map[string]interface{}{
+	expected := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "txhash3",
+		"logId": "3", "logDigest": "digest3", "eventType": float64(2), "category": float64(0),
+		"assetOwnershipChange": map[string]interface{}{
 			"source": "OWNER_A", "destination": "OWNER_B",
 			"assetIssuer": "ISSUER", "assetName": "TOKEN", "numberOfShares": "500",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "event mismatch (-expected +actual):\n"+diff)
+	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
@@ -244,19 +198,18 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
-	requireEventJSONFields(t, ev,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15003), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "txhash4",
-			"logId": "4", "logDigest": "digest4", "eventType": float64(3), "category": float64(0),
-		},
-		"assetPossessionChange",
-		map[string]interface{}{
+	expected := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15003), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "txhash4",
+		"logId": "4", "logDigest": "digest4", "eventType": float64(3), "category": float64(0),
+		"assetPossessionChange": map[string]interface{}{
 			"source": "POSSESSOR_A", "destination": "POSSESSOR_B",
 			"assetIssuer": "ISSUER", "assetName": "TOKEN", "numberOfShares": "300",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "event mismatch (-expected +actual):\n"+diff)
+	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
@@ -280,18 +233,17 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
-	requireEventJSONFields(t, ev,
-		map[string]interface{}{
-			"epoch": float64(101), "tickNumber": float64(16001), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "txhash5",
-			"logId": "5", "logDigest": "digest5", "eventType": float64(8), "category": float64(0),
-		},
-		"burning",
-		map[string]interface{}{
+	expected := map[string]interface{}{
+		"epoch": float64(101), "tickNumber": float64(16001), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "txhash5",
+		"logId": "5", "logDigest": "digest5", "eventType": float64(8), "category": float64(0),
+		"burning": map[string]interface{}{
 			"source": "BURNER", "amount": "9999", "contractIndexBurnedFor": "7",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "event mismatch (-expected +actual):\n"+diff)
+	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction() {
@@ -315,18 +267,17 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
-	requireEventJSONFields(t, ev,
-		map[string]interface{}{
-			"epoch": float64(101), "tickNumber": float64(16002), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "txhash6",
-			"logId": "6", "logDigest": "digest6", "eventType": float64(13), "category": float64(0),
-		},
-		"contractReserveDeduction",
-		map[string]interface{}{
+	expected := map[string]interface{}{
+		"epoch": float64(101), "tickNumber": float64(16002), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "txhash6",
+		"logId": "6", "logDigest": "digest6", "eventType": float64(13), "category": float64(0),
+		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "50000", "remainingAmount": "100000", "contractIndex": "3",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "event mismatch (-expected +actual):\n"+diff)
+	}
 }
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
@@ -367,46 +318,43 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 
 	// First event: quTransfer
 	ev0 := events[0].(map[string]interface{})
-	requireEventJSONFields(t, ev0,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "tx1",
-			"logId": "1", "logDigest": "d1", "eventType": float64(0), "category": float64(0),
-		},
-		"quTransfer",
-		map[string]interface{}{
+	expected0 := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "tx1",
+		"logId": "1", "logDigest": "d1", "eventType": float64(0), "category": float64(0),
+		"quTransfer": map[string]interface{}{
 			"source": "A", "destination": "B", "amount": "100",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected0, ev0); diff != "" {
+		require.Fail(t, "event[0] mismatch (-expected +actual):\n"+diff)
+	}
 
 	// Second event: burning
 	ev1 := events[1].(map[string]interface{})
-	requireEventJSONFields(t, ev1,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "tx2",
-			"logId": "2", "logDigest": "d2", "eventType": float64(8), "category": float64(0),
-		},
-		"burning",
-		map[string]interface{}{
+	expected1 := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "tx2",
+		"logId": "2", "logDigest": "d2", "eventType": float64(8), "category": float64(0),
+		"burning": map[string]interface{}{
 			"source": "C", "amount": "200", "contractIndexBurnedFor": "1",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected1, ev1); diff != "" {
+		require.Fail(t, "event[1] mismatch (-expected +actual):\n"+diff)
+	}
 
 	// Third event: contractReserveDeduction
 	ev2 := events[2].(map[string]interface{})
-	requireEventJSONFields(t, ev2,
-		map[string]interface{}{
-			"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
-			"emittingContractIndex": "0", "transactionHash": "tx3",
-			"logId": "3", "logDigest": "d3", "eventType": float64(13), "category": float64(0),
-		},
-		"contractReserveDeduction",
-		map[string]interface{}{
+	expected2 := map[string]interface{}{
+		"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
+		"emittingContractIndex": "0", "transactionHash": "tx3",
+		"logId": "3", "logDigest": "d3", "eventType": float64(13), "category": float64(0),
+		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "300", "remainingAmount": "700", "contractIndex": "2",
 		},
-		allOneofKeys,
-	)
+	}
+	if diff := cmp.Diff(expected2, ev2); diff != "" {
+		require.Fail(t, "event[2] mismatch (-expected +actual):\n"+diff)
+	}
 }
