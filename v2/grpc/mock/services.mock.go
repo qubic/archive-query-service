@@ -219,3 +219,42 @@ func (mr *MockComputorsListServiceMockRecorder) GetComputorsListsForEpoch(ctx, e
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetComputorsListsForEpoch", reflect.TypeOf((*MockComputorsListService)(nil).GetComputorsListsForEpoch), ctx, epoch)
 }
+
+// MockEventsService is a mock of EventsService interface.
+type MockEventsService struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventsServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockEventsServiceMockRecorder is the mock recorder for MockEventsService.
+type MockEventsServiceMockRecorder struct {
+	mock *MockEventsService
+}
+
+// NewMockEventsService creates a new mock instance.
+func NewMockEventsService(ctrl *gomock.Controller) *MockEventsService {
+	mock := &MockEventsService{ctrl: ctrl}
+	mock.recorder = &MockEventsServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEventsService) EXPECT() *MockEventsServiceMockRecorder {
+	return m.recorder
+}
+
+// GetEvents mocks base method.
+func (m *MockEventsService) GetEvents(ctx context.Context, filters map[string][]string, from, size uint32) (*entities.EventsResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEvents", ctx, filters, from, size)
+	ret0, _ := ret[0].(*entities.EventsResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEvents indicates an expected call of GetEvents.
+func (mr *MockEventsServiceMockRecorder) GetEvents(ctx, filters, from, size any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsService)(nil).GetEvents), ctx, filters, from, size)
+}

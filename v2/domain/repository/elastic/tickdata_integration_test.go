@@ -36,7 +36,7 @@ var testTickData1 = tickData{
 
 type tickDataSuite struct {
 	suite.Suite
-	repo      *Repository
+	repo      *ArchiveRepository
 	ctx       context.Context
 	container testcontainers.Container
 }
@@ -148,7 +148,7 @@ func (t *tickDataSuite) SetupSuite() {
 	defer res.Body.Close()
 	require.Falsef(t.T(), res.IsError(), "indexing test tick data should be successful, got err: %s", res.String())
 
-	t.repo = NewRepository("transactions", "tick-data", "qubic-computors", esClient)
+	t.repo = NewArchiveRepository("transactions", "tick-data", "qubic-computors", esClient)
 }
 
 func (t *tickDataSuite) Test_GetTickData() {

@@ -66,6 +66,15 @@ func run() error {
 			TickDataIndex                         string        `conf:"default:qubic-tick-data-alias"`
 			ComputorsListIndex                    string        `conf:"default:qubic-computors-alias"`
 		}
+		EventsElasticSearch struct {
+			Address         []string      `conf:"default:https://localhost:9200"`
+			Username        string        `conf:"default:qubic-query"`
+			Password        string        `conf:"mask,optional"`
+			CertificatePath string        `conf:"default:http_ca.crt"`
+			MaxRetries      int           `conf:"default:3"`
+			ReadTimeout     time.Duration `conf:"default:10s"`
+			EventsIndex     string        `conf:"default:qubic-event-logs-read"`
+		}
 		Metrics struct {
 			Namespace string `conf:"default:query_service_v2"`
 			Port      int    `conf:"default:9999"`
@@ -148,14 +157,29 @@ func run() error {
 	go cache.Start()
 	defer cache.Stop()
 
-	repo := elastic.NewRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorsListIndex, esClient)
+	repo := elastic.NewArchiveRepository(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorsListIndex, esClient)
+
+	eventsEsClient, err := createEventsESClient(
+		cfg.EventsElasticSearch.Address,
+		cfg.EventsElasticSearch.Username,
+		cfg.EventsElasticSearch.Password,
+		cfg.EventsElasticSearch.CertificatePath,
+		cfg.EventsElasticSearch.MaxRetries,
+		cfg.EventsElasticSearch.ReadTimeout,
+	)
+	if err != nil {
+		return fmt.Errorf("creating events elasticsearch client: %w", err)
+	}
+
+	eventsRepo := elastic.NewEventsRepository(cfg.EventsElasticSearch.EventsIndex, eventsEsClient)
+	eventsService := domain.NewEventsService(eventsRepo)
 
 	txService := domain.NewTransactionService(repo, cache.GetStatus)
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)
 	pageSizeLimits := rpc.NewPageSizeLimits(cfg.Pagination.MaxPageSize, cfg.Pagination.DefaultPageSize)
-	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, pageSizeLimits)
+	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, eventsService, pageSizeLimits)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
@@ -233,4 +257,28 @@ func run() error {
 			return fmt.Errorf("grpc server error: %w", err)
 		}
 	}
+}
+
+func createEventsESClient(
+	addresses []string, username, password, certPath string, maxRetries int, readTimeout time.Duration,
+) (*elasticsearch.Client, error) {
+	cert, err := os.ReadFile(certPath)
+	if err != nil {
+		log.Printf("warn: Failed to load Events Elastic certificate file: %v\n", err)
+	}
+
+	esCfg := elasticsearch.Config{
+		Addresses:     addresses,
+		Username:      username,
+		Password:      password,
+		CACert:        cert,
+		RetryOnStatus: []int{502, 503, 504, 429},
+		MaxRetries:    maxRetries,
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost:   10,
+			ResponseHeaderTimeout: readTimeout,
+		},
+	}
+
+	return elasticsearch.NewClient(esCfg)
 }

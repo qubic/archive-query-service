@@ -25,7 +25,7 @@ func TestArchiverQueryService_GetComputorsList(t *testing.T) {
 	compsListService := &ComputorsServiceStub{
 		computors: []*api.ComputorList{{Identities: []string{"foo"}}},
 	}
-	service := NewArchiveQueryService(nil, nil, nil, compsListService, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(nil, nil, nil, compsListService, nil, NewPageSizeLimits(1000, 10))
 	response, err := service.GetComputorsListsForEpoch(context.Background(), &api.GetComputorListsForEpochRequest{Epoch: 42})
 	require.NoError(t, err)
 	require.NotEmpty(t, expected, response.ComputorsLists)
@@ -35,7 +35,7 @@ func TestArchiverQueryService_GetComputorsList_GivenNoComputors_ThenReturnNotFou
 	compsListService := &ComputorsServiceStub{
 		computors: []*api.ComputorList{},
 	}
-	service := NewArchiveQueryService(nil, nil, nil, compsListService, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(nil, nil, nil, compsListService, nil, NewPageSizeLimits(1000, 10))
 	_, err := service.GetComputorsListsForEpoch(context.Background(), &api.GetComputorListsForEpochRequest{Epoch: 666})
 	assert.Error(t, err)
 	require.Equal(t, status.Error(codes.NotFound, "computor lists not found"), err)
