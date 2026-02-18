@@ -44,6 +44,10 @@ type ComputorsListService interface {
 	GetComputorsListsForEpoch(ctx context.Context, epoch uint32) ([]*api.ComputorList, error)
 }
 
+type EventsService interface {
+	GetEvents(ctx context.Context, filters map[string][]string, from, size uint32) (*entities.EventsResult, error)
+}
+
 type ArchiveQueryService struct {
 	srv            *grpc.Server
 	grpcListenAddr net.Addr
@@ -52,15 +56,20 @@ type ArchiveQueryService struct {
 	tdService      TickDataService
 	statusService  StatusService
 	clService      ComputorsListService
+	evService      EventsService
 	pageSizeLimits PageSizeLimits
 }
 
-func NewArchiveQueryService(txService TransactionsService, tdService TickDataService, statusService StatusService, clService ComputorsListService, pageSizeLimits PageSizeLimits) *ArchiveQueryService {
+func NewArchiveQueryService(
+	txService TransactionsService, tdService TickDataService, statusService StatusService,
+	clService ComputorsListService, evService EventsService, pageSizeLimits PageSizeLimits,
+) *ArchiveQueryService {
 	return &ArchiveQueryService{
 		txService:      txService,
 		tdService:      tdService,
 		statusService:  statusService,
 		clService:      clService,
+		evService:      evService,
 		pageSizeLimits: pageSizeLimits,
 	}
 }
@@ -196,6 +205,39 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 
 	return &api.GetComputorListsForEpochResponse{
 		ComputorsLists: computorListsForEpoch,
+	}, nil
+}
+
+func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsRequest) (*api.GetEventsResponse, error) {
+	filters, err := createEventsFilters(req.GetFilters())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
+	}
+
+	err = validateEventsFilters(filters)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid filter: %v", err)
+	}
+
+	from, size, err := s.pageSizeLimits.ValidatePagination(req.GetPagination())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
+	}
+
+	result, err := s.evService.GetEvents(ctx, filters, from, size)
+	if err != nil {
+		return nil, createInternalError("failed to get events", err)
+	}
+
+	apiHits := &api.Hits{
+		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
+		From:  from,
+		Size:  size,
+	}
+
+	return &api.GetEventsResponse{
+		Hits:   apiHits,
+		Events: result.GetEvents(),
 	}, nil
 }
 

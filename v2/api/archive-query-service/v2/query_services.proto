@@ -39,6 +39,10 @@ option (openapi.v3.document) = {
     {
       name: "Archive"
       description: "Archive processing status and coverage information."
+    },
+    {
+      name: "Events (Beta)"
+      description: "Query event logs from the Qubic blockchain. Beta endpoint."
     }
   ]
 };
@@ -276,6 +280,35 @@ service ArchiveQueryService {
     option (google.api.http) = {
       get: "/getProcessedTickIntervals"
       response_body: "processed_tick_intervals"
+    };
+  }
+
+  // Query event logs with optional filters. Beta endpoint.
+  //
+  // ###  Request structure
+  //
+  // | Name       | Type               | Necessity | Description                                                    |
+  // |------------|--------------------|-----------|----------------------------------------------------------------|
+  // | filters    | map<string,string> | optional  | Filters that restrict results to single value.                 |
+  // | pagination | Pagination         | optional  | Allows to specify the first record and number of records.      |
+  //
+  // ### Filters
+  //
+  // | Name            |  Type   | Format   | Description                                             |
+  // |-----------------|---------|----------|---------------------------------------------------------|
+  // | transactionHash | string  | Hash     | Only find events for the specified transaction hash.    |
+  // | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
+  // | eventType       | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
+  rpc GetEvents(GetEventsRequest) returns (GetEventsResponse) {
+    option (openapi.v3.operation) = {
+      tags: ["Events (Beta)"]
+      summary: "Get Events"
+      description: "Query event logs with optional filters. Beta endpoint."
+    };
+
+    option (google.api.http) = {
+      post: "/getEvents"
+      body: "*"
     };
   }
 

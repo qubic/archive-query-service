@@ -13,6 +13,7 @@ const (
 	getTickDataRequestPrefix         = "tdr"
 	getTransactionsForTickPrefix     = "ttfr"
 	getTransactionsForIdentityPrefix = "ttfir"
+	getEventsRequestPrefix           = "ger"
 )
 
 func (r *GetTickDataRequest) GetCacheKey() (string, error) {
@@ -40,4 +41,14 @@ func (r *GetTransactionsForIdentityRequest) GetCacheKey() (string, error) {
 	sum := sha256.Sum256(b)
 
 	return getTransactionsForIdentityPrefix + ":" + hex.EncodeToString(sum[:]), nil
+}
+
+func (r *GetEventsRequest) GetCacheKey() (string, error) {
+	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(r)
+	if err != nil {
+		return "", fmt.Errorf("marshalling request: %w", err)
+	}
+
+	sum := sha256.Sum256(b)
+	return getEventsRequestPrefix + ":" + hex.EncodeToString(sum[:]), nil
 }

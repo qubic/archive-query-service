@@ -10,7 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
-type Repository struct {
+type ArchiveRepository struct {
 	esClient                     *elasticsearch.Client
 	ConsecutiveElasticErrorCount atomic.Int32
 	TotalElasticErrorCount       atomic.Int32
@@ -19,8 +19,8 @@ type Repository struct {
 	clIndex                      string
 }
 
-func NewRepository(txIndex, tickDataIndex, clIndex string, esClient *elasticsearch.Client) *Repository {
-	return &Repository{
+func NewArchiveRepository(txIndex, tickDataIndex, clIndex string, esClient *elasticsearch.Client) *ArchiveRepository {
+	return &ArchiveRepository{
 		txIndex:       txIndex,
 		tickDataIndex: tickDataIndex,
 		esClient:      esClient,
@@ -28,7 +28,7 @@ func NewRepository(txIndex, tickDataIndex, clIndex string, esClient *elasticsear
 	}
 }
 
-func (r *Repository) performElasticSearch(ctx context.Context, index string, query *bytes.Buffer, result any) error {
+func (r *ArchiveRepository) performElasticSearch(ctx context.Context, index string, query *bytes.Buffer, result any) error {
 	res, err := r.esClient.Search(
 		r.esClient.Search.WithContext(ctx),
 		r.esClient.Search.WithIndex(index),

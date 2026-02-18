@@ -33,7 +33,7 @@ type tickData struct {
 }
 
 // GetTickData Returns the tick data or domain.ErrNotFound if there is not tick data for this tick number.
-func (r *Repository) GetTickData(_ context.Context, tickNumber uint32) (*api.TickData, error) {
+func (r *ArchiveRepository) GetTickData(_ context.Context, tickNumber uint32) (*api.TickData, error) {
 	res, err := r.esClient.Get(r.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
 	if err != nil {
 		return nil, fmt.Errorf("calling es client get: %w", err)

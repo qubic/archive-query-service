@@ -33,7 +33,7 @@ var testComputorList1 = computorsList{
 
 type computorsSuite struct {
 	suite.Suite
-	repo      *Repository
+	repo      *ArchiveRepository
 	ctx       context.Context
 	container testcontainers.Container
 }
@@ -127,7 +127,7 @@ func (s *computorsSuite) SetupSuite() {
 	defer res.Body.Close()
 	require.Falsef(s.T(), res.IsError(), "indexing computors list should be successful, got err: %s", res.String())
 
-	s.repo = NewRepository("transactions", "tick-data", "qubic-computors", esClient)
+	s.repo = NewArchiveRepository("transactions", "tick-data", "qubic-computors", esClient)
 }
 
 func (s *computorsSuite) Test_GetEpochComputorsList() {

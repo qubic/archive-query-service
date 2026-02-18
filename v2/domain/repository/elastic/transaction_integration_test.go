@@ -95,7 +95,7 @@ type elasticsearchTestResponse struct {
 
 type transactionsSuite struct {
 	suite.Suite
-	repo      *Repository
+	repo      *ArchiveRepository
 	ctx       context.Context
 	container testcontainers.Container
 }
@@ -205,7 +205,7 @@ func (t *transactionsSuite) SetupSuite() {
 	t.indexTransaction(esClient, testTx2)
 	t.indexTransaction(esClient, testTx3)
 	t.indexTransaction(esClient, testTx4)
-	t.repo = NewRepository("transactions", "tick-data", "qubic-computors", esClient)
+	t.repo = NewArchiveRepository("transactions", "tick-data", "qubic-computors", esClient)
 }
 
 func (t *transactionsSuite) indexTransaction(esClient *elasticsearch.Client, tx transaction) {

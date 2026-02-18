@@ -25,7 +25,7 @@ func TestArchiverQueryService_GetTickData(t *testing.T) {
 	tdService := &TickDataServiceStub{
 		tickData: expected,
 	}
-	service := NewArchiveQueryService(nil, tdService, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(nil, tdService, nil, nil, nil, NewPageSizeLimits(1000, 10))
 	response, err := service.GetTickData(context.Background(), &api.GetTickDataRequest{TickNumber: 42})
 	require.NoError(t, err)
 	require.Equal(t, expected, response.TickData)
@@ -37,7 +37,7 @@ func TestArchiverQueryService_GetTickData_GivenNoTickData_ThenReturnEmptyTickDat
 	tdService := &TickDataServiceStub{
 		tickData: expected,
 	}
-	service := NewArchiveQueryService(nil, tdService, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(nil, tdService, nil, nil, nil, NewPageSizeLimits(1000, 10))
 	response, err := service.GetTickData(context.Background(), &api.GetTickDataRequest{TickNumber: 666})
 	require.NoError(t, err)
 	require.Nil(t, response.TickData)

@@ -54,7 +54,7 @@ type transaction struct {
 
 const maxTrackTotalHits int = 10000 // limit for better performance
 
-func (r *Repository) GetTransactionByHash(_ context.Context, hash string) (*api.Transaction, error) {
+func (r *ArchiveRepository) GetTransactionByHash(_ context.Context, hash string) (*api.Transaction, error) {
 	res, err := r.esClient.Get(r.txIndex, hash)
 	if err != nil {
 		return nil, fmt.Errorf("calling es client get with: %w", err)
@@ -77,7 +77,7 @@ func (r *Repository) GetTransactionByHash(_ context.Context, hash string) (*api.
 	return transactionToAPITransaction(result.Source), nil
 }
 
-func (r *Repository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
 	query, err := createTickTransactionsQuery(tickNumber, filters, ranges)
 	if err != nil {
 		return nil, fmt.Errorf("creating query: %w", err)
@@ -124,7 +124,7 @@ func createTickTransactionsQuery(tick uint32, filters map[string][]string, range
 	return buf, nil
 }
 
-func (r *Repository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string][]string, ranges map[string][]*entities.Range,
+func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string][]string, ranges map[string][]*entities.Range,
 	from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
 
 	query, err := createIdentitiesQuery(identity, filters, ranges, from, size, maxTick)

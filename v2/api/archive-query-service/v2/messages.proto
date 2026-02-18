@@ -172,3 +172,46 @@ message GetComputorListsForEpochResponse {
 message HealthResponse {
   string status = 1 [(openapi.v3.property) = {description:"Health status information."}];
 }
+
+// Event
+message Event {
+  uint32 epoch = 1;
+  uint32 tick_number = 2;
+  uint64 timestamp = 3;
+  uint64 emitting_contract_index = 4;
+  string transaction_hash = 5;
+  uint64 log_id = 6;
+  string log_digest = 7;
+  uint32 event_type = 8;
+  uint32 category = 9;
+  string source = 10;
+  string destination = 11;
+  uint64 amount = 12;
+  string asset_name = 13;
+  string asset_issuer = 14;
+  uint64 number_of_shares = 15;
+  uint64 managing_contract_index = 16;
+  string unit_of_measurement = 17;
+  uint32 number_of_decimal_places = 18;
+  uint64 deducted_amount = 19;
+  int64 remaining_amount = 20;
+  uint64 contract_index = 21;
+  uint64 contract_index_burned_for = 22;
+}
+
+// GetEventsRequest
+message GetEventsRequest {
+  option (openapi.v3.schema) = {
+    example: {
+      yaml: "filters:\n  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\npagination:\n  offset: 0\n  size: 10"
+    };
+  };
+  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventType"}];
+  Pagination pagination = 2 [(openapi.v3.property) = {description:"Optional paging information."}];
+}
+
+// GetEventsResponse
+message GetEventsResponse {
+  Hits hits = 1 [(openapi.v3.property) = {description:"Information about the returned results."}];
+  repeated Event events = 2 [(openapi.v3.property) = {description:"List of events that matched the search criteria."}];
+}
