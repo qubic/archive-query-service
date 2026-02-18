@@ -127,38 +127,3 @@ func createEventsQuery(filters map[string][]string, from, size uint32) string {
 
 	return buf.String()
 }
-
-func eventToAPIEvent(e event) *api.Event {
-	return &api.Event{
-		Epoch:                  e.Epoch,
-		TickNumber:             e.TickNumber,
-		Timestamp:              e.Timestamp,
-		EmittingContractIndex:  e.EmittingContractIndex,
-		TransactionHash:        e.TransactionHash,
-		LogId:                  e.LogID,
-		LogDigest:              e.LogDigest,
-		EventType:              e.Type,
-		Category:               e.Category,
-		Source:                 e.Source,
-		Destination:            e.Destination,
-		Amount:                 e.Amount,
-		AssetName:              e.AssetName,
-		AssetIssuer:            e.AssetIssuer,
-		NumberOfShares:         e.NumberOfShares,
-		ManagingContractIndex:  e.ManagingContractIndex,
-		UnitOfMeasurement:      e.UnitOfMeasurement,
-		NumberOfDecimalPlaces:  e.NumberOfDecimalPlaces,
-		DeductedAmount:         e.DeductedAmount,
-		RemainingAmount:        e.RemainingAmount,
-		ContractIndex:          e.ContractIndex,
-		ContractIndexBurnedFor: e.ContractIndexBurnedFor,
-	}
-}
-
-func eventHitsToAPIEvents(hits []eventHit) []*api.Event {
-	events := make([]*api.Event, len(hits))
-	for i, hit := range hits {
-		events[i] = eventToAPIEvent(hit.Source)
-	}
-	return events
-}

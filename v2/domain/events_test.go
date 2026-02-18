@@ -20,8 +20,12 @@ func TestEventsService_GetEvents_Success(t *testing.T) {
 	service := NewEventsService(mockRepo)
 
 	expectedEvents := []*api.Event{
-		{TickNumber: 100, TransactionHash: "hash1", EventType: 0},
-		{TickNumber: 101, TransactionHash: "hash2", EventType: 1},
+		{TickNumber: 100, TransactionHash: "hash1", EventType: 0, EventData: &api.Event_QuTransfer{
+			QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
+		}},
+		{TickNumber: 101, TransactionHash: "hash2", EventType: 1, EventData: &api.Event_AssetIssuance{
+			AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
+		}},
 	}
 	expectedHits := &entities.Hits{Total: 2, Relation: "eq"}
 

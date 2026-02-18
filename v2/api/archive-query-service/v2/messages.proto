@@ -173,6 +173,55 @@ message HealthResponse {
   string status = 1 [(openapi.v3.property) = {description:"Health status information."}];
 }
 
+// QuTransferData contains fields specific to QU transfer events (type 0).
+message QuTransferData {
+  string source = 1;
+  string destination = 2;
+  uint64 amount = 3;
+}
+
+// AssetIssuanceData contains fields specific to asset issuance events (type 1).
+message AssetIssuanceData {
+  string asset_issuer = 1;
+  uint64 number_of_shares = 2;
+  uint64 managing_contract_index = 3;
+  string asset_name = 4;
+  uint32 number_of_decimal_places = 5;
+  string unit_of_measurement = 6;
+}
+
+// AssetOwnershipChangeData contains fields specific to asset ownership change events (type 2).
+message AssetOwnershipChangeData {
+  string source = 1;
+  string destination = 2;
+  string asset_issuer = 3;
+  string asset_name = 4;
+  uint64 number_of_shares = 5;
+}
+
+// AssetPossessionChangeData contains fields specific to asset possession change events (type 3).
+message AssetPossessionChangeData {
+  string source = 1;
+  string destination = 2;
+  string asset_issuer = 3;
+  string asset_name = 4;
+  uint64 number_of_shares = 5;
+}
+
+// BurningData contains fields specific to burning events (type 8).
+message BurningData {
+  string source = 1;
+  uint64 amount = 2;
+  uint64 contract_index_burned_for = 3;
+}
+
+// ContractReserveDeductionData contains fields specific to contract reserve deduction events (type 13).
+message ContractReserveDeductionData {
+  uint64 deducted_amount = 1;
+  int64 remaining_amount = 2;
+  uint64 contract_index = 3;
+}
+
 // Event
 message Event {
   uint32 epoch = 1;
@@ -184,19 +233,14 @@ message Event {
   string log_digest = 7;
   uint32 event_type = 8;
   uint32 category = 9;
-  string source = 10;
-  string destination = 11;
-  uint64 amount = 12;
-  string asset_name = 13;
-  string asset_issuer = 14;
-  uint64 number_of_shares = 15;
-  uint64 managing_contract_index = 16;
-  string unit_of_measurement = 17;
-  uint32 number_of_decimal_places = 18;
-  uint64 deducted_amount = 19;
-  int64 remaining_amount = 20;
-  uint64 contract_index = 21;
-  uint64 contract_index_burned_for = 22;
+  oneof event_data {
+    QuTransferData qu_transfer = 10;
+    AssetIssuanceData asset_issuance = 11;
+    AssetOwnershipChangeData asset_ownership_change = 12;
+    AssetPossessionChangeData asset_possession_change = 13;
+    BurningData burning = 14;
+    ContractReserveDeductionData contract_reserve_deduction = 15;
+  }
 }
 
 // GetEventsRequest

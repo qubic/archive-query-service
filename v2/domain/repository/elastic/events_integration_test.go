@@ -10,8 +10,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"google.golang.org/protobuf/testing/protocmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -235,7 +234,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByTickNumber() {
 	assert.Equal(s.T(), 1, hits.Total)
 
 	expected := eventToAPIEvent(testEvent2)
-	diff := cmp.Diff(expected, events[0], cmpopts.IgnoreUnexported(api.Event{}))
+	diff := cmp.Diff(expected, events[0], protocmp.Transform())
 	assert.Empty(s.T(), diff, "event should match. diff: %s", diff)
 }
 

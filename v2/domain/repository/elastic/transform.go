@@ -60,3 +60,56 @@ func computorsListToAPIObject(cl computorsList) *api.ComputorList {
 		Signature:  cl.Signature,
 	}
 }
+
+func eventToAPIEvent(e event) *api.Event {
+	ev := &api.Event{
+		Epoch:                 e.Epoch,
+		TickNumber:            e.TickNumber,
+		Timestamp:             e.Timestamp,
+		EmittingContractIndex: e.EmittingContractIndex,
+		TransactionHash:       e.TransactionHash,
+		LogId:                 e.LogID,
+		LogDigest:             e.LogDigest,
+		EventType:             e.Type,
+		Category:              e.Category,
+	}
+	switch e.Type {
+	case 0:
+		ev.EventData = &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
+			Source: e.Source, Destination: e.Destination, Amount: e.Amount,
+		}}
+	case 1:
+		ev.EventData = &api.Event_AssetIssuance{AssetIssuance: &api.AssetIssuanceData{
+			AssetIssuer: e.AssetIssuer, NumberOfShares: e.NumberOfShares,
+			ManagingContractIndex: e.ManagingContractIndex, AssetName: e.AssetName,
+			NumberOfDecimalPlaces: e.NumberOfDecimalPlaces, UnitOfMeasurement: e.UnitOfMeasurement,
+		}}
+	case 2:
+		ev.EventData = &api.Event_AssetOwnershipChange{AssetOwnershipChange: &api.AssetOwnershipChangeData{
+			Source: e.Source, Destination: e.Destination, AssetIssuer: e.AssetIssuer,
+			AssetName: e.AssetName, NumberOfShares: e.NumberOfShares,
+		}}
+	case 3:
+		ev.EventData = &api.Event_AssetPossessionChange{AssetPossessionChange: &api.AssetPossessionChangeData{
+			Source: e.Source, Destination: e.Destination, AssetIssuer: e.AssetIssuer,
+			AssetName: e.AssetName, NumberOfShares: e.NumberOfShares,
+		}}
+	case 8:
+		ev.EventData = &api.Event_Burning{Burning: &api.BurningData{
+			Source: e.Source, Amount: e.Amount, ContractIndexBurnedFor: e.ContractIndexBurnedFor,
+		}}
+	case 13:
+		ev.EventData = &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
+			DeductedAmount: e.DeductedAmount, RemainingAmount: e.RemainingAmount, ContractIndex: e.ContractIndex,
+		}}
+	}
+	return ev
+}
+
+func eventHitsToAPIEvents(hits []eventHit) []*api.Event {
+	events := make([]*api.Event, len(hits))
+	for i, hit := range hits {
+		events[i] = eventToAPIEvent(hit.Source)
+	}
+	return events
+}

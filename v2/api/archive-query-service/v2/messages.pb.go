@@ -1375,38 +1375,456 @@ func (x *HealthResponse) GetStatus() string {
 	return ""
 }
 
-// Event
-type Event struct {
+// QuTransferData contains fields specific to QU transfer events (type 0).
+type QuTransferData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Source        string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Destination   string                 `protobuf:"bytes,2,opt,name=destination,proto3" json:"destination,omitempty"`
+	Amount        uint64                 `protobuf:"varint,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuTransferData) Reset() {
+	*x = QuTransferData{}
+	mi := &file_messages_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuTransferData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuTransferData) ProtoMessage() {}
+
+func (x *QuTransferData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuTransferData.ProtoReflect.Descriptor instead.
+func (*QuTransferData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *QuTransferData) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *QuTransferData) GetDestination() string {
+	if x != nil {
+		return x.Destination
+	}
+	return ""
+}
+
+func (x *QuTransferData) GetAmount() uint64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+// AssetIssuanceData contains fields specific to asset issuance events (type 1).
+type AssetIssuanceData struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	AssetIssuer           string                 `protobuf:"bytes,1,opt,name=asset_issuer,json=assetIssuer,proto3" json:"asset_issuer,omitempty"`
+	NumberOfShares        uint64                 `protobuf:"varint,2,opt,name=number_of_shares,json=numberOfShares,proto3" json:"number_of_shares,omitempty"`
+	ManagingContractIndex uint64                 `protobuf:"varint,3,opt,name=managing_contract_index,json=managingContractIndex,proto3" json:"managing_contract_index,omitempty"`
+	AssetName             string                 `protobuf:"bytes,4,opt,name=asset_name,json=assetName,proto3" json:"asset_name,omitempty"`
+	NumberOfDecimalPlaces uint32                 `protobuf:"varint,5,opt,name=number_of_decimal_places,json=numberOfDecimalPlaces,proto3" json:"number_of_decimal_places,omitempty"`
+	UnitOfMeasurement     string                 `protobuf:"bytes,6,opt,name=unit_of_measurement,json=unitOfMeasurement,proto3" json:"unit_of_measurement,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *AssetIssuanceData) Reset() {
+	*x = AssetIssuanceData{}
+	mi := &file_messages_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssetIssuanceData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssetIssuanceData) ProtoMessage() {}
+
+func (x *AssetIssuanceData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssetIssuanceData.ProtoReflect.Descriptor instead.
+func (*AssetIssuanceData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *AssetIssuanceData) GetAssetIssuer() string {
+	if x != nil {
+		return x.AssetIssuer
+	}
+	return ""
+}
+
+func (x *AssetIssuanceData) GetNumberOfShares() uint64 {
+	if x != nil {
+		return x.NumberOfShares
+	}
+	return 0
+}
+
+func (x *AssetIssuanceData) GetManagingContractIndex() uint64 {
+	if x != nil {
+		return x.ManagingContractIndex
+	}
+	return 0
+}
+
+func (x *AssetIssuanceData) GetAssetName() string {
+	if x != nil {
+		return x.AssetName
+	}
+	return ""
+}
+
+func (x *AssetIssuanceData) GetNumberOfDecimalPlaces() uint32 {
+	if x != nil {
+		return x.NumberOfDecimalPlaces
+	}
+	return 0
+}
+
+func (x *AssetIssuanceData) GetUnitOfMeasurement() string {
+	if x != nil {
+		return x.UnitOfMeasurement
+	}
+	return ""
+}
+
+// AssetOwnershipChangeData contains fields specific to asset ownership change events (type 2).
+type AssetOwnershipChangeData struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Source         string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Destination    string                 `protobuf:"bytes,2,opt,name=destination,proto3" json:"destination,omitempty"`
+	AssetIssuer    string                 `protobuf:"bytes,3,opt,name=asset_issuer,json=assetIssuer,proto3" json:"asset_issuer,omitempty"`
+	AssetName      string                 `protobuf:"bytes,4,opt,name=asset_name,json=assetName,proto3" json:"asset_name,omitempty"`
+	NumberOfShares uint64                 `protobuf:"varint,5,opt,name=number_of_shares,json=numberOfShares,proto3" json:"number_of_shares,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AssetOwnershipChangeData) Reset() {
+	*x = AssetOwnershipChangeData{}
+	mi := &file_messages_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssetOwnershipChangeData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssetOwnershipChangeData) ProtoMessage() {}
+
+func (x *AssetOwnershipChangeData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssetOwnershipChangeData.ProtoReflect.Descriptor instead.
+func (*AssetOwnershipChangeData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *AssetOwnershipChangeData) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *AssetOwnershipChangeData) GetDestination() string {
+	if x != nil {
+		return x.Destination
+	}
+	return ""
+}
+
+func (x *AssetOwnershipChangeData) GetAssetIssuer() string {
+	if x != nil {
+		return x.AssetIssuer
+	}
+	return ""
+}
+
+func (x *AssetOwnershipChangeData) GetAssetName() string {
+	if x != nil {
+		return x.AssetName
+	}
+	return ""
+}
+
+func (x *AssetOwnershipChangeData) GetNumberOfShares() uint64 {
+	if x != nil {
+		return x.NumberOfShares
+	}
+	return 0
+}
+
+// AssetPossessionChangeData contains fields specific to asset possession change events (type 3).
+type AssetPossessionChangeData struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Source         string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Destination    string                 `protobuf:"bytes,2,opt,name=destination,proto3" json:"destination,omitempty"`
+	AssetIssuer    string                 `protobuf:"bytes,3,opt,name=asset_issuer,json=assetIssuer,proto3" json:"asset_issuer,omitempty"`
+	AssetName      string                 `protobuf:"bytes,4,opt,name=asset_name,json=assetName,proto3" json:"asset_name,omitempty"`
+	NumberOfShares uint64                 `protobuf:"varint,5,opt,name=number_of_shares,json=numberOfShares,proto3" json:"number_of_shares,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AssetPossessionChangeData) Reset() {
+	*x = AssetPossessionChangeData{}
+	mi := &file_messages_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssetPossessionChangeData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssetPossessionChangeData) ProtoMessage() {}
+
+func (x *AssetPossessionChangeData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssetPossessionChangeData.ProtoReflect.Descriptor instead.
+func (*AssetPossessionChangeData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *AssetPossessionChangeData) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *AssetPossessionChangeData) GetDestination() string {
+	if x != nil {
+		return x.Destination
+	}
+	return ""
+}
+
+func (x *AssetPossessionChangeData) GetAssetIssuer() string {
+	if x != nil {
+		return x.AssetIssuer
+	}
+	return ""
+}
+
+func (x *AssetPossessionChangeData) GetAssetName() string {
+	if x != nil {
+		return x.AssetName
+	}
+	return ""
+}
+
+func (x *AssetPossessionChangeData) GetNumberOfShares() uint64 {
+	if x != nil {
+		return x.NumberOfShares
+	}
+	return 0
+}
+
+// BurningData contains fields specific to burning events (type 8).
+type BurningData struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
-	Epoch                  uint32                 `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	TickNumber             uint32                 `protobuf:"varint,2,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
-	Timestamp              uint64                 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	EmittingContractIndex  uint64                 `protobuf:"varint,4,opt,name=emitting_contract_index,json=emittingContractIndex,proto3" json:"emitting_contract_index,omitempty"`
-	TransactionHash        string                 `protobuf:"bytes,5,opt,name=transaction_hash,json=transactionHash,proto3" json:"transaction_hash,omitempty"`
-	LogId                  uint64                 `protobuf:"varint,6,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
-	LogDigest              string                 `protobuf:"bytes,7,opt,name=log_digest,json=logDigest,proto3" json:"log_digest,omitempty"`
-	EventType              uint32                 `protobuf:"varint,8,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
-	Category               uint32                 `protobuf:"varint,9,opt,name=category,proto3" json:"category,omitempty"`
-	Source                 string                 `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
-	Destination            string                 `protobuf:"bytes,11,opt,name=destination,proto3" json:"destination,omitempty"`
-	Amount                 uint64                 `protobuf:"varint,12,opt,name=amount,proto3" json:"amount,omitempty"`
-	AssetName              string                 `protobuf:"bytes,13,opt,name=asset_name,json=assetName,proto3" json:"asset_name,omitempty"`
-	AssetIssuer            string                 `protobuf:"bytes,14,opt,name=asset_issuer,json=assetIssuer,proto3" json:"asset_issuer,omitempty"`
-	NumberOfShares         uint64                 `protobuf:"varint,15,opt,name=number_of_shares,json=numberOfShares,proto3" json:"number_of_shares,omitempty"`
-	ManagingContractIndex  uint64                 `protobuf:"varint,16,opt,name=managing_contract_index,json=managingContractIndex,proto3" json:"managing_contract_index,omitempty"`
-	UnitOfMeasurement      string                 `protobuf:"bytes,17,opt,name=unit_of_measurement,json=unitOfMeasurement,proto3" json:"unit_of_measurement,omitempty"`
-	NumberOfDecimalPlaces  uint32                 `protobuf:"varint,18,opt,name=number_of_decimal_places,json=numberOfDecimalPlaces,proto3" json:"number_of_decimal_places,omitempty"`
-	DeductedAmount         uint64                 `protobuf:"varint,19,opt,name=deducted_amount,json=deductedAmount,proto3" json:"deducted_amount,omitempty"`
-	RemainingAmount        int64                  `protobuf:"varint,20,opt,name=remaining_amount,json=remainingAmount,proto3" json:"remaining_amount,omitempty"`
-	ContractIndex          uint64                 `protobuf:"varint,21,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
-	ContractIndexBurnedFor uint64                 `protobuf:"varint,22,opt,name=contract_index_burned_for,json=contractIndexBurnedFor,proto3" json:"contract_index_burned_for,omitempty"`
+	Source                 string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Amount                 uint64                 `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	ContractIndexBurnedFor uint64                 `protobuf:"varint,3,opt,name=contract_index_burned_for,json=contractIndexBurnedFor,proto3" json:"contract_index_burned_for,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
+func (x *BurningData) Reset() {
+	*x = BurningData{}
+	mi := &file_messages_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BurningData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BurningData) ProtoMessage() {}
+
+func (x *BurningData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BurningData.ProtoReflect.Descriptor instead.
+func (*BurningData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *BurningData) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *BurningData) GetAmount() uint64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+func (x *BurningData) GetContractIndexBurnedFor() uint64 {
+	if x != nil {
+		return x.ContractIndexBurnedFor
+	}
+	return 0
+}
+
+// ContractReserveDeductionData contains fields specific to contract reserve deduction events (type 13).
+type ContractReserveDeductionData struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	DeductedAmount  uint64                 `protobuf:"varint,1,opt,name=deducted_amount,json=deductedAmount,proto3" json:"deducted_amount,omitempty"`
+	RemainingAmount int64                  `protobuf:"varint,2,opt,name=remaining_amount,json=remainingAmount,proto3" json:"remaining_amount,omitempty"`
+	ContractIndex   uint64                 `protobuf:"varint,3,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ContractReserveDeductionData) Reset() {
+	*x = ContractReserveDeductionData{}
+	mi := &file_messages_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractReserveDeductionData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractReserveDeductionData) ProtoMessage() {}
+
+func (x *ContractReserveDeductionData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractReserveDeductionData.ProtoReflect.Descriptor instead.
+func (*ContractReserveDeductionData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ContractReserveDeductionData) GetDeductedAmount() uint64 {
+	if x != nil {
+		return x.DeductedAmount
+	}
+	return 0
+}
+
+func (x *ContractReserveDeductionData) GetRemainingAmount() int64 {
+	if x != nil {
+		return x.RemainingAmount
+	}
+	return 0
+}
+
+func (x *ContractReserveDeductionData) GetContractIndex() uint64 {
+	if x != nil {
+		return x.ContractIndex
+	}
+	return 0
+}
+
+// Event
+type Event struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Epoch                 uint32                 `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	TickNumber            uint32                 `protobuf:"varint,2,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
+	Timestamp             uint64                 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	EmittingContractIndex uint64                 `protobuf:"varint,4,opt,name=emitting_contract_index,json=emittingContractIndex,proto3" json:"emitting_contract_index,omitempty"`
+	TransactionHash       string                 `protobuf:"bytes,5,opt,name=transaction_hash,json=transactionHash,proto3" json:"transaction_hash,omitempty"`
+	LogId                 uint64                 `protobuf:"varint,6,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
+	LogDigest             string                 `protobuf:"bytes,7,opt,name=log_digest,json=logDigest,proto3" json:"log_digest,omitempty"`
+	EventType             uint32                 `protobuf:"varint,8,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
+	Category              uint32                 `protobuf:"varint,9,opt,name=category,proto3" json:"category,omitempty"`
+	// Types that are valid to be assigned to EventData:
+	//
+	//	*Event_QuTransfer
+	//	*Event_AssetIssuance
+	//	*Event_AssetOwnershipChange
+	//	*Event_AssetPossessionChange
+	//	*Event_Burning
+	//	*Event_ContractReserveDeduction
+	EventData     isEvent_EventData `protobuf_oneof:"event_data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_messages_proto_msgTypes[22]
+	mi := &file_messages_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1418,7 +1836,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[22]
+	mi := &file_messages_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1431,7 +1849,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{22}
+	return file_messages_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *Event) GetEpoch() uint32 {
@@ -1497,96 +1915,106 @@ func (x *Event) GetCategory() uint32 {
 	return 0
 }
 
-func (x *Event) GetSource() string {
+func (x *Event) GetEventData() isEvent_EventData {
 	if x != nil {
-		return x.Source
+		return x.EventData
 	}
-	return ""
+	return nil
 }
 
-func (x *Event) GetDestination() string {
+func (x *Event) GetQuTransfer() *QuTransferData {
 	if x != nil {
-		return x.Destination
+		if x, ok := x.EventData.(*Event_QuTransfer); ok {
+			return x.QuTransfer
+		}
 	}
-	return ""
+	return nil
 }
 
-func (x *Event) GetAmount() uint64 {
+func (x *Event) GetAssetIssuance() *AssetIssuanceData {
 	if x != nil {
-		return x.Amount
+		if x, ok := x.EventData.(*Event_AssetIssuance); ok {
+			return x.AssetIssuance
+		}
 	}
-	return 0
+	return nil
 }
 
-func (x *Event) GetAssetName() string {
+func (x *Event) GetAssetOwnershipChange() *AssetOwnershipChangeData {
 	if x != nil {
-		return x.AssetName
+		if x, ok := x.EventData.(*Event_AssetOwnershipChange); ok {
+			return x.AssetOwnershipChange
+		}
 	}
-	return ""
+	return nil
 }
 
-func (x *Event) GetAssetIssuer() string {
+func (x *Event) GetAssetPossessionChange() *AssetPossessionChangeData {
 	if x != nil {
-		return x.AssetIssuer
+		if x, ok := x.EventData.(*Event_AssetPossessionChange); ok {
+			return x.AssetPossessionChange
+		}
 	}
-	return ""
+	return nil
 }
 
-func (x *Event) GetNumberOfShares() uint64 {
+func (x *Event) GetBurning() *BurningData {
 	if x != nil {
-		return x.NumberOfShares
+		if x, ok := x.EventData.(*Event_Burning); ok {
+			return x.Burning
+		}
 	}
-	return 0
+	return nil
 }
 
-func (x *Event) GetManagingContractIndex() uint64 {
+func (x *Event) GetContractReserveDeduction() *ContractReserveDeductionData {
 	if x != nil {
-		return x.ManagingContractIndex
+		if x, ok := x.EventData.(*Event_ContractReserveDeduction); ok {
+			return x.ContractReserveDeduction
+		}
 	}
-	return 0
+	return nil
 }
 
-func (x *Event) GetUnitOfMeasurement() string {
-	if x != nil {
-		return x.UnitOfMeasurement
-	}
-	return ""
+type isEvent_EventData interface {
+	isEvent_EventData()
 }
 
-func (x *Event) GetNumberOfDecimalPlaces() uint32 {
-	if x != nil {
-		return x.NumberOfDecimalPlaces
-	}
-	return 0
+type Event_QuTransfer struct {
+	QuTransfer *QuTransferData `protobuf:"bytes,10,opt,name=qu_transfer,json=quTransfer,proto3,oneof"`
 }
 
-func (x *Event) GetDeductedAmount() uint64 {
-	if x != nil {
-		return x.DeductedAmount
-	}
-	return 0
+type Event_AssetIssuance struct {
+	AssetIssuance *AssetIssuanceData `protobuf:"bytes,11,opt,name=asset_issuance,json=assetIssuance,proto3,oneof"`
 }
 
-func (x *Event) GetRemainingAmount() int64 {
-	if x != nil {
-		return x.RemainingAmount
-	}
-	return 0
+type Event_AssetOwnershipChange struct {
+	AssetOwnershipChange *AssetOwnershipChangeData `protobuf:"bytes,12,opt,name=asset_ownership_change,json=assetOwnershipChange,proto3,oneof"`
 }
 
-func (x *Event) GetContractIndex() uint64 {
-	if x != nil {
-		return x.ContractIndex
-	}
-	return 0
+type Event_AssetPossessionChange struct {
+	AssetPossessionChange *AssetPossessionChangeData `protobuf:"bytes,13,opt,name=asset_possession_change,json=assetPossessionChange,proto3,oneof"`
 }
 
-func (x *Event) GetContractIndexBurnedFor() uint64 {
-	if x != nil {
-		return x.ContractIndexBurnedFor
-	}
-	return 0
+type Event_Burning struct {
+	Burning *BurningData `protobuf:"bytes,14,opt,name=burning,proto3,oneof"`
 }
+
+type Event_ContractReserveDeduction struct {
+	ContractReserveDeduction *ContractReserveDeductionData `protobuf:"bytes,15,opt,name=contract_reserve_deduction,json=contractReserveDeduction,proto3,oneof"`
+}
+
+func (*Event_QuTransfer) isEvent_EventData() {}
+
+func (*Event_AssetIssuance) isEvent_EventData() {}
+
+func (*Event_AssetOwnershipChange) isEvent_EventData() {}
+
+func (*Event_AssetPossessionChange) isEvent_EventData() {}
+
+func (*Event_Burning) isEvent_EventData() {}
+
+func (*Event_ContractReserveDeduction) isEvent_EventData() {}
 
 // GetEventsRequest
 type GetEventsRequest struct {
@@ -1599,7 +2027,7 @@ type GetEventsRequest struct {
 
 func (x *GetEventsRequest) Reset() {
 	*x = GetEventsRequest{}
-	mi := &file_messages_proto_msgTypes[23]
+	mi := &file_messages_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1611,7 +2039,7 @@ func (x *GetEventsRequest) String() string {
 func (*GetEventsRequest) ProtoMessage() {}
 
 func (x *GetEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[23]
+	mi := &file_messages_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +2052,7 @@ func (x *GetEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEventsRequest.ProtoReflect.Descriptor instead.
 func (*GetEventsRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{23}
+	return file_messages_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetEventsRequest) GetFilters() map[string]string {
@@ -1652,7 +2080,7 @@ type GetEventsResponse struct {
 
 func (x *GetEventsResponse) Reset() {
 	*x = GetEventsResponse{}
-	mi := &file_messages_proto_msgTypes[24]
+	mi := &file_messages_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1664,7 +2092,7 @@ func (x *GetEventsResponse) String() string {
 func (*GetEventsResponse) ProtoMessage() {}
 
 func (x *GetEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[24]
+	mi := &file_messages_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1677,7 +2105,7 @@ func (x *GetEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEventsResponse.ProtoReflect.Descriptor instead.
 func (*GetEventsResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{24}
+	return file_messages_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetEventsResponse) GetHits() *Hits {
@@ -1828,7 +2256,41 @@ const file_messages_proto_rawDesc = "" +
 	" GetComputorListsForEpochResponse\x12\x82\x01\n" +
 	"\x0fcomputors_lists\x18\x01 \x03(\v2!.qubic.v2.archive.pb.ComputorListB6\xbaG3\x92\x020The lists of computors that voted in this epoch.R\x0ecomputorsLists\"J\n" +
 	"\x0eHealthResponse\x128\n" +
-	"\x06status\x18\x01 \x01(\tB \xbaG\x1d\x92\x02\x1aHealth status information.R\x06status\"\xc5\x06\n" +
+	"\x06status\x18\x01 \x01(\tB \xbaG\x1d\x92\x02\x1aHealth status information.R\x06status\"b\n" +
+	"\x0eQuTransferData\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12 \n" +
+	"\vdestination\x18\x02 \x01(\tR\vdestination\x12\x16\n" +
+	"\x06amount\x18\x03 \x01(\x04R\x06amount\"\xa0\x02\n" +
+	"\x11AssetIssuanceData\x12!\n" +
+	"\fasset_issuer\x18\x01 \x01(\tR\vassetIssuer\x12(\n" +
+	"\x10number_of_shares\x18\x02 \x01(\x04R\x0enumberOfShares\x126\n" +
+	"\x17managing_contract_index\x18\x03 \x01(\x04R\x15managingContractIndex\x12\x1d\n" +
+	"\n" +
+	"asset_name\x18\x04 \x01(\tR\tassetName\x127\n" +
+	"\x18number_of_decimal_places\x18\x05 \x01(\rR\x15numberOfDecimalPlaces\x12.\n" +
+	"\x13unit_of_measurement\x18\x06 \x01(\tR\x11unitOfMeasurement\"\xc0\x01\n" +
+	"\x18AssetOwnershipChangeData\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12 \n" +
+	"\vdestination\x18\x02 \x01(\tR\vdestination\x12!\n" +
+	"\fasset_issuer\x18\x03 \x01(\tR\vassetIssuer\x12\x1d\n" +
+	"\n" +
+	"asset_name\x18\x04 \x01(\tR\tassetName\x12(\n" +
+	"\x10number_of_shares\x18\x05 \x01(\x04R\x0enumberOfShares\"\xc1\x01\n" +
+	"\x19AssetPossessionChangeData\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12 \n" +
+	"\vdestination\x18\x02 \x01(\tR\vdestination\x12!\n" +
+	"\fasset_issuer\x18\x03 \x01(\tR\vassetIssuer\x12\x1d\n" +
+	"\n" +
+	"asset_name\x18\x04 \x01(\tR\tassetName\x12(\n" +
+	"\x10number_of_shares\x18\x05 \x01(\x04R\x0enumberOfShares\"x\n" +
+	"\vBurningData\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\x04R\x06amount\x129\n" +
+	"\x19contract_index_burned_for\x18\x03 \x01(\x04R\x16contractIndexBurnedFor\"\x99\x01\n" +
+	"\x1cContractReserveDeductionData\x12'\n" +
+	"\x0fdeducted_amount\x18\x01 \x01(\x04R\x0edeductedAmount\x12)\n" +
+	"\x10remaining_amount\x18\x02 \x01(\x03R\x0fremainingAmount\x12%\n" +
+	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\xd9\x06\n" +
 	"\x05Event\x12\x14\n" +
 	"\x05epoch\x18\x01 \x01(\rR\x05epoch\x12\x1f\n" +
 	"\vtick_number\x18\x02 \x01(\rR\n" +
@@ -1841,22 +2303,17 @@ const file_messages_proto_rawDesc = "" +
 	"log_digest\x18\a \x01(\tR\tlogDigest\x12\x1d\n" +
 	"\n" +
 	"event_type\x18\b \x01(\rR\teventType\x12\x1a\n" +
-	"\bcategory\x18\t \x01(\rR\bcategory\x12\x16\n" +
-	"\x06source\x18\n" +
-	" \x01(\tR\x06source\x12 \n" +
-	"\vdestination\x18\v \x01(\tR\vdestination\x12\x16\n" +
-	"\x06amount\x18\f \x01(\x04R\x06amount\x12\x1d\n" +
+	"\bcategory\x18\t \x01(\rR\bcategory\x12F\n" +
+	"\vqu_transfer\x18\n" +
+	" \x01(\v2#.qubic.v2.archive.pb.QuTransferDataH\x00R\n" +
+	"quTransfer\x12O\n" +
+	"\x0easset_issuance\x18\v \x01(\v2&.qubic.v2.archive.pb.AssetIssuanceDataH\x00R\rassetIssuance\x12e\n" +
+	"\x16asset_ownership_change\x18\f \x01(\v2-.qubic.v2.archive.pb.AssetOwnershipChangeDataH\x00R\x14assetOwnershipChange\x12h\n" +
+	"\x17asset_possession_change\x18\r \x01(\v2..qubic.v2.archive.pb.AssetPossessionChangeDataH\x00R\x15assetPossessionChange\x12<\n" +
+	"\aburning\x18\x0e \x01(\v2 .qubic.v2.archive.pb.BurningDataH\x00R\aburning\x12q\n" +
+	"\x1acontract_reserve_deduction\x18\x0f \x01(\v21.qubic.v2.archive.pb.ContractReserveDeductionDataH\x00R\x18contractReserveDeductionB\f\n" +
 	"\n" +
-	"asset_name\x18\r \x01(\tR\tassetName\x12!\n" +
-	"\fasset_issuer\x18\x0e \x01(\tR\vassetIssuer\x12(\n" +
-	"\x10number_of_shares\x18\x0f \x01(\x04R\x0enumberOfShares\x126\n" +
-	"\x17managing_contract_index\x18\x10 \x01(\x04R\x15managingContractIndex\x12.\n" +
-	"\x13unit_of_measurement\x18\x11 \x01(\tR\x11unitOfMeasurement\x127\n" +
-	"\x18number_of_decimal_places\x18\x12 \x01(\rR\x15numberOfDecimalPlaces\x12'\n" +
-	"\x0fdeducted_amount\x18\x13 \x01(\x04R\x0edeductedAmount\x12)\n" +
-	"\x10remaining_amount\x18\x14 \x01(\x03R\x0fremainingAmount\x12%\n" +
-	"\x0econtract_index\x18\x15 \x01(\x04R\rcontractIndex\x129\n" +
-	"\x19contract_index_burned_for\x18\x16 \x01(\x04R\x16contractIndexBurnedFor\"\xed\x03\n" +
+	"event_data\"\xed\x03\n" +
 	"\x10GetEventsRequest\x12\xb2\x01\n" +
 	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBd\xbaGa\x92\x02^Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventTypeR\afilters\x12c\n" +
 	"\n" +
@@ -1885,7 +2342,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
 var file_messages_proto_goTypes = []any{
 	(*LastProcessedTick)(nil),                  // 0: qubic.v2.archive.pb.LastProcessedTick
 	(*NextAvailableTick)(nil),                  // 1: qubic.v2.archive.pb.NextAvailableTick
@@ -1909,39 +2366,51 @@ var file_messages_proto_goTypes = []any{
 	(*ComputorList)(nil),                       // 19: qubic.v2.archive.pb.ComputorList
 	(*GetComputorListsForEpochResponse)(nil),   // 20: qubic.v2.archive.pb.GetComputorListsForEpochResponse
 	(*HealthResponse)(nil),                     // 21: qubic.v2.archive.pb.HealthResponse
-	(*Event)(nil),                              // 22: qubic.v2.archive.pb.Event
-	(*GetEventsRequest)(nil),                   // 23: qubic.v2.archive.pb.GetEventsRequest
-	(*GetEventsResponse)(nil),                  // 24: qubic.v2.archive.pb.GetEventsResponse
-	nil,                                        // 25: qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
-	nil,                                        // 26: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
-	nil,                                        // 27: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	nil,                                        // 28: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	nil,                                        // 29: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	(*QuTransferData)(nil),                     // 22: qubic.v2.archive.pb.QuTransferData
+	(*AssetIssuanceData)(nil),                  // 23: qubic.v2.archive.pb.AssetIssuanceData
+	(*AssetOwnershipChangeData)(nil),           // 24: qubic.v2.archive.pb.AssetOwnershipChangeData
+	(*AssetPossessionChangeData)(nil),          // 25: qubic.v2.archive.pb.AssetPossessionChangeData
+	(*BurningData)(nil),                        // 26: qubic.v2.archive.pb.BurningData
+	(*ContractReserveDeductionData)(nil),       // 27: qubic.v2.archive.pb.ContractReserveDeductionData
+	(*Event)(nil),                              // 28: qubic.v2.archive.pb.Event
+	(*GetEventsRequest)(nil),                   // 29: qubic.v2.archive.pb.GetEventsRequest
+	(*GetEventsResponse)(nil),                  // 30: qubic.v2.archive.pb.GetEventsResponse
+	nil,                                        // 31: qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
+	nil,                                        // 32: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
+	nil,                                        // 33: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	nil,                                        // 34: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	nil,                                        // 35: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
-	25, // 1: qubic.v2.archive.pb.GetTransactionsForTickRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
-	26, // 2: qubic.v2.archive.pb.GetTransactionsForTickRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
+	31, // 1: qubic.v2.archive.pb.GetTransactionsForTickRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
+	32, // 2: qubic.v2.archive.pb.GetTransactionsForTickRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
 	2,  // 3: qubic.v2.archive.pb.GetTransactionsForTickResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	27, // 4: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	28, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	33, // 4: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	34, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
 	5,  // 6: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
 	12, // 7: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
 	2,  // 8: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
 	3,  // 9: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
 	4,  // 10: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
 	19, // 11: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
-	29, // 12: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	5,  // 13: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 14: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	22, // 15: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
-	10, // 16: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 17: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	22, // 12: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
+	23, // 13: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
+	24, // 14: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
+	25, // 15: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
+	26, // 16: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
+	27, // 17: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
+	35, // 18: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	5,  // 19: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	12, // 20: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	28, // 21: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
+	10, // 22: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 23: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	24, // [24:24] is the sub-list for method output_type
+	24, // [24:24] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }
@@ -1955,13 +2424,21 @@ func file_messages_proto_init() {
 		(*Range_Lt)(nil),
 		(*Range_Lte)(nil),
 	}
+	file_messages_proto_msgTypes[28].OneofWrappers = []any{
+		(*Event_QuTransfer)(nil),
+		(*Event_AssetIssuance)(nil),
+		(*Event_AssetOwnershipChange)(nil),
+		(*Event_AssetPossessionChange)(nil),
+		(*Event_Burning)(nil),
+		(*Event_ContractReserveDeduction)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messages_proto_rawDesc), len(file_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   30,
+			NumMessages:   36,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
