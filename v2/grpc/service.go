@@ -211,12 +211,12 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsRequest) (*api.GetEventsResponse, error) {
 	filters, err := createEventsFilters(req.GetFilters())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "creating filters: %v", err)
 	}
 
 	err = validateEventsFilters(filters)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid filter: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "validating filters: %v", err)
 	}
 
 	from, size, err := s.pageSizeLimits.ValidatePagination(req.GetPagination())
