@@ -27,7 +27,17 @@ func Test_createEventsQuery_noFilters(t *testing.T) {
 
 	// Verify sort
 	sort := parsed["sort"].([]any)
-	assert.Len(t, sort, 1)
+	assert.Len(t, sort, 2)
+
+	tickNumberSort := sort[0].(map[string]interface{})
+	require.Contains(t, tickNumberSort, "tickNumber")
+	tickNumberOrder := tickNumberSort["tickNumber"].(map[string]interface{})["order"]
+	require.Contains(t, tickNumberOrder, "desc")
+
+	logIdSort := sort[1].(map[string]interface{})
+	require.Contains(t, logIdSort, "logId")
+	logIdOrder := logIdSort["logId"].(map[string]interface{})["order"]
+	require.Contains(t, logIdOrder, "asc")
 }
 
 func Test_createEventsQuery_withTransactionHash(t *testing.T) {

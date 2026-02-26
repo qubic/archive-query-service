@@ -119,7 +119,7 @@ func createEventsQuery(filters map[string][]string, from, size uint32) string {
 				"filter": [%s]
 			}
 		},
-		"sort": [{"tickNumber":{"order":"desc"}}],
+		"sort": [{"tickNumber":{"order":"desc"}},{"logId":{"order":"asc"}}],
 		"from": %d,
 		"size": %d,
 		"track_total_hits": %d
