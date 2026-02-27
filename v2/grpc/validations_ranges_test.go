@@ -124,3 +124,26 @@ func TestValidations_validateRanges_givenDuplicateFilter_thenError(t *testing.T)
 	_, err := validateIdentityTransactionQueryRanges(filters, ranges)
 	require.ErrorContains(t, err, "already declared as filter")
 }
+
+func TestValidations_validateRanges_tickNumberWithUpperAndLowerRange(t *testing.T) {
+	result, err := validateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		FilterTickNumber: {
+			LowerBound: &api.Range_Gte{
+				Gte: "100",
+			},
+			UpperBound: &api.Range_Lte{
+				Lte: "200",
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Contains(t, result, FilterTickNumber)
+
+	tickRange := result[FilterTickNumber]
+	require.Len(t, tickRange, 2)
+	require.Equal(t, "gte", tickRange[0].Operation)
+	require.Equal(t, "100", tickRange[0].Value)
+	require.Equal(t, "lte", tickRange[1].Operation)
+	require.Equal(t, "200", tickRange[1].Value)
+}
