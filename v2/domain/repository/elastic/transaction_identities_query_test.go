@@ -19,8 +19,7 @@ func Test_createIdentitiesQuery_returnQuery(t *testing.T) {
 			{ "term":{"destination":"some-identity"} }
 		  ],
 		  "minimum_should_match": 1,
-		  "filter": [{"range":{"tickNumber":{"lte":"12345"}}}],
-		  "must_not": []
+		  "filter": [{"range":{"tickNumber":{"lte":"12345"}}}]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -49,8 +48,7 @@ func Test_createIdentitiesQuery_givenFilters_returnQueryWithFilters(t *testing.T
             {"range":{"tickNumber":{"lte":"1000000"}}},
 			{"term":{"another-value":"foo"}},
 			{"term":{"some-value":"42"}}
-          ],
-		  "must_not": []
+          ]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -113,8 +111,7 @@ func Test_createIdentitiesQuery_givenRanges_returnQueryWithFilters(t *testing.T)
 			{"range":{"another-value":{ "lte": "43", "gte": "12"  }}},
 			{"range":{"some-value":{ "lt": "42" }}},
 			{"range":{"third-value":{ "gt": "44"}}}
-          ],
-		  "must_not": []
+          ]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],

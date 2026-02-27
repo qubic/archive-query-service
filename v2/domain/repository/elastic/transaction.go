@@ -181,6 +181,15 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 	// filters for excluding results
 	excludeFilterStrings := getFilterStrings(excludeFilters)
 
+	// filters are always present because we need to restrict to max tick
+	filterQueryString := strings.Join(filterStrings, ",")
+
+	// only add exclude filters if present (otherwise empty)
+	mustNotQueryString := strings.Join(excludeFilterStrings, ",")
+	if len(mustNotQueryString) > 0 {
+		mustNotQueryString = fmt.Sprintf(`, "must_not": [ %s ]`, mustNotQueryString)
+	}
+
 	// in case we have a source or destination filter, the should clause still works
 	query = `{ 
       "query": {
@@ -190,8 +199,7 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 			{ "term":{"destination":"%s"} }
 		  ],
 		  "minimum_should_match": 1,
-		  "filter": [ %s ],
-          "must_not": [ %s ]
+		  "filter": [ %s ] %s
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -201,7 +209,7 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 	}`
 
 	query = fmt.Sprintf(query, identity, identity,
-		strings.Join(filterStrings, ","), strings.Join(excludeFilterStrings, ","),
+		filterQueryString, mustNotQueryString,
 		from, size, maxTrackTotalHits)
 	return query, nil
 }
