@@ -63,15 +63,13 @@ func computorsListToAPIObject(cl computorsList) *api.ComputorList {
 
 func eventToAPIEvent(e event) *api.Event {
 	ev := &api.Event{
-		Epoch:                 e.Epoch,
-		TickNumber:            e.TickNumber,
-		Timestamp:             e.Timestamp,
-		EmittingContractIndex: e.EmittingContractIndex,
-		TransactionHash:       e.TransactionHash,
-		LogId:                 e.LogID,
-		LogDigest:             e.LogDigest,
-		EventType:             e.Type,
-		Category:              e.Category,
+		Epoch:           e.Epoch,
+		TickNumber:      e.TickNumber,
+		Timestamp:       e.Timestamp,
+		TransactionHash: e.TransactionHash,
+		LogId:           e.LogID,
+		LogDigest:       e.LogDigest,
+		EventType:       e.Type,
 	}
 	switch e.Type {
 	case 0:
