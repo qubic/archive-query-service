@@ -76,8 +76,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
-				Epoch: 100, TickNumber: 15000, Timestamp: 1700000001,
-				TransactionHash: "txhash1", LogId: 1, LogDigest: "digest1", EventType: 0,
+				Epoch: 100, TickNumber: 15000, Timestamp: 1700000001, EmittingContractIndex: 1,
+				TransactionHash: "txhash1", LogId: 1, LogDigest: "digest1", EventType: 0, Category: 0,
 				EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 					Source: "SRC_IDENTITY", Destination: "DST_IDENTITY", Amount: 5000,
 				}},
@@ -93,8 +93,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "1700000001",
-		"transactionHash": "txhash1",
-		"logId":           "1", "logDigest": "digest1", "eventType": float64(0),
+		"emittingContractIndex": "1", "transactionHash": "txhash1",
+		"logId": "1", "logDigest": "digest1", "eventType": float64(0), "category": float64(0),
 		"quTransfer": map[string]interface{}{
 			"source": "SRC_IDENTITY", "destination": "DST_IDENTITY", "amount": "5000",
 		},
@@ -110,8 +110,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
-				Epoch: 100, TickNumber: 15001, Timestamp: 1700000002,
-				TransactionHash: "txhash2", LogId: 2, LogDigest: "digest2", EventType: 1,
+				Epoch: 100, TickNumber: 15001, Timestamp: 1700000002, EmittingContractIndex: 1,
+				TransactionHash: "txhash2", LogId: 2, LogDigest: "digest2", EventType: 1, Category: 1,
 				EventData: &api.Event_AssetIssuance{AssetIssuance: &api.AssetIssuanceData{
 					AssetIssuer: "ISSUER_ID", NumberOfShares: 1000000,
 					ManagingContractIndex: 5, AssetName: "QX",
@@ -129,8 +129,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "1700000002",
-		"transactionHash": "txhash2",
-		"logId":           "2", "logDigest": "digest2", "eventType": float64(1),
+		"emittingContractIndex": "1", "transactionHash": "txhash2",
+		"logId": "2", "logDigest": "digest2", "eventType": float64(1), "category": float64(1),
 		"assetIssuance": map[string]interface{}{
 			"assetIssuer": "ISSUER_ID", "numberOfShares": "1000000",
 			"managingContractIndex": "5", "assetName": "QX",
@@ -165,8 +165,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
-		"transactionHash": "txhash3",
-		"logId":           "3", "logDigest": "digest3", "eventType": float64(2),
+		"emittingContractIndex": "0", "transactionHash": "txhash3",
+		"logId": "3", "logDigest": "digest3", "eventType": float64(2), "category": float64(0),
 		"assetOwnershipChange": map[string]interface{}{
 			"source": "OWNER_A", "destination": "OWNER_B",
 			"assetIssuer": "ISSUER", "assetName": "TOKEN", "numberOfShares": "500",
@@ -200,8 +200,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15003), "timestamp": "0",
-		"transactionHash": "txhash4",
-		"logId":           "4", "logDigest": "digest4", "eventType": float64(3),
+		"emittingContractIndex": "0", "transactionHash": "txhash4",
+		"logId": "4", "logDigest": "digest4", "eventType": float64(3), "category": float64(0),
 		"assetPossessionChange": map[string]interface{}{
 			"source": "POSSESSOR_A", "destination": "POSSESSOR_B",
 			"assetIssuer": "ISSUER", "assetName": "TOKEN", "numberOfShares": "300",
@@ -235,8 +235,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(101), "tickNumber": float64(16001), "timestamp": "0",
-		"transactionHash": "txhash5",
-		"logId":           "5", "logDigest": "digest5", "eventType": float64(8),
+		"emittingContractIndex": "0", "transactionHash": "txhash5",
+		"logId": "5", "logDigest": "digest5", "eventType": float64(8), "category": float64(0),
 		"burning": map[string]interface{}{
 			"source": "BURNER", "amount": "9999", "contractIndexBurnedFor": "7",
 		},
@@ -269,8 +269,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 
 	expected := map[string]interface{}{
 		"epoch": float64(101), "tickNumber": float64(16002), "timestamp": "0",
-		"transactionHash": "txhash6",
-		"logId":           "6", "logDigest": "digest6", "eventType": float64(13),
+		"emittingContractIndex": "0", "transactionHash": "txhash6",
+		"logId": "6", "logDigest": "digest6", "eventType": float64(13), "category": float64(0),
 		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "50000", "remainingAmount": "100000", "contractIndex": "3",
 		},
@@ -320,8 +320,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 	ev0 := events[0].(map[string]interface{})
 	expected0 := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "0",
-		"transactionHash": "tx1",
-		"logId":           "1", "logDigest": "d1", "eventType": float64(0),
+		"emittingContractIndex": "0", "transactionHash": "tx1",
+		"logId": "1", "logDigest": "d1", "eventType": float64(0), "category": float64(0),
 		"quTransfer": map[string]interface{}{
 			"source": "A", "destination": "B", "amount": "100",
 		},
@@ -334,8 +334,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 	ev1 := events[1].(map[string]interface{})
 	expected1 := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "0",
-		"transactionHash": "tx2",
-		"logId":           "2", "logDigest": "d2", "eventType": float64(8),
+		"emittingContractIndex": "0", "transactionHash": "tx2",
+		"logId": "2", "logDigest": "d2", "eventType": float64(8), "category": float64(0),
 		"burning": map[string]interface{}{
 			"source": "C", "amount": "200", "contractIndexBurnedFor": "1",
 		},
@@ -348,8 +348,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 	ev2 := events[2].(map[string]interface{})
 	expected2 := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
-		"transactionHash": "tx3",
-		"logId":           "3", "logDigest": "d3", "eventType": float64(13),
+		"emittingContractIndex": "0", "transactionHash": "tx3",
+		"logId": "3", "logDigest": "d3", "eventType": float64(13), "category": float64(0),
 		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "300", "remainingAmount": "700", "contractIndex": "2",
 		},
