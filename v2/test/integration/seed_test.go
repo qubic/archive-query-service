@@ -7,33 +7,40 @@ const productionEventsMapping = `{
 		"number_of_shards": 1,
 		"number_of_replicas": 0
 	},
-	"mappings": {
-		"dynamic": "strict",
-		"properties": {
-			"epoch":                  { "type": "integer" },
-			"tickNumber":             { "type": "unsigned_long" },
-			"timestamp":              { "type": "date", "format": "epoch_millis" },
-			"emittingContractIndex":  { "type": "unsigned_long" },
-			"transactionHash":        { "type": "keyword", "ignore_above": 60 },
-			"logId":                  { "type": "unsigned_long" },
-			"logDigest":              { "type": "keyword", "ignore_above": 60 },
-			"type":                   { "type": "short" },
-			"category":               { "type": "byte" },
-			"source":                 { "type": "keyword", "ignore_above": 60 },
-			"destination":            { "type": "keyword", "ignore_above": 60 },
-			"amount":                 { "type": "unsigned_long" },
-			"assetName":              { "type": "keyword", "ignore_above": 60 },
-			"assetIssuer":            { "type": "keyword", "ignore_above": 60 },
-			"numberOfShares":         { "type": "unsigned_long" },
-			"managingContractIndex":  { "type": "unsigned_long" },
-			"unitOfMeasurement":      { "type": "binary" },
-			"numberOfDecimalPlaces":  { "type": "byte", "index": false },
-			"deductedAmount":         { "type": "unsigned_long" },
-			"remainingAmount":        { "type": "long" },
-			"contractIndex":          { "type": "unsigned_long" },
-			"contractIndexBurnedFor": { "type": "unsigned_long" }
-		}
-	}
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "epoch": { "type": "integer" },
+        "tickNumber": { "type": "unsigned_long" },
+        "timestamp": { "type": "date", "format": "epoch_millis" },
+        "transactionHash": { "type": "keyword", "ignore_above": 60, "doc_values": false },
+        "logId": { "type": "unsigned_long" },
+        "logDigest": { "type": "keyword",  "doc_values": false  },
+        "type": {  "type": "short"  },
+        "category": { "type": "byte" },
+        "source": { "type": "keyword", "ignore_above": 60 },
+        "destination": {  "type": "keyword", "ignore_above": 60 },
+        "amount": { "type": "unsigned_long" },
+        "assetName": { "type": "keyword", "ignore_above": 7 },
+        "assetIssuer": { "type": "keyword", "ignore_above": 60 },
+        "numberOfShares": { "type": "unsigned_long" },
+        "managingContractIndex": { "type": "unsigned_long" },
+        "unitOfMeasurement": {  "type": "binary" },
+        "numberOfDecimalPlaces": { "type": "byte", "index": false, "doc_values": false },
+        "deductedAmount": { "type": "unsigned_long" },
+        "remainingAmount": {  "type": "long" },
+        "contractIndex": { "type": "unsigned_long" },
+        "contractIndexBurnedFor": { "type": "unsigned_long" },
+        "possessor": { "type": "keyword", "ignore_above": 60 },
+        "owner": {  "type": "keyword", "ignore_above": 60 },
+        "sourceContractIndex": { "type": "unsigned_long" },
+        "destinationContractIndex": { "type": "unsigned_long" },
+        "customMessage": { "type": "unsigned_long"  },
+        "emittingContractIndex": { "type": "unsigned_long"  },
+        "contractMessageType": { "type": "unsigned_long" },
+        "rawPayload": { "type": "binary" }
+      }
+    }
 }`
 
 // seedEvent mirrors the ES document structure (the internal event struct is unexported).
