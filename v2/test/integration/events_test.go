@@ -253,7 +253,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidEventType() {
 	t := s.T()
 	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "99"},
+		Filters: map[string]string{"eventType": "256"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)

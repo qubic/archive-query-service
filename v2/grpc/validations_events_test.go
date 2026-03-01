@@ -44,7 +44,7 @@ func TestValidateEventsFilters_ValidTickNumber(t *testing.T) {
 }
 
 func TestValidateEventsFilters_ValidEventType(t *testing.T) {
-	for _, et := range []string{"0", "1", "2", "3", "8", "13"} {
+	for _, et := range []string{"0", "1", "2", "3", "4", "5", "6", "8", "13", "255"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"eventType": {et}}
 			err := validateEventsFilters(filters)
@@ -54,12 +54,12 @@ func TestValidateEventsFilters_ValidEventType(t *testing.T) {
 }
 
 func TestValidateEventsFilters_InvalidEventType(t *testing.T) {
-	for _, et := range []string{"5", "6", "7", "-1", "14", "abc"} {
+	for _, et := range []string{"-1", "256", "abc"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"eventType": {et}}
 			err := validateEventsFilters(filters)
 			require.Error(t, err)
-			assert.Contains(t, err.Error(), "invalid eventType")
+			assert.Contains(t, err.Error(), "invalid [eventType] filter")
 		})
 	}
 }
@@ -68,7 +68,7 @@ func TestValidateEventsFilters_InvalidTickNumber(t *testing.T) {
 	filters := map[string][]string{"tickNumber": {"not-a-number"}}
 	err := validateEventsFilters(filters)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid tickNumber")
+	assert.Contains(t, err.Error(), "invalid [tickNumber] filter")
 }
 
 func TestValidateEventsFilters_UnsupportedFilter(t *testing.T) {

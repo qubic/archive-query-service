@@ -19,7 +19,7 @@ const productionEventsMapping = `{
         "logId": { "type": "unsigned_long" },
         "logDigest": { "type": "keyword",  "doc_values": false  },
         "type": {  "type": "short"  },
-        "category": { "type": "byte" },
+        "categories": { "type": "byte" },
         "source": { "type": "keyword", "ignore_above": 60 },
         "destination": {  "type": "keyword", "ignore_above": 60 },
         "amount": { "type": "unsigned_long" },
@@ -54,7 +54,7 @@ type seedEvent struct {
 	LogID                    uint64  `json:"logId"`
 	LogDigest                string  `json:"logDigest"`
 	Type                     uint32  `json:"type"`
-	Categories               []int32 `json:"category"` // not all events have categories
+	Categories               []int32 `json:"categories"` // not all events have categories
 	Source                   string  `json:"source"`
 	Destination              string  `json:"destination"`
 	Amount                   uint64  `json:"amount"`

@@ -72,13 +72,13 @@ func TestArchiveQueryService_GetEvents_InvalidEventType(t *testing.T) {
 	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
 
 	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "99"},
+		Filters: map[string]string{"eventType": "256"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "invalid eventType")
+	assert.Contains(t, st.Message(), "invalid [eventType] filter")
 }
 
 func TestArchiveQueryService_GetEvents_InvalidPagination(t *testing.T) {
