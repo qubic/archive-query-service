@@ -32,7 +32,7 @@ type event struct {
 	LogID                    uint64  `json:"logId"`
 	LogDigest                string  `json:"logDigest"`
 	Type                     uint32  `json:"type"`
-	Categories               []int32 `json:"category"` // not all events have categories
+	Categories               []int32 `json:"categories"` // not all events have categories
 	Source                   string  `json:"source"`
 	Destination              string  `json:"destination"`
 	Amount                   uint64  `json:"amount"`
