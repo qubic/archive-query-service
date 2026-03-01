@@ -10,6 +10,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
+	"github.com/qubic/archive-query-service/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +24,7 @@ var testEvent1 = event{
 	Epoch:           100,
 	TickNumber:      15000,
 	Timestamp:       1700000001,
-	TransactionHash: "txhash1",
+	TransactionHash: test.ToPointer("txhash1"),
 	LogID:           1,
 	LogDigest:       "digest1",
 	Type:            0,
@@ -36,11 +37,11 @@ var testEvent2 = event{
 	Epoch:           100,
 	TickNumber:      15001,
 	Timestamp:       1700000002,
-	TransactionHash: "txhash2",
+	TransactionHash: test.ToPointer("txhash2"),
 	LogID:           2,
 	LogDigest:       "digest2",
 	Type:            1,
-	Categories:      []uint32{1},
+	Categories:      []int32{1},
 	Source:          "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
 	Destination:     "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
 	Amount:          2000,
@@ -50,7 +51,7 @@ var testEvent3 = event{
 	Epoch:           100,
 	TickNumber:      15002,
 	Timestamp:       1700000003,
-	TransactionHash: "txhash1",
+	TransactionHash: test.ToPointer("txhash1"),
 	LogID:           3,
 	LogDigest:       "digest3",
 	Type:            2,
@@ -63,7 +64,7 @@ var testEvent4 = event{
 	Epoch:           101,
 	TickNumber:      16000,
 	Timestamp:       1700000004,
-	TransactionHash: "txhash3",
+	TransactionHash: test.ToPointer("txhash3"),
 	LogID:           4,
 	LogDigest:       "digest4",
 	Type:            3,
@@ -73,7 +74,7 @@ var testEvent5 = event{
 	Epoch:           101,
 	TickNumber:      16001,
 	Timestamp:       1700000005,
-	TransactionHash: "txhash4",
+	TransactionHash: test.ToPointer("txhash4"),
 	LogID:           5,
 	Type:            8,
 }
@@ -82,7 +83,7 @@ var testEvent6 = event{
 	Epoch:           101,
 	TickNumber:      16002,
 	Timestamp:       1700000006,
-	TransactionHash: "txhash5",
+	TransactionHash: test.ToPointer("txhash5"),
 	LogID:           6,
 	Type:            13,
 }
@@ -215,7 +216,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByTransactionHash() {
 	assert.Equal(s.T(), 2, hits.Total)
 
 	for _, ev := range events {
-		assert.Equal(s.T(), "txhash1", ev.TransactionHash)
+		assert.Equal(s.T(), "txhash1", *ev.TransactionHash)
 	}
 }
 
@@ -249,7 +250,7 @@ func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
 	require.NoError(s.T(), err, "getting events with combined filters")
 	require.Len(s.T(), events, 1)
 	assert.Equal(s.T(), 1, hits.Total)
-	assert.Equal(s.T(), "txhash1", events[0].TransactionHash)
+	assert.Equal(s.T(), "txhash1", *events[0].TransactionHash)
 	assert.Equal(s.T(), uint32(0), events[0].EventType)
 }
 

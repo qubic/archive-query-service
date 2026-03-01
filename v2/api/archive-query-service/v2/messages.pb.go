@@ -1803,10 +1803,12 @@ type Event struct {
 	Epoch           uint32                 `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
 	TickNumber      uint32                 `protobuf:"varint,2,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
 	Timestamp       uint64                 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	TransactionHash string                 `protobuf:"bytes,4,opt,name=transaction_hash,json=transactionHash,proto3" json:"transaction_hash,omitempty"`
+	TransactionHash *string                `protobuf:"bytes,4,opt,name=transaction_hash,json=transactionHash,proto3,oneof" json:"transaction_hash,omitempty"`
 	LogId           uint64                 `protobuf:"varint,5,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
 	LogDigest       string                 `protobuf:"bytes,6,opt,name=log_digest,json=logDigest,proto3" json:"log_digest,omitempty"`
 	EventType       uint32                 `protobuf:"varint,7,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
+	Categories      []int32                `protobuf:"varint,8,rep,packed,name=categories,proto3" json:"categories,omitempty"`
+	Raw             []byte                 `protobuf:"bytes,9,opt,name=raw,proto3,oneof" json:"raw,omitempty"`
 	// Types that are valid to be assigned to EventData:
 	//
 	//	*Event_QuTransfer
@@ -1872,8 +1874,8 @@ func (x *Event) GetTimestamp() uint64 {
 }
 
 func (x *Event) GetTransactionHash() string {
-	if x != nil {
-		return x.TransactionHash
+	if x != nil && x.TransactionHash != nil {
+		return *x.TransactionHash
 	}
 	return ""
 }
@@ -1897,6 +1899,20 @@ func (x *Event) GetEventType() uint32 {
 		return x.EventType
 	}
 	return 0
+}
+
+func (x *Event) GetCategories() []int32 {
+	if x != nil {
+		return x.Categories
+	}
+	return nil
+}
+
+func (x *Event) GetRaw() []byte {
+	if x != nil {
+		return x.Raw
+	}
+	return nil
 }
 
 func (x *Event) GetEventData() isEvent_EventData {
@@ -1965,27 +1981,27 @@ type isEvent_EventData interface {
 }
 
 type Event_QuTransfer struct {
-	QuTransfer *QuTransferData `protobuf:"bytes,8,opt,name=qu_transfer,json=quTransfer,proto3,oneof"`
+	QuTransfer *QuTransferData `protobuf:"bytes,10,opt,name=qu_transfer,json=quTransfer,proto3,oneof"`
 }
 
 type Event_AssetIssuance struct {
-	AssetIssuance *AssetIssuanceData `protobuf:"bytes,9,opt,name=asset_issuance,json=assetIssuance,proto3,oneof"`
+	AssetIssuance *AssetIssuanceData `protobuf:"bytes,11,opt,name=asset_issuance,json=assetIssuance,proto3,oneof"`
 }
 
 type Event_AssetOwnershipChange struct {
-	AssetOwnershipChange *AssetOwnershipChangeData `protobuf:"bytes,10,opt,name=asset_ownership_change,json=assetOwnershipChange,proto3,oneof"`
+	AssetOwnershipChange *AssetOwnershipChangeData `protobuf:"bytes,12,opt,name=asset_ownership_change,json=assetOwnershipChange,proto3,oneof"`
 }
 
 type Event_AssetPossessionChange struct {
-	AssetPossessionChange *AssetPossessionChangeData `protobuf:"bytes,11,opt,name=asset_possession_change,json=assetPossessionChange,proto3,oneof"`
+	AssetPossessionChange *AssetPossessionChangeData `protobuf:"bytes,13,opt,name=asset_possession_change,json=assetPossessionChange,proto3,oneof"`
 }
 
 type Event_Burning struct {
-	Burning *BurningData `protobuf:"bytes,12,opt,name=burning,proto3,oneof"`
+	Burning *BurningData `protobuf:"bytes,14,opt,name=burning,proto3,oneof"`
 }
 
 type Event_ContractReserveDeduction struct {
-	ContractReserveDeduction *ContractReserveDeductionData `protobuf:"bytes,13,opt,name=contract_reserve_deduction,json=contractReserveDeduction,proto3,oneof"`
+	ContractReserveDeduction *ContractReserveDeductionData `protobuf:"bytes,15,opt,name=contract_reserve_deduction,json=contractReserveDeduction,proto3,oneof"`
 }
 
 func (*Event_QuTransfer) isEvent_EventData() {}
@@ -2274,28 +2290,34 @@ const file_messages_proto_rawDesc = "" +
 	"\x1cContractReserveDeductionData\x12'\n" +
 	"\x0fdeducted_amount\x18\x01 \x01(\x04R\x0edeductedAmount\x12)\n" +
 	"\x10remaining_amount\x18\x02 \x01(\x03R\x0fremainingAmount\x12%\n" +
-	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\x85\x06\n" +
+	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\xde\x06\n" +
 	"\x05Event\x12\x14\n" +
 	"\x05epoch\x18\x01 \x01(\rR\x05epoch\x12\x1f\n" +
 	"\vtick_number\x18\x02 \x01(\rR\n" +
 	"tickNumber\x12\x1c\n" +
-	"\ttimestamp\x18\x03 \x01(\x04R\ttimestamp\x12)\n" +
-	"\x10transaction_hash\x18\x04 \x01(\tR\x0ftransactionHash\x12\x15\n" +
+	"\ttimestamp\x18\x03 \x01(\x04R\ttimestamp\x12.\n" +
+	"\x10transaction_hash\x18\x04 \x01(\tH\x01R\x0ftransactionHash\x88\x01\x01\x12\x15\n" +
 	"\x06log_id\x18\x05 \x01(\x04R\x05logId\x12\x1d\n" +
 	"\n" +
 	"log_digest\x18\x06 \x01(\tR\tlogDigest\x12\x1d\n" +
 	"\n" +
-	"event_type\x18\a \x01(\rR\teventType\x12F\n" +
-	"\vqu_transfer\x18\b \x01(\v2#.qubic.v2.archive.pb.QuTransferDataH\x00R\n" +
-	"quTransfer\x12O\n" +
-	"\x0easset_issuance\x18\t \x01(\v2&.qubic.v2.archive.pb.AssetIssuanceDataH\x00R\rassetIssuance\x12e\n" +
-	"\x16asset_ownership_change\x18\n" +
-	" \x01(\v2-.qubic.v2.archive.pb.AssetOwnershipChangeDataH\x00R\x14assetOwnershipChange\x12h\n" +
-	"\x17asset_possession_change\x18\v \x01(\v2..qubic.v2.archive.pb.AssetPossessionChangeDataH\x00R\x15assetPossessionChange\x12<\n" +
-	"\aburning\x18\f \x01(\v2 .qubic.v2.archive.pb.BurningDataH\x00R\aburning\x12q\n" +
-	"\x1acontract_reserve_deduction\x18\r \x01(\v21.qubic.v2.archive.pb.ContractReserveDeductionDataH\x00R\x18contractReserveDeductionB\f\n" +
+	"event_type\x18\a \x01(\rR\teventType\x12\x1e\n" +
 	"\n" +
-	"event_data\"\xed\x03\n" +
+	"categories\x18\b \x03(\x05R\n" +
+	"categories\x12\x15\n" +
+	"\x03raw\x18\t \x01(\fH\x02R\x03raw\x88\x01\x01\x12F\n" +
+	"\vqu_transfer\x18\n" +
+	" \x01(\v2#.qubic.v2.archive.pb.QuTransferDataH\x00R\n" +
+	"quTransfer\x12O\n" +
+	"\x0easset_issuance\x18\v \x01(\v2&.qubic.v2.archive.pb.AssetIssuanceDataH\x00R\rassetIssuance\x12e\n" +
+	"\x16asset_ownership_change\x18\f \x01(\v2-.qubic.v2.archive.pb.AssetOwnershipChangeDataH\x00R\x14assetOwnershipChange\x12h\n" +
+	"\x17asset_possession_change\x18\r \x01(\v2..qubic.v2.archive.pb.AssetPossessionChangeDataH\x00R\x15assetPossessionChange\x12<\n" +
+	"\aburning\x18\x0e \x01(\v2 .qubic.v2.archive.pb.BurningDataH\x00R\aburning\x12q\n" +
+	"\x1acontract_reserve_deduction\x18\x0f \x01(\v21.qubic.v2.archive.pb.ContractReserveDeductionDataH\x00R\x18contractReserveDeductionB\f\n" +
+	"\n" +
+	"event_dataB\x13\n" +
+	"\x11_transaction_hashB\x06\n" +
+	"\x04_raw\"\xed\x03\n" +
 	"\x10GetEventsRequest\x12\xb2\x01\n" +
 	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBd\xbaGa\x92\x02^Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventTypeR\afilters\x12c\n" +
 	"\n" +

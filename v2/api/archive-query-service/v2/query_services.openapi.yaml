@@ -375,6 +375,14 @@ components:
         eventType:
           type: integer
           format: uint32
+        categories:
+          type: array
+          items:
+            type: integer
+            format: int32
+        raw:
+          type: string
+          format: bytes
         quTransfer:
           $ref: '#/components/schemas/QuTransferData'
         assetIssuance:

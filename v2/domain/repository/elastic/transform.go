@@ -70,6 +70,7 @@ func eventToAPIEvent(e event) *api.Event {
 		LogId:           e.LogID,
 		LogDigest:       e.LogDigest,
 		EventType:       e.Type,
+		Categories:      e.Categories,
 	}
 	switch e.Type {
 	case 0:

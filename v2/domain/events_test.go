@@ -8,6 +8,7 @@ import (
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain/mock"
 	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/qubic/archive-query-service/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -20,10 +21,10 @@ func TestEventsService_GetEvents_Success(t *testing.T) {
 	service := NewEventsService(mockRepo)
 
 	expectedEvents := []*api.Event{
-		{TickNumber: 100, TransactionHash: "hash1", EventType: 0, EventData: &api.Event_QuTransfer{
+		{TickNumber: 100, TransactionHash: test.ToPointer("hash1"), EventType: 0, EventData: &api.Event_QuTransfer{
 			QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 		}},
-		{TickNumber: 101, TransactionHash: "hash2", EventType: 1, EventData: &api.Event_AssetIssuance{
+		{TickNumber: 101, TransactionHash: test.ToPointer("hash2"), EventType: 1, EventData: &api.Event_AssetIssuance{
 			AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 		}},
 	}

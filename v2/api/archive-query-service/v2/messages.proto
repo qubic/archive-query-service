@@ -227,18 +227,21 @@ message Event {
   uint32 epoch = 1;
   uint32 tick_number = 2;
   uint64 timestamp = 3;
-  string transaction_hash = 4;
+  optional string transaction_hash = 4;
   uint64 log_id = 5;
   string log_digest = 6;
   uint32 event_type = 7;
+  repeated int32 categories = 8;
+  optional bytes raw = 9;
   oneof event_data {
-    QuTransferData qu_transfer = 8;
-    AssetIssuanceData asset_issuance = 9;
-    AssetOwnershipChangeData asset_ownership_change = 10;
-    AssetPossessionChangeData asset_possession_change = 11;
-    BurningData burning = 12;
-    ContractReserveDeductionData contract_reserve_deduction = 13;
+    QuTransferData qu_transfer = 10;
+    AssetIssuanceData asset_issuance = 11;
+    AssetOwnershipChangeData asset_ownership_change = 12;
+    AssetPossessionChangeData asset_possession_change = 13;
+    BurningData burning = 14;
+    ContractReserveDeductionData contract_reserve_deduction = 15;
   }
+
 }
 
 // GetEventsRequest

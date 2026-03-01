@@ -3,7 +3,7 @@ name: Deploy v2 prod images to GHCR
 on:
   push:
     branches:
-      - 'v2-limit-pagination-parameters'
+      - 'feature/add-more-events'
 
 jobs:
   docker-publish:

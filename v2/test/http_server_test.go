@@ -77,7 +77,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15000, Timestamp: 1700000001,
-				TransactionHash: "txhash1", LogId: 1, LogDigest: "digest1", EventType: 0,
+				TransactionHash: ToPointer("txhash1"), LogId: 1, LogDigest: "digest1", EventType: 0,
 				EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 					Source: "SRC_IDENTITY", Destination: "DST_IDENTITY", Amount: 5000,
 				}},
@@ -95,6 +95,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "1700000001",
 		"transactionHash": "txhash1",
 		"logId":           "1", "logDigest": "digest1", "eventType": float64(0),
+		"categories": []any{},
 		"quTransfer": map[string]interface{}{
 			"source": "SRC_IDENTITY", "destination": "DST_IDENTITY", "amount": "5000",
 		},
@@ -111,7 +112,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15001, Timestamp: 1700000002,
-				TransactionHash: "txhash2", LogId: 2, LogDigest: "digest2", EventType: 1,
+				TransactionHash: ToPointer("txhash2"), LogId: 2, LogDigest: "digest2", EventType: 1,
 				EventData: &api.Event_AssetIssuance{AssetIssuance: &api.AssetIssuanceData{
 					AssetIssuer: "ISSUER_ID", NumberOfShares: 1000000,
 					ManagingContractIndex: 5, AssetName: "QX",
@@ -131,6 +132,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "1700000002",
 		"transactionHash": "txhash2",
 		"logId":           "2", "logDigest": "digest2", "eventType": float64(1),
+		"categories": []any{},
 		"assetIssuance": map[string]interface{}{
 			"assetIssuer": "ISSUER_ID", "numberOfShares": "1000000",
 			"managingContractIndex": "5", "assetName": "QX",
@@ -149,7 +151,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15002, EventType: 2,
-				TransactionHash: "txhash3", LogId: 3, LogDigest: "digest3",
+				TransactionHash: ToPointer("txhash3"), LogId: 3, LogDigest: "digest3",
 				EventData: &api.Event_AssetOwnershipChange{AssetOwnershipChange: &api.AssetOwnershipChangeData{
 					Source: "OWNER_A", Destination: "OWNER_B", AssetIssuer: "ISSUER", AssetName: "TOKEN", NumberOfShares: 500,
 				}},
@@ -167,6 +169,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 		"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
 		"transactionHash": "txhash3",
 		"logId":           "3", "logDigest": "digest3", "eventType": float64(2),
+		"categories": []any{},
 		"assetOwnershipChange": map[string]interface{}{
 			"source": "OWNER_A", "destination": "OWNER_B",
 			"assetIssuer": "ISSUER", "assetName": "TOKEN", "numberOfShares": "500",
@@ -184,7 +187,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15003, EventType: 3,
-				TransactionHash: "txhash4", LogId: 4, LogDigest: "digest4",
+				TransactionHash: ToPointer("txhash4"), LogId: 4, LogDigest: "digest4",
 				EventData: &api.Event_AssetPossessionChange{AssetPossessionChange: &api.AssetPossessionChangeData{
 					Source: "POSSESSOR_A", Destination: "POSSESSOR_B", AssetIssuer: "ISSUER", AssetName: "TOKEN", NumberOfShares: 300,
 				}},
@@ -202,6 +205,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 		"epoch": float64(100), "tickNumber": float64(15003), "timestamp": "0",
 		"transactionHash": "txhash4",
 		"logId":           "4", "logDigest": "digest4", "eventType": float64(3),
+		"categories": []any{},
 		"assetPossessionChange": map[string]interface{}{
 			"source": "POSSESSOR_A", "destination": "POSSESSOR_B",
 			"assetIssuer": "ISSUER", "assetName": "TOKEN", "numberOfShares": "300",
@@ -219,7 +223,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 101, TickNumber: 16001, EventType: 8,
-				TransactionHash: "txhash5", LogId: 5, LogDigest: "digest5",
+				TransactionHash: ToPointer("txhash5"), LogId: 5, LogDigest: "digest5",
 				EventData: &api.Event_Burning{Burning: &api.BurningData{
 					Source: "BURNER", Amount: 9999, ContractIndexBurnedFor: 7,
 				}},
@@ -237,6 +241,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 		"epoch": float64(101), "tickNumber": float64(16001), "timestamp": "0",
 		"transactionHash": "txhash5",
 		"logId":           "5", "logDigest": "digest5", "eventType": float64(8),
+		"categories": []any{},
 		"burning": map[string]interface{}{
 			"source": "BURNER", "amount": "9999", "contractIndexBurnedFor": "7",
 		},
@@ -253,7 +258,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 101, TickNumber: 16002, EventType: 13,
-				TransactionHash: "txhash6", LogId: 6, LogDigest: "digest6",
+				TransactionHash: ToPointer("txhash6"), LogId: 6, LogDigest: "digest6",
 				EventData: &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 					DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,
 				}},
@@ -271,6 +276,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 		"epoch": float64(101), "tickNumber": float64(16002), "timestamp": "0",
 		"transactionHash": "txhash6",
 		"logId":           "6", "logDigest": "digest6", "eventType": float64(13),
+		"categories": []any{},
 		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "50000", "remainingAmount": "100000", "contractIndex": "3",
 		},
@@ -288,21 +294,21 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 			Events: []*api.Event{
 				{
 					Epoch: 100, TickNumber: 15000, EventType: 0,
-					TransactionHash: "tx1", LogId: 1, LogDigest: "d1",
+					TransactionHash: ToPointer("tx1"), LogId: 1, LogDigest: "d1",
 					EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 						Source: "A", Destination: "B", Amount: 100,
 					}},
 				},
 				{
 					Epoch: 100, TickNumber: 15001, EventType: 8,
-					TransactionHash: "tx2", LogId: 2, LogDigest: "d2",
+					TransactionHash: ToPointer("tx2"), LogId: 2, LogDigest: "d2",
 					EventData: &api.Event_Burning{Burning: &api.BurningData{
 						Source: "C", Amount: 200, ContractIndexBurnedFor: 1,
 					}},
 				},
 				{
 					Epoch: 100, TickNumber: 15002, EventType: 13,
-					TransactionHash: "tx3", LogId: 3, LogDigest: "d3",
+					TransactionHash: ToPointer("tx3"), LogId: 3, LogDigest: "d3",
 					EventData: &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 						DeductedAmount: 300, RemainingAmount: 700, ContractIndex: 2,
 					}},
@@ -322,6 +328,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "0",
 		"transactionHash": "tx1",
 		"logId":           "1", "logDigest": "d1", "eventType": float64(0),
+		"categories": []any{},
 		"quTransfer": map[string]interface{}{
 			"source": "A", "destination": "B", "amount": "100",
 		},
@@ -336,6 +343,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "0",
 		"transactionHash": "tx2",
 		"logId":           "2", "logDigest": "d2", "eventType": float64(8),
+		"categories": []any{},
 		"burning": map[string]interface{}{
 			"source": "C", "amount": "200", "contractIndexBurnedFor": "1",
 		},
@@ -350,6 +358,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 		"epoch": float64(100), "tickNumber": float64(15002), "timestamp": "0",
 		"transactionHash": "tx3",
 		"logId":           "3", "logDigest": "d3", "eventType": float64(13),
+		"categories": []any{},
 		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "300", "remainingAmount": "700", "contractIndex": "2",
 		},
