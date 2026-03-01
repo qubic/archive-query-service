@@ -1,7 +1,9 @@
 package test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -258,14 +260,18 @@ func (s *ServerTestSuite) TestGetEvents_InvalidFilter() {
 
 func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 	t := s.T()
-	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "99"},
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+	defer cancel()
+
+	_, err := s.client.GetEvents(ctx, &api.GetEventsRequest{
+		Filters: map[string]string{"eventType": "invalid"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "invalid eventType")
+	assert.Contains(t, st.Message(), "validating filters")
+	assert.Contains(t, st.Message(), "invalid [eventType] filter")
 }
 
 func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {
