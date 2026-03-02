@@ -44,7 +44,7 @@ func TestValidateEventsFilters_ValidTickNumber(t *testing.T) {
 }
 
 func TestValidateEventsFilters_ValidEventType(t *testing.T) {
-	for _, et := range []string{"0", "1", "2", "3", "4", "5", "6", "8", "13", "255"} {
+	for _, et := range []string{"0", "1", "2", "3", "4", "5", "6", "8", "13", "14", "255"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"eventType": {et}}
 			err := validateEventsFilters(filters)
@@ -54,7 +54,7 @@ func TestValidateEventsFilters_ValidEventType(t *testing.T) {
 }
 
 func TestValidateEventsFilters_InvalidEventType(t *testing.T) {
-	for _, et := range []string{"-1", "256", "abc"} {
+	for _, et := range []string{"-1", "15", "256", "abc"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"eventType": {et}}
 			err := validateEventsFilters(filters)

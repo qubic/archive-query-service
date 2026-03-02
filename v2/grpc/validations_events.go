@@ -51,8 +51,8 @@ func validateEventsFilters(filters map[string][]string) error {
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
 			}
-			if uVal > 255 {
-				return fmt.Errorf("invalid [%s] filter: must be between from 0 to 255 but was [%d]", key, uVal)
+			if uVal != 255 && uVal > 14 {
+				return fmt.Errorf("invalid [%s] filter: must be 0-14 or 255 but was [%d]", key, uVal)
 			}
 		default:
 			return fmt.Errorf("unsupported filter: [%s]", key)
