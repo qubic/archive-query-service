@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -166,9 +167,17 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 
 	includeFilters, excludeFilters := splitFilters(filters)
 
+	// Check if there's an upper bound tickNumber range filter (lt/lte) and adjust if needed
+	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	if err != nil {
+		return "", err
+	}
+
 	filterStrings := make([]string, 0, len(includeFilters)+len(ranges)+1)
-	// restrict to max tick (we don't care about potential duplicate tickNumber range filter)
-	filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
+	// restrict to max tick only if no upper bound tickNumber filter is present
+	if !hasUpperBoundTickFilter {
+		filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
+	}
 	// normal filters
 	filterStrings = append(filterStrings, getFilterStrings(includeFilters)...)
 	// append range filters
@@ -181,6 +190,15 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 	// filters for excluding results
 	excludeFilterStrings := getFilterStrings(excludeFilters)
 
+	// filters are always present because we need to restrict to max tick
+	filterQueryString := strings.Join(filterStrings, ",")
+
+	// only add exclude filters if present (otherwise empty)
+	mustNotQueryString := strings.Join(excludeFilterStrings, ",")
+	if len(mustNotQueryString) > 0 {
+		mustNotQueryString = fmt.Sprintf(`, "must_not": [ %s ]`, mustNotQueryString)
+	}
+
 	// in case we have a source or destination filter, the should clause still works
 	query = `{ 
       "query": {
@@ -190,8 +208,7 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 			{ "term":{"destination":"%s"} }
 		  ],
 		  "minimum_should_match": 1,
-		  "filter": [ %s ],
-          "must_not": [ %s ]
+		  "filter": [ %s ] %s
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -201,9 +218,37 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 	}`
 
 	query = fmt.Sprintf(query, identity, identity,
-		strings.Join(filterStrings, ","), strings.Join(excludeFilterStrings, ","),
+		filterQueryString, mustNotQueryString,
 		from, size, maxTrackTotalHits)
 	return query, nil
+}
+
+func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.Range, maxTick uint32) (bool, error) {
+	hasUpperBoundTickFilter := false
+	if tickRanges, ok := ranges["tickNumber"]; ok {
+		for _, r := range tickRanges {
+			if r.Operation == "lt" || r.Operation == "lte" {
+				hasUpperBoundTickFilter = true
+				// Parse the value and compare with maxTick
+				tickValue, err := strconv.ParseUint(r.Value, 10, 32)
+				if err != nil {
+					return false, fmt.Errorf("parsing tickNumber range value: %w", err)
+				}
+				maxTickValue := If(r.Operation == "lte", maxTick, maxTick+1)
+				if uint32(tickValue) > maxTickValue {
+					r.Value = fmt.Sprintf("%d", maxTickValue)
+				}
+			}
+		}
+	}
+	return hasUpperBoundTickFilter, nil
+}
+
+func If[T any](cond bool, vtrue, vfalse T) T {
+	if cond {
+		return vtrue
+	}
+	return vfalse
 }
 
 const excludeSuffix = "-exclude"

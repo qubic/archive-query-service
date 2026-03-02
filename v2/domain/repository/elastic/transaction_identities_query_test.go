@@ -19,8 +19,7 @@ func Test_createIdentitiesQuery_returnQuery(t *testing.T) {
 			{ "term":{"destination":"some-identity"} }
 		  ],
 		  "minimum_should_match": 1,
-		  "filter": [{"range":{"tickNumber":{"lte":"12345"}}}],
-		  "must_not": []
+		  "filter": [{"range":{"tickNumber":{"lte":"12345"}}}]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -49,8 +48,7 @@ func Test_createIdentitiesQuery_givenFilters_returnQueryWithFilters(t *testing.T
             {"range":{"tickNumber":{"lte":"1000000"}}},
 			{"term":{"another-value":"foo"}},
 			{"term":{"some-value":"42"}}
-          ],
-		  "must_not": []
+          ]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -113,8 +111,7 @@ func Test_createIdentitiesQuery_givenRanges_returnQueryWithFilters(t *testing.T)
 			{"range":{"another-value":{ "lte": "43", "gte": "12"  }}},
 			{"range":{"some-value":{ "lt": "42" }}},
 			{"range":{"third-value":{ "gt": "44"}}}
-          ],
-		  "must_not": []
+          ]
 		}
 	  },
 	  "sort": [ {"tickNumber":{"order":"desc"}} ],
@@ -169,5 +166,203 @@ func Test_createIdentitiesQuery_givenRangesAndFilters_returnQueryWithAllFilters(
 	require.NotEmpty(t, query)
 
 	log.Println(query)
+	require.JSONEq(t, expectedQuery, query)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_noRangeFilter(t *testing.T) {
+	ranges := map[string][]*entities.Range{}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.False(t, hasUpperBound)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_upperBoundReplacedWithMaxTick(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "lte", Value: "5000"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.True(t, hasUpperBound)
+	require.Equal(t, "1000", ranges["tickNumber"][0].Value)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_upperBoundNotReplaced(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "lte", Value: "999"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.True(t, hasUpperBound)
+	require.Equal(t, "999", ranges["tickNumber"][0].Value)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_onlyLowerBound(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "gte", Value: "100"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.False(t, hasUpperBound)
+	require.Equal(t, "100", ranges["tickNumber"][0].Value)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_ltOperatorNotReplacedWithMaxTick(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "lt", Value: "1001"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.True(t, hasUpperBound)
+	require.Equal(t, "1001", ranges["tickNumber"][0].Value)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_ltOperatorReplacedWithMaxTick(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "lt", Value: "1002"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.True(t, hasUpperBound)
+	require.Equal(t, "1001", ranges["tickNumber"][0].Value)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_lteOperatorReplacedWithMaxTick(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "lte", Value: "5000"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.NoError(t, err)
+	require.True(t, hasUpperBound)
+	require.Equal(t, "1000", ranges["tickNumber"][0].Value)
+}
+
+func Test_modifyUpperBoundTickNumberFilterIfNecessary_invalidValueReturnsError(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {
+			{Operation: "lte", Value: "not-a-number"},
+		},
+	}
+	maxTick := uint32(1000)
+
+	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	require.Error(t, err)
+	require.False(t, hasUpperBound)
+	require.Contains(t, err.Error(), "parsing tickNumber range value")
+}
+
+func Test_createIdentitiesQuery_withTickNumberUpperBound_omitsMaxTickFilter(t *testing.T) {
+	expectedQuery := `{
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [
+			{"range":{"tickNumber":{"lte":"500"}}}
+          ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 0,
+	  "size": 10,
+	  "track_total_hits": 10000
+	}`
+
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {{Operation: "lte", Value: "500"}},
+	}
+	query, err := createIdentitiesQuery(testIdentity, nil, ranges, 0, 10, 1000)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
+
+	require.JSONEq(t, expectedQuery, query)
+}
+
+func Test_createIdentitiesQuery_withTickNumberUpperBoundExceedingMaxTick_replacesWithMaxTick(t *testing.T) {
+	expectedQuery := `{
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [
+			{"range":{"tickNumber":{"lt":"1001"}}}
+          ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 0,
+	  "size": 10,
+	  "track_total_hits": 10000
+	}`
+
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {{Operation: "lt", Value: "5000"}},
+	}
+	query, err := createIdentitiesQuery(testIdentity, nil, ranges, 0, 10, 1000)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
+
+	require.JSONEq(t, expectedQuery, query)
+}
+
+func Test_createIdentitiesQuery_withTickNumberLowerBoundOnly_includesMaxTickFilter(t *testing.T) {
+	expectedQuery := `{
+      "query": {
+		"bool": {
+		  "should": [
+			{ "term":{"source":"some-identity"} },
+			{ "term":{"destination":"some-identity"} }
+		  ],
+		  "minimum_should_match": 1,
+		  "filter": [
+			{"range":{"tickNumber":{"lte":"1000"}}},
+			{"range":{"tickNumber":{"gte":"100"}}}
+          ]
+		}
+	  },
+	  "sort": [ {"tickNumber":{"order":"desc"}} ],
+	  "from": 0,
+	  "size": 10,
+	  "track_total_hits": 10000
+	}`
+
+	ranges := map[string][]*entities.Range{
+		"tickNumber": {{Operation: "gte", Value: "100"}},
+	}
+	query, err := createIdentitiesQuery(testIdentity, nil, ranges, 0, 10, 1000)
+	require.NoError(t, err)
+	require.NotEmpty(t, query)
+
 	require.JSONEq(t, expectedQuery, query)
 }
