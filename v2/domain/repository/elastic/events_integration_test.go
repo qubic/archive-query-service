@@ -232,7 +232,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByTickNumber() {
 	assert.Empty(s.T(), diff, "event should match. diff: %s", diff)
 }
 
-func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
+func (s *eventsSuite) Test_GetEvents_FilterByLogType() {
 	filters := map[string][]string{"logType": {"8"}}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events by event type")

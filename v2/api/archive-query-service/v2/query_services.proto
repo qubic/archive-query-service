@@ -298,7 +298,7 @@ service ArchiveQueryService {
   // |-----------------|---------|----------|---------------------------------------------------------|
   // | transactionHash | string  | Hash     | Only find events for the specified transaction hash.    |
   // | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
-  // | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
+  // | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13). Comma-separated for multiple values.|
   rpc GetEvents(GetEventsRequest) returns (GetEventsResponse) {
     option (openapi.v3.operation) = {
       tags: ["Events (Beta)"]

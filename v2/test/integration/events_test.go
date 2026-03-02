@@ -49,7 +49,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTickNumber() {
 	require.Equal(t, uint32(15001), resp.Events[0].TickNumber)
 }
 
-func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByEventType() {
+func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByLogType() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
 		Filters: map[string]string{"logType": "8"},
@@ -250,7 +250,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 	require.Equal(t, codes.InvalidArgument, st.Code())
 }
 
-func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidEventType() {
+func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidLogType() {
 	t := s.T()
 	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
 		Filters: map[string]string{"logType": "256"},
@@ -306,7 +306,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByTransactionHash() {
 	require.Equal(t, float64(2), hits["total"])
 }
 
-func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByEventType() {
+func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByLogType() {
 	t := s.T()
 	result, statusCode := s.postGetEvents(`{"filters":{"logType":"8"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
