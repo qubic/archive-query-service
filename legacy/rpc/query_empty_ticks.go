@@ -16,7 +16,8 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 
 	if emptyTicks != nil { // some sanity checks
 		if len(intervals) == 0 || intervals[0].Epoch != epoch || emptyTicks.Epoch != epoch || emptyTicks.StartTick != intervals[0].FirstTick {
-			log.Printf("[ERROR] Illegal argument. Empty ticks: %v", emptyTicks)
+			log.Printf("[ERROR] Illegal argument. Empty ticks epoch [%d] / start [%d] / end [%d] / len [%d].",
+				emptyTicks.Epoch, emptyTicks.StartTick, emptyTicks.EndTick, len(emptyTicks.Ticks))
 			log.Printf("[ERROR] Illegal argument. Intervals: %v", intervals)
 			return nil, fmt.Errorf("illegal argument for epoch [%d]", epoch)
 		}
