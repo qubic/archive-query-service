@@ -233,7 +233,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByTickNumber() {
 }
 
 func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
-	filters := map[string][]string{"eventType": {"8"}}
+	filters := map[string][]string{"logType": {"8"}}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events by event type")
 	require.Len(s.T(), events, 1)
@@ -244,7 +244,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
 func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
 	filters := map[string][]string{
 		"transactionHash": {"txhash1"},
-		"eventType":       {"0"},
+		"logType":         {"0"},
 	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events with combined filters")

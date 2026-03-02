@@ -212,7 +212,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
 
 func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
 	t := s.T()
-	expectedFilters := map[string][]string{"eventType": {"8"}}
+	expectedFilters := map[string][]string{"logType": {"8"}}
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
@@ -220,7 +220,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "8"},
+		Filters: map[string]string{"logType": "8"},
 	})
 	require.NoError(t, err)
 	assert.Len(t, resp.Events, 1)
@@ -231,7 +231,7 @@ func (s *ServerTestSuite) TestGetEvents_CombinedFilters() {
 	t := s.T()
 	expectedFilters := map[string][]string{
 		"transactionHash": {"txhash1"},
-		"eventType":       {"0"},
+		"logType":         {"0"},
 	}
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
@@ -240,7 +240,7 @@ func (s *ServerTestSuite) TestGetEvents_CombinedFilters() {
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "txhash1", "eventType": "0"},
+		Filters: map[string]string{"transactionHash": "txhash1", "logType": "0"},
 	})
 	require.NoError(t, err)
 	assert.Len(t, resp.Events, 1)
@@ -264,14 +264,14 @@ func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 	defer cancel()
 
 	_, err := s.client.GetEvents(ctx, &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "invalid"},
+		Filters: map[string]string{"logType": "invalid"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
 	assert.Contains(t, st.Message(), "validating filters")
-	assert.Contains(t, st.Message(), "invalid [eventType] filter")
+	assert.Contains(t, st.Message(), "invalid [logType] filter")
 }
 
 func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {

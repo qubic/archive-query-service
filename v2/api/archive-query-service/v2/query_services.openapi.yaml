@@ -355,6 +355,11 @@ components:
           type: string
       description: ContractReserveDeductionData contains fields specific to contract
         reserve deduction events (type 13).
+    CustomMessageData:
+      type: object
+      properties:
+        value:
+          type: string
     Event:
       type: object
       properties:
@@ -380,7 +385,7 @@ components:
           items:
             type: integer
             format: int32
-        raw:
+        rawPayload:
           type: string
           format: bytes
         quTransfer:
@@ -395,6 +400,10 @@ components:
           $ref: '#/components/schemas/BurningData'
         contractReserveDeduction:
           $ref: '#/components/schemas/ContractReserveDeductionData'
+        smartContractMessage:
+          $ref: '#/components/schemas/SmartContractMessageData'
+        customMessage:
+          $ref: '#/components/schemas/CustomMessageData'
       description: Event
     GetComputorListsForEpochRequest:
       type: object
@@ -657,6 +666,13 @@ components:
           type: string
           description: Less than or equal.
       description: Range
+    SmartContractMessageData:
+      type: object
+      properties:
+        emittingContractIndex:
+          type: string
+        contractMessageType:
+          type: string
     TickData:
       type: object
       properties:

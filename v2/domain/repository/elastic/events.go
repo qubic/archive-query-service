@@ -106,7 +106,7 @@ func createEventsQuery(filters map[string][]string, from, size uint32) string {
 	keys := getSortedKeys(filters)
 	for _, k := range keys {
 		esField := k
-		if k == "eventType" {
+		if k == "logType" {
 			esField = "type"
 		}
 		if len(filters[k]) == 1 {

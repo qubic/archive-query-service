@@ -93,6 +93,12 @@ func eventToAPIEvent(e event) *api.Event {
 			Source: e.Source, Destination: e.Destination, AssetIssuer: e.AssetIssuer,
 			AssetName: e.AssetName, NumberOfShares: e.NumberOfShares,
 		}}
+	case 4, 5, 6, 7:
+		ev.RawPayload = e.RawPayload
+		ev.EventData = &api.Event_SmartContractMessage{SmartContractMessage: &api.SmartContractMessageData{
+			EmittingContractIndex: e.EmittingContractIndex,
+			ContractMessageType:   e.ContractMessageType,
+		}}
 	case 8:
 		ev.EventData = &api.Event_Burning{Burning: &api.BurningData{
 			Source: e.Source, Amount: e.Amount, ContractIndexBurnedFor: e.ContractIndexBurnedFor,
@@ -100,6 +106,10 @@ func eventToAPIEvent(e event) *api.Event {
 	case 13:
 		ev.EventData = &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 			DeductedAmount: e.DeductedAmount, RemainingAmount: e.RemainingAmount, ContractIndex: e.ContractIndex,
+		}}
+	case 255:
+		ev.EventData = &api.Event_CustomMessage{CustomMessage: &api.CustomMessageData{
+			Value: e.CustomMessage,
 		}}
 	}
 	return ev

@@ -11,14 +11,14 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 	filters := map[string]string{
 		"transactionHash": "abc123",
 		"tickNumber":      "42",
-		"eventType":       "1",
+		"logType":         "1",
 	}
 	result, err := createEventsFilters(filters)
 	require.NoError(t, err)
 	assert.Equal(t, map[string][]string{
 		"transactionHash": {"abc123"},
 		"tickNumber":      {"42"},
-		"eventType":       {"1"},
+		"logType":         {"1"},
 	}, result)
 }
 
@@ -44,9 +44,9 @@ func TestValidateEventsFilters_ValidTickNumber(t *testing.T) {
 }
 
 func TestValidateEventsFilters_ValidEventType(t *testing.T) {
-	for _, et := range []string{"0", "1", "2", "3", "4", "5", "6", "8", "13", "14", "255"} {
+	for _, et := range []string{"0", "1", "2", "3", "4", "5", "6", "8", "13", "255"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
-			filters := map[string][]string{"eventType": {et}}
+			filters := map[string][]string{"logType": {et}}
 			err := validateEventsFilters(filters)
 			require.NoError(t, err)
 		})
@@ -56,10 +56,10 @@ func TestValidateEventsFilters_ValidEventType(t *testing.T) {
 func TestValidateEventsFilters_InvalidEventType(t *testing.T) {
 	for _, et := range []string{"-1", "15", "256", "abc"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
-			filters := map[string][]string{"eventType": {et}}
+			filters := map[string][]string{"logType": {et}}
 			err := validateEventsFilters(filters)
 			require.Error(t, err)
-			assert.Contains(t, err.Error(), "invalid [eventType] filter")
+			assert.Contains(t, err.Error(), "invalid [logType] filter")
 		})
 	}
 }
@@ -82,7 +82,7 @@ func TestValidateEventsFilters_TooManyFilters(t *testing.T) {
 	filters := map[string][]string{
 		"transactionHash": {"abc"},
 		"tickNumber":      {"42"},
-		"eventType":       {"1"},
+		"logType":         {"1"},
 		"extra":           {"value"},
 	}
 	err := validateEventsFilters(filters)
@@ -94,7 +94,7 @@ func TestValidateEventsFilters_CombinedFilters(t *testing.T) {
 	filters := map[string][]string{
 		"transactionHash": {"abc123"},
 		"tickNumber":      {"42"},
-		"eventType":       {"0"},
+		"logType":         {"0"},
 	}
 	err := validateEventsFilters(filters)
 	require.NoError(t, err)

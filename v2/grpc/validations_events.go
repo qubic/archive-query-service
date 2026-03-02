@@ -6,7 +6,13 @@ import (
 	"strings"
 )
 
-var allowedEventFilters = [3]string{"transactionHash", "tickNumber", "eventType"}
+var allowedEventTypes = map[string]bool{
+	"0": true, "1": true, "2": true, "3": true, "4": true, "5": true, "6": true, "7": true, "8": true,
+	"13":  true,
+	"255": true,
+}
+
+var allowedEventFilters = [3]string{"transactionHash", "tickNumber", "logType"}
 
 func createEventsFilters(filters map[string]string) (map[string][]string, error) {
 	res := make(map[string][]string)
@@ -43,20 +49,27 @@ func validateEventsFilters(filters map[string][]string) error {
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
 			}
-		case "eventType":
+		case "logType":
 			if len(values) != 1 {
 				return fmt.Errorf("filter [%s] must have exactly one value", key)
 			}
-			uVal, err := strconv.ParseUint(values[0], 10, 32)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
-			}
-			if uVal != 255 && uVal > 14 {
-				return fmt.Errorf("invalid [%s] filter: must be 0-14 or 255 but was [%d]", key, uVal)
+			if !allowedEventTypes[values[0]] {
+				keys := getAllowedEventTypes()
+				return fmt.Errorf("invalid [logType] filter: must be one of [%s]", strings.Join(keys, ", "))
 			}
 		default:
 			return fmt.Errorf("unsupported filter: [%s]", key)
 		}
 	}
 	return nil
+}
+
+func getAllowedEventTypes() []string {
+	keys := make([]string, len(allowedEventTypes))
+	i := 0
+	for k := range allowedEventTypes {
+		keys[i] = k
+		i++
+	}
+	return keys
 }

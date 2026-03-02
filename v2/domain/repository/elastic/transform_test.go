@@ -1,0 +1,84 @@
+package elastic
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func Test_eventToAPIEvent_BasicFields(t *testing.T) {
+	txHash := "abc123"
+	e := event{
+		Epoch:           1,
+		TickNumber:      100,
+		Timestamp:       1000,
+		TransactionHash: &txHash,
+		LogID:           123,
+		LogDigest:       "digest",
+		Type:            0,
+		Categories:      []int32{},
+	}
+
+	apiEv := eventToAPIEvent(e)
+
+	assert.Equal(t, e.Epoch, apiEv.Epoch)
+	assert.Equal(t, e.TickNumber, apiEv.TickNumber)
+	assert.Equal(t, e.Timestamp, apiEv.Timestamp)
+	assert.Equal(t, *e.TransactionHash, apiEv.GetTransactionHash())
+	assert.Equal(t, e.LogID, apiEv.LogId)
+	assert.Equal(t, e.LogDigest, apiEv.LogDigest)
+	assert.Equal(t, e.Type, apiEv.LogType)
+	assert.Equal(t, e.Categories, apiEv.Categories)
+}
+
+func Test_eventToAPIEvent_SmartContractMessage(t *testing.T) {
+	txHash := "abc123"
+	tests := []struct {
+		name    string
+		logType uint32
+	}{
+		{"Type 4", 4},
+		{"Type 5", 5},
+		{"Type 6", 6},
+		{"Type 7", 7},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := event{
+				TransactionHash:       &txHash,
+				Type:                  tt.logType,
+				EmittingContractIndex: 10,
+				ContractMessageType:   20,
+				RawPayload:            []byte{0x01, 0x02, 0x03},
+			}
+
+			apiEv := eventToAPIEvent(e)
+
+			assert.Equal(t, *e.TransactionHash, apiEv.GetTransactionHash())
+			assert.Equal(t, e.Type, apiEv.LogType)
+
+			scMsg := apiEv.GetSmartContractMessage()
+			assert.NotNil(t, scMsg)
+			assert.Equal(t, e.EmittingContractIndex, scMsg.EmittingContractIndex)
+			assert.Equal(t, e.ContractMessageType, scMsg.ContractMessageType)
+			assert.Equal(t, e.RawPayload, apiEv.RawPayload) // set for smart contract messages
+		})
+	}
+}
+
+func Test_eventToAPIEvent_CustomMessage(t *testing.T) {
+	e := event{
+		Type:          255,
+		CustomMessage: 6217575821008262227,
+	}
+
+	apiEv := eventToAPIEvent(e)
+
+	assert.Equal(t, e.Type, apiEv.LogType)
+
+	customMsg := apiEv.GetCustomMessage()
+	require.NotNil(t, customMsg)
+	assert.Equal(t, e.CustomMessage, customMsg.Value)
+}

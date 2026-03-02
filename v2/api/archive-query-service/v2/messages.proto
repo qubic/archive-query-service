@@ -222,6 +222,15 @@ message ContractReserveDeductionData {
   uint64 contract_index = 3;
 }
 
+message SmartContractMessageData {
+  uint64 emitting_contract_index = 1;
+  uint64 contract_message_type = 2;
+}
+
+message CustomMessageData {
+  uint64 value = 1;
+}
+
 // Event
 message Event {
   uint32 epoch = 1;
@@ -232,7 +241,7 @@ message Event {
   uint64 log_id = 6;
   string log_digest = 7;
   repeated int32 categories = 8;
-  optional bytes raw = 9;
+  optional bytes raw_payload = 9;
   oneof event_data {
     QuTransferData qu_transfer = 10;
     AssetIssuanceData asset_issuance = 11;
@@ -240,6 +249,8 @@ message Event {
     AssetPossessionChangeData asset_possession_change = 13;
     BurningData burning = 14;
     ContractReserveDeductionData contract_reserve_deduction = 15;
+    SmartContractMessageData smart_contract_message = 16;
+    CustomMessageData custom_message = 17;
   }
 
 }

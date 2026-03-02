@@ -204,7 +204,7 @@ type ArchiveQueryServiceClient interface {
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | transactionHash | string  | Hash     | Only find events for the specified transaction hash.    |
 	// | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
-	// | eventType       | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
+	// | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
 	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error)
 	GetHealth(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
 }
@@ -480,7 +480,7 @@ type ArchiveQueryServiceServer interface {
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | transactionHash | string  | Hash     | Only find events for the specified transaction hash.    |
 	// | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
-	// | eventType       | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
+	// | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
 	GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error)
 	GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()

@@ -52,7 +52,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTickNumber() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByEventType() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "8"},
+		Filters: map[string]string{"logType": "8"},
 	})
 	require.NoError(t, err)
 	require.Len(t, resp.Events, 1)
@@ -63,7 +63,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByEventType() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_CombinedFilters() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", "eventType": "0"},
+		Filters: map[string]string{"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", "logType": "0"},
 	})
 	require.NoError(t, err)
 	require.Len(t, resp.Events, 1)
@@ -253,7 +253,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidEventType() {
 	t := s.T()
 	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "256"},
+		Filters: map[string]string{"logType": "256"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
@@ -308,7 +308,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByTransactionHash() {
 
 func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByEventType() {
 	t := s.T()
-	result, statusCode := s.postGetEvents(`{"filters":{"eventType":"8"}}`)
+	result, statusCode := s.postGetEvents(`{"filters":{"logType":"8"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
 	events := result["events"].([]interface{})
