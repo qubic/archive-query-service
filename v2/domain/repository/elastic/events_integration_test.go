@@ -238,7 +238,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
 	require.NoError(s.T(), err, "getting events by event type")
 	require.Len(s.T(), events, 1)
 	assert.Equal(s.T(), 1, hits.Total)
-	assert.Equal(s.T(), uint32(8), events[0].EventType)
+	assert.Equal(s.T(), uint32(8), events[0].LogType)
 }
 
 func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
@@ -251,7 +251,7 @@ func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
 	require.Len(s.T(), events, 1)
 	assert.Equal(s.T(), 1, hits.Total)
 	assert.Equal(s.T(), "txhash1", *events[0].TransactionHash)
-	assert.Equal(s.T(), uint32(0), events[0].EventType)
+	assert.Equal(s.T(), uint32(0), events[0].LogType)
 }
 
 func (s *eventsSuite) Test_GetEvents_Pagination() {

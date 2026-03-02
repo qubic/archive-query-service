@@ -228,9 +228,9 @@ message Event {
   uint32 tick_number = 2;
   uint64 timestamp = 3;
   optional string transaction_hash = 4;
-  uint64 log_id = 5;
-  string log_digest = 6;
-  uint32 event_type = 7;
+  uint32 log_type = 5;
+  uint64 log_id = 6;
+  string log_digest = 7;
   repeated int32 categories = 8;
   optional bytes raw = 9;
   oneof event_data {

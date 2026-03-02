@@ -368,13 +368,13 @@ components:
           type: string
         transactionHash:
           type: string
+        logType:
+          type: integer
+          format: uint32
         logId:
           type: string
         logDigest:
           type: string
-        eventType:
-          type: integer
-          format: uint32
         categories:
           type: array
           items:

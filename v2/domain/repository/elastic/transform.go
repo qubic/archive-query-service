@@ -69,7 +69,7 @@ func eventToAPIEvent(e event) *api.Event {
 		TransactionHash: e.TransactionHash,
 		LogId:           e.LogID,
 		LogDigest:       e.LogDigest,
-		EventType:       e.Type,
+		LogType:         e.Type,
 		Categories:      e.Categories,
 	}
 	switch e.Type {

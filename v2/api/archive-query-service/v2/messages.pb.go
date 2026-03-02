@@ -1804,9 +1804,9 @@ type Event struct {
 	TickNumber      uint32                 `protobuf:"varint,2,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
 	Timestamp       uint64                 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	TransactionHash *string                `protobuf:"bytes,4,opt,name=transaction_hash,json=transactionHash,proto3,oneof" json:"transaction_hash,omitempty"`
-	LogId           uint64                 `protobuf:"varint,5,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
-	LogDigest       string                 `protobuf:"bytes,6,opt,name=log_digest,json=logDigest,proto3" json:"log_digest,omitempty"`
-	EventType       uint32                 `protobuf:"varint,7,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
+	LogType         uint32                 `protobuf:"varint,5,opt,name=log_type,json=logType,proto3" json:"log_type,omitempty"`
+	LogId           uint64                 `protobuf:"varint,6,opt,name=log_id,json=logId,proto3" json:"log_id,omitempty"`
+	LogDigest       string                 `protobuf:"bytes,7,opt,name=log_digest,json=logDigest,proto3" json:"log_digest,omitempty"`
 	Categories      []int32                `protobuf:"varint,8,rep,packed,name=categories,proto3" json:"categories,omitempty"`
 	Raw             []byte                 `protobuf:"bytes,9,opt,name=raw,proto3,oneof" json:"raw,omitempty"`
 	// Types that are valid to be assigned to EventData:
@@ -1880,6 +1880,13 @@ func (x *Event) GetTransactionHash() string {
 	return ""
 }
 
+func (x *Event) GetLogType() uint32 {
+	if x != nil {
+		return x.LogType
+	}
+	return 0
+}
+
 func (x *Event) GetLogId() uint64 {
 	if x != nil {
 		return x.LogId
@@ -1892,13 +1899,6 @@ func (x *Event) GetLogDigest() string {
 		return x.LogDigest
 	}
 	return ""
-}
-
-func (x *Event) GetEventType() uint32 {
-	if x != nil {
-		return x.EventType
-	}
-	return 0
 }
 
 func (x *Event) GetCategories() []int32 {
@@ -2290,18 +2290,17 @@ const file_messages_proto_rawDesc = "" +
 	"\x1cContractReserveDeductionData\x12'\n" +
 	"\x0fdeducted_amount\x18\x01 \x01(\x04R\x0edeductedAmount\x12)\n" +
 	"\x10remaining_amount\x18\x02 \x01(\x03R\x0fremainingAmount\x12%\n" +
-	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\xde\x06\n" +
+	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\xda\x06\n" +
 	"\x05Event\x12\x14\n" +
 	"\x05epoch\x18\x01 \x01(\rR\x05epoch\x12\x1f\n" +
 	"\vtick_number\x18\x02 \x01(\rR\n" +
 	"tickNumber\x12\x1c\n" +
 	"\ttimestamp\x18\x03 \x01(\x04R\ttimestamp\x12.\n" +
-	"\x10transaction_hash\x18\x04 \x01(\tH\x01R\x0ftransactionHash\x88\x01\x01\x12\x15\n" +
-	"\x06log_id\x18\x05 \x01(\x04R\x05logId\x12\x1d\n" +
+	"\x10transaction_hash\x18\x04 \x01(\tH\x01R\x0ftransactionHash\x88\x01\x01\x12\x19\n" +
+	"\blog_type\x18\x05 \x01(\rR\alogType\x12\x15\n" +
+	"\x06log_id\x18\x06 \x01(\x04R\x05logId\x12\x1d\n" +
 	"\n" +
-	"log_digest\x18\x06 \x01(\tR\tlogDigest\x12\x1d\n" +
-	"\n" +
-	"event_type\x18\a \x01(\rR\teventType\x12\x1e\n" +
+	"log_digest\x18\a \x01(\tR\tlogDigest\x12\x1e\n" +
 	"\n" +
 	"categories\x18\b \x03(\x05R\n" +
 	"categories\x12\x15\n" +

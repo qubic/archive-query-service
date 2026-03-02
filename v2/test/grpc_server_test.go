@@ -149,10 +149,10 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
 			Events: []*api.Event{
-				{TickNumber: 100, TransactionHash: ToPointer("hash1"), EventType: 0, EventData: &api.Event_QuTransfer{
+				{TickNumber: 100, TransactionHash: ToPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
 					QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 				}},
-				{TickNumber: 101, TransactionHash: ToPointer("hash2"), EventType: 1, EventData: &api.Event_AssetIssuance{
+				{TickNumber: 101, TransactionHash: ToPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
 					AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 				}},
 			},
@@ -182,7 +182,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTransactionHash() {
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToPointer("txhash1"), EventType: 0}},
+			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToPointer("txhash1"), LogType: 0}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -199,7 +199,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 15001, EventType: 0}},
+			Events: []*api.Event{{TickNumber: 15001, LogType: 0}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -216,7 +216,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 200, EventType: 8}},
+			Events: []*api.Event{{TickNumber: 200, LogType: 8}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -224,7 +224,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
 	})
 	require.NoError(t, err)
 	assert.Len(t, resp.Events, 1)
-	assert.Equal(t, uint32(8), resp.Events[0].EventType)
+	assert.Equal(t, uint32(8), resp.Events[0].LogType)
 }
 
 func (s *ServerTestSuite) TestGetEvents_CombinedFilters() {
@@ -236,7 +236,7 @@ func (s *ServerTestSuite) TestGetEvents_CombinedFilters() {
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToPointer("txhash1"), EventType: 0}},
+			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToPointer("txhash1"), LogType: 0}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
