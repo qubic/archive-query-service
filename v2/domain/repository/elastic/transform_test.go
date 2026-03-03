@@ -82,3 +82,30 @@ func Test_eventToAPIEvent_CustomMessage(t *testing.T) {
 	require.NotNil(t, customMsg)
 	assert.Equal(t, e.CustomMessage, customMsg.Value)
 }
+
+func Test_eventToAPIEvent_RawTypes(t *testing.T) {
+	tests := []struct {
+		name    string
+		logType uint32
+	}{
+		{"Type 9 - dust burning", 9},
+		{"Type 10 - spectrum_stats", 10},
+		{"Type 11 - asset ownership managing contract change", 11},
+		{"Type 12 - asset possession managing contract change", 12},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := event{
+				Type:       tt.logType,
+				RawPayload: []byte{0x01, 0x02, 0x03, 0x04},
+			}
+
+			apiEv := eventToAPIEvent(e)
+
+			assert.Equal(t, e.Type, apiEv.LogType)
+			assert.Equal(t, e.RawPayload, apiEv.RawPayload)
+			assert.Nil(t, apiEv.EventData) // no specific event data for these types
+		})
+	}
+}
