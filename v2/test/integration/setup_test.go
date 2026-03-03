@@ -81,7 +81,7 @@ func (s *EventsE2ESuite) SetupSuite() {
 
 	// 3. Index seed events
 	s.indexSeedEvent(esClient, seedType0Index3, "1-3")
-	s.indexSeedEvent(esClient, seedType0, "1-1")
+	s.indexSeedEvent(esClient, seedType0WithCategory, "1-1")
 	s.indexSeedEvent(esClient, seedType0Index2, "1-2")
 	s.indexSeedEvent(esClient, seedType1, "2")
 	s.indexSeedEvent(esClient, seedType2, "3")

@@ -10,77 +10,71 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
-	"google.golang.org/protobuf/testing/protocmp"
+	"github.com/qubic/archive-query-service/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	tcelastic "github.com/testcontainers/testcontainers-go/modules/elasticsearch"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 var testEvent1 = event{
-	Epoch:                 100,
-	TickNumber:            15000,
-	Timestamp:             1700000001,
-	EmittingContractIndex: 1,
-	TransactionHash:       "txhash1",
-	LogID:                 1,
-	LogDigest:             "digest1",
-	Type:                  0,
-	Category:              0,
-	Source:                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
-	Destination:           "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-	Amount:                1000,
+	Epoch:           100,
+	TickNumber:      15000,
+	Timestamp:       1700000001,
+	TransactionHash: test.ToStringPointer("txhash1"),
+	LogID:           1,
+	LogDigest:       "digest1",
+	Type:            0,
+	Source:          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+	Destination:     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+	Amount:          1000,
 }
 
 var testEvent2 = event{
-	Epoch:                 100,
-	TickNumber:            15001,
-	Timestamp:             1700000002,
-	EmittingContractIndex: 1,
-	TransactionHash:       "txhash2",
-	LogID:                 2,
-	LogDigest:             "digest2",
-	Type:                  1,
-	Category:              1,
-	Source:                "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-	Destination:           "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
-	Amount:                2000,
+	Epoch:           100,
+	TickNumber:      15001,
+	Timestamp:       1700000002,
+	TransactionHash: test.ToStringPointer("txhash2"),
+	LogID:           2,
+	LogDigest:       "digest2",
+	Type:            1,
+	Categories:      []int32{1},
+	Source:          "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+	Destination:     "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+	Amount:          2000,
 }
 
 var testEvent3 = event{
-	Epoch:                 100,
-	TickNumber:            15002,
-	Timestamp:             1700000003,
-	EmittingContractIndex: 2,
-	TransactionHash:       "txhash1",
-	LogID:                 3,
-	LogDigest:             "digest3",
-	Type:                  2,
-	Category:              0,
-	AssetName:             "QX",
-	AssetIssuer:           "ISSUER",
-	NumberOfShares:        500,
+	Epoch:           100,
+	TickNumber:      15002,
+	Timestamp:       1700000003,
+	TransactionHash: test.ToStringPointer("txhash1"),
+	LogID:           3,
+	LogDigest:       "digest3",
+	Type:            2,
+	AssetName:       "QX",
+	AssetIssuer:     "ISSUER",
+	NumberOfShares:  500,
 }
 
 var testEvent4 = event{
-	Epoch:                 101,
-	TickNumber:            16000,
-	Timestamp:             1700000004,
-	EmittingContractIndex: 3,
-	TransactionHash:       "txhash3",
-	LogID:                 4,
-	LogDigest:             "digest4",
-	Type:                  3,
-	Category:              0,
+	Epoch:           101,
+	TickNumber:      16000,
+	Timestamp:       1700000004,
+	TransactionHash: test.ToStringPointer("txhash3"),
+	LogID:           4,
+	LogDigest:       "digest4",
+	Type:            3,
 }
 
 var testEvent5 = event{
 	Epoch:           101,
 	TickNumber:      16001,
 	Timestamp:       1700000005,
-	TransactionHash: "txhash4",
+	TransactionHash: test.ToStringPointer("txhash4"),
 	LogID:           5,
 	Type:            8,
 }
@@ -89,7 +83,7 @@ var testEvent6 = event{
 	Epoch:           101,
 	TickNumber:      16002,
 	Timestamp:       1700000006,
-	TransactionHash: "txhash5",
+	TransactionHash: test.ToStringPointer("txhash5"),
 	LogID:           6,
 	Type:            13,
 }
@@ -222,7 +216,7 @@ func (s *eventsSuite) Test_GetEvents_FilterByTransactionHash() {
 	assert.Equal(s.T(), 2, hits.Total)
 
 	for _, ev := range events {
-		assert.Equal(s.T(), "txhash1", ev.TransactionHash)
+		assert.Equal(s.T(), "txhash1", *ev.TransactionHash)
 	}
 }
 
@@ -239,25 +233,25 @@ func (s *eventsSuite) Test_GetEvents_FilterByTickNumber() {
 }
 
 func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
-	filters := map[string][]string{"eventType": {"8"}}
+	filters := map[string][]string{"logType": {"8"}}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events by event type")
 	require.Len(s.T(), events, 1)
 	assert.Equal(s.T(), 1, hits.Total)
-	assert.Equal(s.T(), uint32(8), events[0].EventType)
+	assert.Equal(s.T(), uint32(8), events[0].LogType)
 }
 
 func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
 	filters := map[string][]string{
 		"transactionHash": {"txhash1"},
-		"eventType":       {"0"},
+		"logType":         {"0"},
 	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events with combined filters")
 	require.Len(s.T(), events, 1)
 	assert.Equal(s.T(), 1, hits.Total)
-	assert.Equal(s.T(), "txhash1", events[0].TransactionHash)
-	assert.Equal(s.T(), uint32(0), events[0].EventType)
+	assert.Equal(s.T(), "txhash1", *events[0].TransactionHash)
+	assert.Equal(s.T(), uint32(0), events[0].LogType)
 }
 
 func (s *eventsSuite) Test_GetEvents_Pagination() {

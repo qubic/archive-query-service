@@ -80,7 +80,7 @@ func Test_createEventsQuery_withTickNumber(t *testing.T) {
 
 func Test_createEventsQuery_withEventType(t *testing.T) {
 	filters := map[string][]string{
-		"eventType": {"1"},
+		"logType": {"1"},
 	}
 	query := createEventsQuery(filters, 0, 10)
 
@@ -102,7 +102,7 @@ func Test_createEventsQuery_withMultipleFilters(t *testing.T) {
 	filters := map[string][]string{
 		"transactionHash": {"abc123"},
 		"tickNumber":      {"42"},
-		"eventType":       {"2"},
+		"logType":         {"2"},
 	}
 	query := createEventsQuery(filters, 0, 10)
 

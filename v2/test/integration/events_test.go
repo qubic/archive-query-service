@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -33,7 +34,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTransactionHash() {
 	require.Len(t, resp.Events, 2)
 	require.Equal(t, uint32(2), resp.Hits.Total)
 	for _, ev := range resp.Events {
-		require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", ev.TransactionHash)
+		require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", *ev.TransactionHash)
 	}
 }
 
@@ -51,24 +52,24 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTickNumber() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByEventType() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "8"},
+		Filters: map[string]string{"logType": "8"},
 	})
 	require.NoError(t, err)
 	require.Len(t, resp.Events, 1)
 	require.Equal(t, uint32(1), resp.Hits.Total)
-	require.Equal(t, uint32(8), resp.Events[0].EventType)
+	require.Equal(t, uint32(8), resp.Events[0].LogType)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_CombinedFilters() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", "eventType": "0"},
+		Filters: map[string]string{"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", "logType": "0"},
 	})
 	require.NoError(t, err)
 	require.Len(t, resp.Events, 1)
 	require.Equal(t, uint32(1), resp.Hits.Total)
-	require.Equal(t, uint32(0), resp.Events[0].EventType)
-	require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", resp.Events[0].TransactionHash)
+	require.Equal(t, uint32(0), resp.Events[0].LogType)
+	require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", *resp.Events[0].TransactionHash)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Pagination() {
@@ -118,8 +119,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type0_FullData() {
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
-		TransactionHash: "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh",
-		LogId:           1, LogDigest: "digest0", EventType: 0, Category: 0,
+		TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+		LogId:           1, LogDigest: "digest0", LogType: 0, Categories: []int32{3},
 		EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 			Source: "QJRRSSKMJRDKUDTYVNYGAMQPULKAMILQQYOWBEXUDEUWQUMNGDHQYLOAJMEB", Destination: "BZBQFLLBNCXEMGQOUAPQYSWCBHRBJJFHFFLSENFLEVKEIYVHDSOFWKUUPGJD", Amount: 5000,
 		}},
@@ -139,8 +140,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type1_FullData() {
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15001, Timestamp: 1700000002000,
-		EmittingContractIndex: 1, TransactionHash: "atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf",
-		LogId: 2, LogDigest: "digest1", EventType: 1, Category: 1,
+		TransactionHash: test.ToStringPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
+		LogId:           2, LogDigest: "digest1", LogType: 1,
 		EventData: &api.Event_AssetIssuance{AssetIssuance: &api.AssetIssuanceData{
 			AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", NumberOfShares: 1000000,
 			ManagingContractIndex: 5, AssetName: "QX",
@@ -162,8 +163,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type2_FullData() {
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15002, Timestamp: 1700000003000,
-		EmittingContractIndex: 2, TransactionHash: "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh",
-		LogId: 3, LogDigest: "digest2", EventType: 2, Category: 0,
+		TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+		LogId:           3, LogDigest: "digest2", LogType: 2,
 		EventData: &api.Event_AssetOwnershipChange{AssetOwnershipChange: &api.AssetOwnershipChangeData{
 			Source: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", Destination: "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
 			AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 500,
@@ -184,8 +185,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type3_FullData() {
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16000, Timestamp: 1700000004000,
-		EmittingContractIndex: 3, TransactionHash: "bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr",
-		LogId: 4, LogDigest: "digest3", EventType: 3, Category: 0,
+		TransactionHash: test.ToStringPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
+		LogId:           4, LogDigest: "digest3", LogType: 3,
 		EventData: &api.Event_AssetPossessionChange{AssetPossessionChange: &api.AssetPossessionChangeData{
 			Source: "FQGOKLRHRCTNRMHEEKHIBRHOPHCSMGSUHIBIJKHZMSHDMNKIPDREIHHLPPPF", Destination: "GRHPLMSISDUPSNIFFLKJCSIPQIDTNHTVIJCJKLIANSKENLLJQESFJIIMQQRG",
 			AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 300,
@@ -206,8 +207,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type8_FullData() {
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16001, Timestamp: 1700000005000,
-		TransactionHash: "cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks",
-		LogId:           5, LogDigest: "digest8", EventType: 8, Category: 0,
+		TransactionHash: test.ToStringPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
+		LogId:           5, LogDigest: "digest8", LogType: 8,
 		EventData: &api.Event_Burning{Burning: &api.BurningData{
 			Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndexBurnedFor: 7,
 		}},
@@ -227,8 +228,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type13_FullData() {
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16002, Timestamp: 1700000006000,
-		TransactionHash: "dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt",
-		LogId:           6, LogDigest: "digest13", EventType: 13, Category: 0,
+		TransactionHash: test.ToStringPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),
+		LogId:           6, LogDigest: "digest13", LogType: 13,
 		EventData: &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 			DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,
 		}},
@@ -252,7 +253,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidEventType() {
 	t := s.T()
 	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "99"},
+		Filters: map[string]string{"logType": "256"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
@@ -307,7 +308,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByTransactionHash() {
 
 func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByEventType() {
 	t := s.T()
-	result, statusCode := s.postGetEvents(`{"filters":{"eventType":"8"}}`)
+	result, statusCode := s.postGetEvents(`{"filters":{"logType":"8"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
 	events := result["events"].([]interface{})
@@ -325,8 +326,9 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_FullData() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15000), "timestamp": "1700000001000",
-		"emittingContractIndex": "0", "transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh",
-		"logId": "1", "logDigest": "digest0", "eventType": float64(0), "category": float64(0),
+		"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh",
+		"logId":           "1", "logDigest": "digest0", "logType": float64(0),
+		"categories": []interface{}{float64(3)},
 		"quTransfer": map[string]interface{}{
 			"source": "QJRRSSKMJRDKUDTYVNYGAMQPULKAMILQQYOWBEXUDEUWQUMNGDHQYLOAJMEB", "destination": "BZBQFLLBNCXEMGQOUAPQYSWCBHRBJJFHFFLSENFLEVKEIYVHDSOFWKUUPGJD", "amount": "5000",
 		},
@@ -347,8 +349,9 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type1_AssetIssuance_FullData() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(100), "tickNumber": float64(15001), "timestamp": "1700000002000",
-		"emittingContractIndex": "1", "transactionHash": "atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf",
-		"logId": "2", "logDigest": "digest1", "eventType": float64(1), "category": float64(1),
+		"transactionHash": "atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf",
+		"categories":      []any{},
+		"logId":           "2", "logDigest": "digest1", "logType": float64(1),
 		"assetIssuance": map[string]interface{}{
 			"assetIssuer": "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", "numberOfShares": "1000000",
 			"managingContractIndex": "5", "assetName": "QX",
@@ -371,8 +374,9 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type8_Burning_FullData() {
 
 	expected := map[string]interface{}{
 		"epoch": float64(101), "tickNumber": float64(16001), "timestamp": "1700000005000",
-		"emittingContractIndex": "0", "transactionHash": "cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks",
-		"logId": "5", "logDigest": "digest8", "eventType": float64(8), "category": float64(0),
+		"transactionHash": "cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks",
+		"categories":      []any{},
+		"logId":           "5", "logDigest": "digest8", "logType": float64(8),
 		"burning": map[string]interface{}{
 			"source": "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", "amount": "9999", "contractIndexBurnedFor": "7",
 		},
@@ -393,8 +397,9 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction_Full
 
 	expected := map[string]interface{}{
 		"epoch": float64(101), "tickNumber": float64(16002), "timestamp": "1700000006000",
-		"emittingContractIndex": "0", "transactionHash": "dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt",
-		"logId": "6", "logDigest": "digest13", "eventType": float64(13), "category": float64(0),
+		"transactionHash": "dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt",
+		"logId":           "6", "logDigest": "digest13", "logType": float64(13),
+		"categories": []any{},
 		"contractReserveDeduction": map[string]interface{}{
 			"deductedAmount": "50000", "remainingAmount": "100000", "contractIndex": "3",
 		},

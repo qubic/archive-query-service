@@ -25,28 +25,35 @@ func NewEventsRepository(eventIndex string, esClient *elasticsearch.Client) *Eve
 }
 
 type event struct {
-	Epoch                  uint32 `json:"epoch"`
-	TickNumber             uint32 `json:"tickNumber"`
-	Timestamp              uint64 `json:"timestamp"`
-	EmittingContractIndex  uint64 `json:"emittingContractIndex"`
-	TransactionHash        string `json:"transactionHash"`
-	LogID                  uint64 `json:"logId"`
-	LogDigest              string `json:"logDigest"`
-	Type                   uint32 `json:"type"`
-	Category               uint32 `json:"category"`
-	Source                 string `json:"source"`
-	Destination            string `json:"destination"`
-	Amount                 uint64 `json:"amount"`
-	AssetName              string `json:"assetName"`
-	AssetIssuer            string `json:"assetIssuer"`
-	NumberOfShares         uint64 `json:"numberOfShares"`
-	ManagingContractIndex  uint64 `json:"managingContractIndex"`
-	UnitOfMeasurement      string `json:"unitOfMeasurement"`
-	NumberOfDecimalPlaces  uint32 `json:"numberOfDecimalPlaces"`
-	DeductedAmount         uint64 `json:"deductedAmount"`
-	RemainingAmount        int64  `json:"remainingAmount"`
-	ContractIndex          uint64 `json:"contractIndex"`
-	ContractIndexBurnedFor uint64 `json:"contractIndexBurnedFor"`
+	Epoch                    uint32  `json:"epoch"`
+	TickNumber               uint32  `json:"tickNumber"`
+	Timestamp                uint64  `json:"timestamp"`
+	TransactionHash          *string `json:"transactionHash"` // not all events belong to a transaction
+	LogID                    uint64  `json:"logId"`
+	LogDigest                string  `json:"logDigest"`
+	Type                     uint32  `json:"type"`
+	Categories               []int32 `json:"categories"` // not all events have categories
+	Source                   string  `json:"source"`
+	Destination              string  `json:"destination"`
+	Amount                   uint64  `json:"amount"`
+	AssetName                string  `json:"assetName"`
+	AssetIssuer              string  `json:"assetIssuer"`
+	NumberOfShares           uint64  `json:"numberOfShares"`
+	ManagingContractIndex    uint64  `json:"managingContractIndex"`
+	UnitOfMeasurement        string  `json:"unitOfMeasurement"`
+	NumberOfDecimalPlaces    uint32  `json:"numberOfDecimalPlaces"`
+	DeductedAmount           uint64  `json:"deductedAmount"`
+	RemainingAmount          int64   `json:"remainingAmount"`
+	ContractIndex            uint64  `json:"contractIndex"`
+	ContractIndexBurnedFor   uint64  `json:"contractIndexBurnedFor"`
+	Possessor                string  `json:"possessor"`
+	Owner                    string  `json:"owner"`
+	SourceContractIndex      uint64  `json:"sourceContractIndex"`
+	DestinationContractIndex uint64  `json:"destinationContractIndex"`
+	CustomMessage            uint64  `json:"customMessage"`
+	EmittingContractIndex    uint64  `json:"emittingContractIndex"`
+	ContractMessageType      uint64  `json:"contractMessageType"`
+	RawPayload               []byte  `json:"rawPayload"` // not all events have raw payload
 }
 
 type eventHit struct {
@@ -99,7 +106,7 @@ func createEventsQuery(filters map[string][]string, from, size uint32) string {
 	keys := getSortedKeys(filters)
 	for _, k := range keys {
 		esField := k
-		if k == "eventType" {
+		if k == "logType" {
 			esField = "type"
 		}
 		if len(filters[k]) == 1 {

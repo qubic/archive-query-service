@@ -6,11 +6,7 @@ import (
 	"strings"
 )
 
-var allowedEventTypes = map[string]bool{
-	"0": true, "1": true, "2": true, "3": true, "8": true, "13": true,
-}
-
-var allowedEventFilters = [3]string{"transactionHash", "tickNumber", "eventType"}
+var allowedEventFilters = [3]string{"transactionHash", "tickNumber", "logType"}
 
 func createEventsFilters(filters map[string]string) (map[string][]string, error) {
 	res := make(map[string][]string)
@@ -37,23 +33,29 @@ func validateEventsFilters(filters map[string][]string) error {
 		switch key {
 		case "transactionHash":
 			if len(values) != 1 {
-				return fmt.Errorf("filter %s must have exactly one value", key)
+				return fmt.Errorf("filter [%s] must have exactly one value", key)
 			}
 		case "tickNumber":
 			if len(values) != 1 {
-				return fmt.Errorf("filter %s must have exactly one value", key)
+				return fmt.Errorf("filter [%s] must have exactly one value", key)
 			}
 			_, err := strconv.ParseUint(values[0], 10, 32)
 			if err != nil {
-				return fmt.Errorf("invalid %s filter: must be a valid number", key)
+				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
 			}
-		case "eventType":
+		case "logType":
 			if len(values) != 1 {
-				return fmt.Errorf("filter %s must have exactly one value", key)
+				return fmt.Errorf("filter [%s] must have exactly one value", key)
 			}
-			if !allowedEventTypes[values[0]] {
-				return fmt.Errorf("invalid eventType filter: must be one of 0, 1, 2, 3, 8, 13")
+
+			uVal, err := strconv.ParseUint(values[0], 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
 			}
+			if uVal > 14 && uVal != 255 {
+				return fmt.Errorf("invalid [%s] filter: must be 0-13 or 255 but was [%d]", key, uVal)
+			}
+
 		default:
 			return fmt.Errorf("unsupported filter: [%s]", key)
 		}

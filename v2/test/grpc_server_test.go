@@ -1,7 +1,9 @@
 package test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -147,10 +149,10 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
 			Events: []*api.Event{
-				{TickNumber: 100, TransactionHash: "hash1", EventType: 0, EventData: &api.Event_QuTransfer{
+				{TickNumber: 100, TransactionHash: ToStringPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
 					QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 				}},
-				{TickNumber: 101, TransactionHash: "hash2", EventType: 1, EventData: &api.Event_AssetIssuance{
+				{TickNumber: 101, TransactionHash: ToStringPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
 					AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 				}},
 			},
@@ -180,7 +182,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTransactionHash() {
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 100, TransactionHash: "txhash1", EventType: 0}},
+			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToStringPointer("txhash1"), LogType: 0}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -188,7 +190,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTransactionHash() {
 	})
 	require.NoError(t, err)
 	assert.Len(t, resp.Events, 1)
-	assert.Equal(t, "txhash1", resp.Events[0].TransactionHash)
+	assert.Equal(t, "txhash1", *resp.Events[0].TransactionHash)
 }
 
 func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
@@ -197,7 +199,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 15001, EventType: 0}},
+			Events: []*api.Event{{TickNumber: 15001, LogType: 0}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -210,35 +212,35 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
 
 func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
 	t := s.T()
-	expectedFilters := map[string][]string{"eventType": {"8"}}
+	expectedFilters := map[string][]string{"logType": {"8"}}
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 200, EventType: 8}},
+			Events: []*api.Event{{TickNumber: 200, LogType: 8}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "8"},
+		Filters: map[string]string{"logType": "8"},
 	})
 	require.NoError(t, err)
 	assert.Len(t, resp.Events, 1)
-	assert.Equal(t, uint32(8), resp.Events[0].EventType)
+	assert.Equal(t, uint32(8), resp.Events[0].LogType)
 }
 
 func (s *ServerTestSuite) TestGetEvents_CombinedFilters() {
 	t := s.T()
 	expectedFilters := map[string][]string{
 		"transactionHash": {"txhash1"},
-		"eventType":       {"0"},
+		"logType":         {"0"},
 	}
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 100, TransactionHash: "txhash1", EventType: 0}},
+			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToStringPointer("txhash1"), LogType: 0}},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "txhash1", "eventType": "0"},
+		Filters: map[string]string{"transactionHash": "txhash1", "logType": "0"},
 	})
 	require.NoError(t, err)
 	assert.Len(t, resp.Events, 1)
@@ -258,14 +260,18 @@ func (s *ServerTestSuite) TestGetEvents_InvalidFilter() {
 
 func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 	t := s.T()
-	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"eventType": "99"},
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
+	defer cancel()
+
+	_, err := s.client.GetEvents(ctx, &api.GetEventsRequest{
+		Filters: map[string]string{"logType": "invalid"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "invalid eventType")
+	assert.Contains(t, st.Message(), "validating filters")
+	assert.Contains(t, st.Message(), "invalid [logType] filter")
 }
 
 func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {

@@ -63,15 +63,14 @@ func computorsListToAPIObject(cl computorsList) *api.ComputorList {
 
 func eventToAPIEvent(e event) *api.Event {
 	ev := &api.Event{
-		Epoch:                 e.Epoch,
-		TickNumber:            e.TickNumber,
-		Timestamp:             e.Timestamp,
-		EmittingContractIndex: e.EmittingContractIndex,
-		TransactionHash:       e.TransactionHash,
-		LogId:                 e.LogID,
-		LogDigest:             e.LogDigest,
-		EventType:             e.Type,
-		Category:              e.Category,
+		Epoch:           e.Epoch,
+		TickNumber:      e.TickNumber,
+		Timestamp:       e.Timestamp,
+		TransactionHash: e.TransactionHash,
+		LogId:           e.LogID,
+		LogDigest:       e.LogDigest,
+		LogType:         e.Type,
+		Categories:      e.Categories,
 	}
 	switch e.Type {
 	case 0:
@@ -94,13 +93,25 @@ func eventToAPIEvent(e event) *api.Event {
 			Source: e.Source, Destination: e.Destination, AssetIssuer: e.AssetIssuer,
 			AssetName: e.AssetName, NumberOfShares: e.NumberOfShares,
 		}}
+	case 4, 5, 6, 7:
+		ev.RawPayload = e.RawPayload
+		ev.EventData = &api.Event_SmartContractMessage{SmartContractMessage: &api.SmartContractMessageData{
+			EmittingContractIndex: e.EmittingContractIndex,
+			ContractMessageType:   e.ContractMessageType,
+		}}
 	case 8:
 		ev.EventData = &api.Event_Burning{Burning: &api.BurningData{
 			Source: e.Source, Amount: e.Amount, ContractIndexBurnedFor: e.ContractIndexBurnedFor,
 		}}
+	case 9, 10, 11, 12:
+		ev.RawPayload = e.RawPayload
 	case 13:
 		ev.EventData = &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 			DeductedAmount: e.DeductedAmount, RemainingAmount: e.RemainingAmount, ContractIndex: e.ContractIndex,
+		}}
+	case 255:
+		ev.EventData = &api.Event_CustomMessage{CustomMessage: &api.CustomMessageData{
+			Value: e.CustomMessage,
 		}}
 	}
 	return ev
