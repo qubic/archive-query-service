@@ -67,7 +67,7 @@ func TestArchiveQueryService_GetEvents_InvalidFilter(t *testing.T) {
 	assert.Contains(t, st.Message(), "unsupported filter")
 }
 
-func TestArchiveQueryService_GetEvents_InvalidEventType(t *testing.T) {
+func TestArchiveQueryService_GetEvents_InvalidLogType(t *testing.T) {
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
 

@@ -78,7 +78,7 @@ func Test_createEventsQuery_withTickNumber(t *testing.T) {
 	assert.Equal(t, "42", termFilter["tickNumber"])
 }
 
-func Test_createEventsQuery_withEventType(t *testing.T) {
+func Test_createEventsQuery_withLogType(t *testing.T) {
 	filters := map[string][]string{
 		"logType": {"1"},
 	}
@@ -93,7 +93,7 @@ func Test_createEventsQuery_withEventType(t *testing.T) {
 	filterArr := boolQuery["filter"].([]any)
 	require.Len(t, filterArr, 1)
 
-	// eventType should map to ES field "type"
+	// logType should map to ES field "type"
 	termFilter := filterArr[0].(map[string]any)["term"].(map[string]any)
 	assert.Equal(t, "1", termFilter["type"])
 }
@@ -114,6 +114,26 @@ func Test_createEventsQuery_withMultipleFilters(t *testing.T) {
 	boolQuery := q["bool"].(map[string]any)
 	filterArr := boolQuery["filter"].([]any)
 	assert.Len(t, filterArr, 3)
+}
+
+func Test_createEventsQuery_withMultipleLogTypes(t *testing.T) {
+	filters := map[string][]string{
+		"logType": {"0", "1", "3"},
+	}
+	query := createEventsQuery(filters, 0, 10)
+
+	var parsed map[string]any
+	err := json.Unmarshal([]byte(query), &parsed)
+	require.NoError(t, err)
+
+	q := parsed["query"].(map[string]any)
+	boolQuery := q["bool"].(map[string]any)
+	filterArr := boolQuery["filter"].([]any)
+	require.Len(t, filterArr, 1)
+
+	termsFilter := filterArr[0].(map[string]any)["terms"].(map[string]any)
+	typeValues := termsFilter["type"].([]any)
+	assert.Equal(t, []any{"0", "1", "3"}, typeValues)
 }
 
 func Test_createEventsQuery_withPagination(t *testing.T) {

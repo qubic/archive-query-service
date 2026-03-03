@@ -1,7 +1,6 @@
 package elastic
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -109,18 +108,14 @@ func createEventsQuery(filters map[string][]string, from, size uint32) string {
 		if k == "logType" {
 			esField = "type"
 		}
-		if len(filters[k]) == 1 {
+		if len(filters[k]) > 1 {
+			filterStrings = append(filterStrings, fmt.Sprintf(`{"terms":{"%s":["%s"]}}`, esField, strings.Join(filters[k], `","`)))
+		} else if len(filters[k]) == 1 {
 			filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, esField, filters[k][0]))
 		}
 	}
 
-	filterClause := ""
-	if len(filterStrings) > 0 {
-		filterClause = strings.Join(filterStrings, ",")
-	}
-
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf(`{
+	return fmt.Sprintf(`{
 		"query": {
 			"bool": {
 				"filter": [%s]
@@ -130,7 +125,5 @@ func createEventsQuery(filters map[string][]string, from, size uint32) string {
 		"from": %d,
 		"size": %d,
 		"track_total_hits": %d
-	}`, filterClause, from, size, maxTrackTotalHits))
-
-	return buf.String()
+	}`, strings.Join(filterStrings, ","), from, size, maxTrackTotalHits)
 }

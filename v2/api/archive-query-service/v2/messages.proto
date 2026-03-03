@@ -262,7 +262,7 @@ message GetEventsRequest {
       yaml: "filters:\n  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\npagination:\n  offset: 0\n  size: 10"
     };
   };
-  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventType"}];
+  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: transactionHash, tickNumber, logType"}];
   Pagination pagination = 2 [(openapi.v3.property) = {description:"Optional paging information."}];
 }
 

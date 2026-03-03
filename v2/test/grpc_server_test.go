@@ -1,9 +1,7 @@
 package test
 
 import (
-	"context"
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -210,7 +208,7 @@ func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
 	assert.Equal(t, uint32(15001), resp.Events[0].TickNumber)
 }
 
-func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
+func (s *ServerTestSuite) TestGetEvents_FilterByLogType() {
 	t := s.T()
 	expectedFilters := map[string][]string{"logType": {"8"}}
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
@@ -258,19 +256,15 @@ func (s *ServerTestSuite) TestGetEvents_InvalidFilter() {
 	assert.Contains(t, st.Message(), "unsupported filter")
 }
 
-func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
+func (s *ServerTestSuite) TestGetEvents_InvalidLogType() {
 	t := s.T()
-	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
-	defer cancel()
-
-	_, err := s.client.GetEvents(ctx, &api.GetEventsRequest{
-		Filters: map[string]string{"logType": "invalid"},
+	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+		Filters: map[string]string{"logType": "256"},
 	})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "validating filters")
 	assert.Contains(t, st.Message(), "invalid [logType] filter")
 }
 

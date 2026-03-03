@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -98,6 +99,59 @@ func TestValidateEventsFilters_CombinedFilters(t *testing.T) {
 	}
 	err := validateEventsFilters(filters)
 	require.NoError(t, err)
+}
+
+func TestCreateEventsFilters_MultipleLogTypes(t *testing.T) {
+	filters := map[string]string{
+		"logType": "0,1,3",
+	}
+	result, err := createEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, map[string][]string{
+		"logType": {"0", "1", "3"},
+	}, result)
+}
+
+func TestCreateEventsFilters_MultipleLogTypesWithSpaces(t *testing.T) {
+	filters := map[string]string{
+		"logType": " 0 , 1 , 3 ",
+	}
+	result, err := createEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, map[string][]string{
+		"logType": {"0", "1", "3"},
+	}, result)
+}
+
+func TestCreateEventsFilters_MultipleLogTypesExceedsMax(t *testing.T) {
+	filters := map[string]string{
+		"logType": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,255,0",
+	}
+	_, err := createEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), fmt.Sprintf("more than %d values", maxLogTypeValues))
+}
+
+func TestCreateEventsFilters_MultipleLogTypesEmptyValue(t *testing.T) {
+	filters := map[string]string{
+		"logType": "0,,1",
+	}
+	_, err := createEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "empty value")
+}
+
+func TestValidateEventsFilters_MultipleValidLogTypes(t *testing.T) {
+	filters := map[string][]string{"logType": {"0", "1", "3"}}
+	err := validateEventsFilters(filters)
+	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_MultipleLogTypesOneInvalid(t *testing.T) {
+	filters := map[string][]string{"logType": {"0", "256", "1"}}
+	err := validateEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [logType] filter")
 }
 
 func TestValidateEventsFilters_EmptyFilters(t *testing.T) {
