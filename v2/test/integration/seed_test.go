@@ -80,28 +80,28 @@ type seedEvent struct {
 
 var seedType0WithCategory = seedEvent{
 	Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
-	TransactionHash: test.ToPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+	TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
 	LogID:           1, LogDigest: "digest0", Type: 0, Categories: []int32{3},
 	Source: "QJRRSSKMJRDKUDTYVNYGAMQPULKAMILQQYOWBEXUDEUWQUMNGDHQYLOAJMEB", Destination: "BZBQFLLBNCXEMGQOUAPQYSWCBHRBJJFHFFLSENFLEVKEIYVHDSOFWKUUPGJD", Amount: 5000,
 }
 
 var seedType0Index3 = seedEvent{
 	Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
-	TransactionHash: test.ToPointer("qisveklretrdmewbgclhnikvannflsmghjcwcuiqyejuoamgitrzuqzbuwso"),
+	TransactionHash: test.ToStringPointer("qisveklretrdmewbgclhnikvannflsmghjcwcuiqyejuoamgitrzuqzbuwso"),
 	LogID:           3, LogDigest: "digest03", Type: 0,
 	Source: "PGMCSTMFMWZHWAVIEBHEWFBVPYJBZPJFIJRVMNWDZGPIJBWTHUDAPAFHIKTF", Destination: "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ", Amount: 5000,
 }
 
 var seedType0Index2 = seedEvent{
 	Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
-	TransactionHash: test.ToPointer("kuyenwapwbbhfbnvqsrlfwmokbvdgouodhapuoiajamfznpdhvczywyewyqc"),
+	TransactionHash: test.ToStringPointer("kuyenwapwbbhfbnvqsrlfwmokbvdgouodhapuoiajamfznpdhvczywyewyqc"),
 	LogID:           2, LogDigest: "digest02", Type: 0,
 	Source: "WUJYTCVTWOOEZBYSGYHCYCKXLBECJAPLOWGVXOMZOBLEONUSHGPDNWJCOXZC", Destination: "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ", Amount: 5000,
 }
 
 var seedType1 = seedEvent{
 	Epoch: 100, TickNumber: 15001, Timestamp: 1700000002000,
-	EmittingContractIndex: 1, TransactionHash: test.ToPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
+	EmittingContractIndex: 1, TransactionHash: test.ToStringPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
 	LogID: 2, LogDigest: "digest1", Type: 1,
 	AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", NumberOfShares: 1000000,
 	ManagingContractIndex: 5, AssetName: "QX",
@@ -110,7 +110,7 @@ var seedType1 = seedEvent{
 
 var seedType2 = seedEvent{
 	Epoch: 100, TickNumber: 15002, Timestamp: 1700000003000,
-	EmittingContractIndex: 2, TransactionHash: test.ToPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+	EmittingContractIndex: 2, TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
 	LogID: 3, LogDigest: "digest2", Type: 2,
 	Source: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", Destination: "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
 	AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 500,
@@ -118,7 +118,7 @@ var seedType2 = seedEvent{
 
 var seedType3 = seedEvent{
 	Epoch: 101, TickNumber: 16000, Timestamp: 1700000004000,
-	EmittingContractIndex: 3, TransactionHash: test.ToPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
+	EmittingContractIndex: 3, TransactionHash: test.ToStringPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
 	LogID: 4, LogDigest: "digest3", Type: 3,
 	Source: "FQGOKLRHRCTNRMHEEKHIBRHOPHCSMGSUHIBIJKHZMSHDMNKIPDREIHHLPPPF", Destination: "GRHPLMSISDUPSNIFFLKJCSIPQIDTNHTVIJCJKLIANSKENLLJQESFJIIMQQRG",
 	AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 300,
@@ -126,14 +126,14 @@ var seedType3 = seedEvent{
 
 var seedType8 = seedEvent{
 	Epoch: 101, TickNumber: 16001, Timestamp: 1700000005000,
-	TransactionHash: test.ToPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
+	TransactionHash: test.ToStringPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
 	LogID:           5, LogDigest: "digest8", Type: 8,
 	Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndexBurnedFor: 7,
 }
 
 var seedType13 = seedEvent{
 	Epoch: 101, TickNumber: 16002, Timestamp: 1700000006000,
-	TransactionHash: test.ToPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),
+	TransactionHash: test.ToStringPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),
 	LogID:           6, LogDigest: "digest13", Type: 13,
 	DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,
 }

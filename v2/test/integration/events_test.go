@@ -119,7 +119,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type0_FullData() {
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
-		TransactionHash: test.ToPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+		TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
 		LogId:           1, LogDigest: "digest0", LogType: 0, Categories: []int32{3},
 		EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 			Source: "QJRRSSKMJRDKUDTYVNYGAMQPULKAMILQQYOWBEXUDEUWQUMNGDHQYLOAJMEB", Destination: "BZBQFLLBNCXEMGQOUAPQYSWCBHRBJJFHFFLSENFLEVKEIYVHDSOFWKUUPGJD", Amount: 5000,
@@ -140,7 +140,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type1_FullData() {
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15001, Timestamp: 1700000002000,
-		TransactionHash: test.ToPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
+		TransactionHash: test.ToStringPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
 		LogId:           2, LogDigest: "digest1", LogType: 1,
 		EventData: &api.Event_AssetIssuance{AssetIssuance: &api.AssetIssuanceData{
 			AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", NumberOfShares: 1000000,
@@ -163,7 +163,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type2_FullData() {
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15002, Timestamp: 1700000003000,
-		TransactionHash: test.ToPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+		TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
 		LogId:           3, LogDigest: "digest2", LogType: 2,
 		EventData: &api.Event_AssetOwnershipChange{AssetOwnershipChange: &api.AssetOwnershipChangeData{
 			Source: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", Destination: "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
@@ -185,7 +185,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type3_FullData() {
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16000, Timestamp: 1700000004000,
-		TransactionHash: test.ToPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
+		TransactionHash: test.ToStringPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
 		LogId:           4, LogDigest: "digest3", LogType: 3,
 		EventData: &api.Event_AssetPossessionChange{AssetPossessionChange: &api.AssetPossessionChangeData{
 			Source: "FQGOKLRHRCTNRMHEEKHIBRHOPHCSMGSUHIBIJKHZMSHDMNKIPDREIHHLPPPF", Destination: "GRHPLMSISDUPSNIFFLKJCSIPQIDTNHTVIJCJKLIANSKENLLJQESFJIIMQQRG",
@@ -207,7 +207,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type8_FullData() {
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16001, Timestamp: 1700000005000,
-		TransactionHash: test.ToPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
+		TransactionHash: test.ToStringPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
 		LogId:           5, LogDigest: "digest8", LogType: 8,
 		EventData: &api.Event_Burning{Burning: &api.BurningData{
 			Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndexBurnedFor: 7,
@@ -228,7 +228,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type13_FullData() {
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16002, Timestamp: 1700000006000,
-		TransactionHash: test.ToPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),
+		TransactionHash: test.ToStringPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),
 		LogId:           6, LogDigest: "digest13", LogType: 13,
 		EventData: &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 			DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,

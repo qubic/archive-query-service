@@ -30,10 +30,10 @@ func (s *EventsServiceStub) GetEvents(_ context.Context, _ map[string][]string, 
 func TestArchiveQueryService_GetEvents_Success(t *testing.T) {
 	evService := &EventsServiceStub{
 		events: []*api.Event{
-			{TickNumber: 100, TransactionHash: test.ToPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
+			{TickNumber: 100, TransactionHash: test.ToStringPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
 				QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 			}},
-			{TickNumber: 101, TransactionHash: test.ToPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
+			{TickNumber: 101, TransactionHash: test.ToStringPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
 				AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 			}},
 		},

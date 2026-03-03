@@ -1,5 +1,5 @@
 package test
 
-func ToPointer(s string) *string {
+func ToStringPointer(s string) *string {
 	return &s
 }
