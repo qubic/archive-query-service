@@ -3,7 +3,7 @@ name: Deploy v2 prod images to GHCR
 on:
   push:
     branches:
-      - 'feature/add-more-events'
+      - 'feature/identity-related-log-filters'
 
 jobs:
   docker-publish:
