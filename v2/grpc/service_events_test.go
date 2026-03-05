@@ -20,6 +20,9 @@ type EventsServiceStub struct {
 	err    error
 }
 
+const validTransactionHash1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
+const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
+
 func (s *EventsServiceStub) GetEvents(_ context.Context, _ map[string][]string, _, _ uint32) (*entities.EventsResult, error) {
 	if s.err != nil {
 		return nil, s.err
@@ -30,10 +33,10 @@ func (s *EventsServiceStub) GetEvents(_ context.Context, _ map[string][]string, 
 func TestArchiveQueryService_GetEvents_Success(t *testing.T) {
 	evService := &EventsServiceStub{
 		events: []*api.Event{
-			{TickNumber: 100, TransactionHash: test.ToStringPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
+			{TickNumber: 100, TransactionHash: test.ToStringPointer(validTransactionHash1), LogType: 0, EventData: &api.Event_QuTransfer{
 				QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 			}},
-			{TickNumber: 101, TransactionHash: test.ToStringPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
+			{TickNumber: 101, TransactionHash: test.ToStringPointer(validTransactionHash2), LogType: 1, EventData: &api.Event_AssetIssuance{
 				AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 			}},
 		},
@@ -42,7 +45,7 @@ func TestArchiveQueryService_GetEvents_Success(t *testing.T) {
 	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
 
 	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
-		Filters:    map[string]string{"transactionHash": "hash1"},
+		Filters:    map[string]string{"transactionHash": validTransactionHash1},
 		Pagination: &api.Pagination{Offset: 0, Size: 10},
 	})
 	require.NoError(t, err)

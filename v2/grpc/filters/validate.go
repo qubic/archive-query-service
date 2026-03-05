@@ -20,9 +20,10 @@ func VerifyNoFilterDuplicates(filterMap map[string][]string, ranges map[string]*
 	return nil
 }
 
-func ValidateNumericFilterValues(values []string, bitSize, maxValues int) error {
-	if len(values) == 0 || len(values) > maxValues {
-		return fmt.Errorf("invalid number of values: [%d]", maxValues)
+func ValidateUnsignedNumericFilterValues(values []string, bitSize, maxNumberOfValues int) error {
+	err := checkQuantity(values, maxNumberOfValues)
+	if err != nil {
+		return err
 	}
 	for _, val := range values {
 		_, err := stringToNumericValue(val, bitSize)
@@ -34,14 +35,30 @@ func ValidateNumericFilterValues(values []string, bitSize, maxValues int) error 
 }
 
 func ValidateIdentityFilterValues(values []string, maxValues int) error {
-	if len(values) == 0 || len(values) > maxValues {
-		return fmt.Errorf("invalid number of values: [%d]", maxValues)
+	return validateDigest(values, maxValues, false)
+}
+
+func ValidateTransactionHashFilterValues(values []string, maxValues int) error {
+	return validateDigest(values, maxValues, true)
+}
+
+func validateDigest(values []string, maxValues int, lowercase bool) error {
+	err := checkQuantity(values, maxValues)
+	if err != nil {
+		return err
 	}
 	for _, val := range values {
-		err := utils.ValidateIdentity(val)
+		err := utils.ValidateDigest(val, lowercase)
 		if err != nil {
-			return fmt.Errorf("invalid identity: %w", err)
+			return fmt.Errorf("invalid transaction hash: %w", err)
 		}
+	}
+	return nil
+}
+
+func checkQuantity(values []string, maxValues int) error {
+	if len(values) == 0 || len(values) > maxValues {
+		return fmt.Errorf("invalid number of values: [%d]", maxValues)
 	}
 	return nil
 }

@@ -44,12 +44,12 @@ func validateTickTransactionQueryFilters(filterMap map[string][]string) error {
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 		case FilterAmount:
-			err := filters.ValidateNumericFilterValues(values, 64, 1)
+			err := filters.ValidateUnsignedNumericFilterValues(values, 64, 1)
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 		case FilterInputType:
-			err := filters.ValidateNumericFilterValues(values, 32, 1)
+			err := filters.ValidateUnsignedNumericFilterValues(values, 32, 1)
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}

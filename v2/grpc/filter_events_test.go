@@ -7,16 +7,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const validTransactionHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
+
 func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 	filters := map[string]string{
-		"transactionHash": "abc123",
+		"transactionHash": validTransactionHash,
 		"tickNumber":      "42",
 		"logType":         "1",
 	}
 	result, err := createEventsFilters(filters)
 	require.NoError(t, err)
 	assert.Equal(t, map[string][]string{
-		"transactionHash": {"abc123"},
+		"transactionHash": {validTransactionHash},
 		"tickNumber":      {"42"},
 		"logType":         {"1"},
 	}, result)
@@ -32,7 +34,7 @@ func TestCreateEventsFilters_EmptyValue(t *testing.T) {
 }
 
 func TestValidateEventsFilters_ValidTransactionHash(t *testing.T) {
-	filters := map[string][]string{"transactionHash": {"abc123"}}
+	filters := map[string][]string{"transactionHash": {validTransactionHash}}
 	err := validateEventsFilters(filters)
 	require.NoError(t, err)
 }
@@ -54,7 +56,7 @@ func TestValidateEventsFilters_ValidEventType(t *testing.T) {
 }
 
 func TestValidateEventsFilters_InvalidEventType(t *testing.T) {
-	for _, et := range []string{"-1", "15", "256", "abc"} {
+	for _, et := range []string{"-1", "256", "abc"} {
 		t.Run("eventType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"logType": {et}}
 			err := validateEventsFilters(filters)
@@ -92,7 +94,7 @@ func TestValidateEventsFilters_TooManyFilters(t *testing.T) {
 
 func TestValidateEventsFilters_CombinedFilters(t *testing.T) {
 	filters := map[string][]string{
-		"transactionHash": {"abc123"},
+		"transactionHash": {validTransactionHash},
 		"tickNumber":      {"42"},
 		"logType":         {"0"},
 	}

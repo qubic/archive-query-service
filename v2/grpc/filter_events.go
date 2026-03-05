@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/qubic/archive-query-service/v2/grpc/filters"
 )
@@ -27,40 +26,36 @@ func createEventsFilters(filterMap map[string]string) (map[string][]string, erro
 	return res, nil
 }
 
-func validateEventsFilters(filters map[string][]string) error {
-	if len(filters) == 0 {
+func validateEventsFilters(filterMap map[string][]string) error {
+	if len(filterMap) == 0 {
 		return nil
 	}
 
-	if len(filters) > len(allowedEventFilters) {
+	if len(filterMap) > len(allowedEventFilters) {
 		return fmt.Errorf("too many filters")
 	}
 
-	for key, values := range filters {
+	for key, values := range filterMap {
 		switch key {
 		case "transactionHash":
-			if len(values) != 1 {
-				return fmt.Errorf("filter [%s] must have exactly one value", key)
-			}
-		case "tickNumber":
-			if len(values) != 1 {
-				return fmt.Errorf("filter [%s] must have exactly one value", key)
-			}
-			_, err := strconv.ParseUint(values[0], 10, 32)
+
+			err := filters.ValidateTransactionHashFilterValues(values, 1)
 			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
-			}
-		case "logType":
-			if len(values) != 1 {
-				return fmt.Errorf("filter [%s] must have exactly one value", key)
+				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 
-			uVal, err := strconv.ParseUint(values[0], 10, 32)
+		case "tickNumber":
+
+			err := filters.ValidateUnsignedNumericFilterValues(values, 32, 1)
 			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: must be a valid number but was [%s]", key, values[0])
+				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
-			if uVal > 14 && uVal != 255 {
-				return fmt.Errorf("invalid [%s] filter: must be 0-13 or 255 but was [%d]", key, uVal)
+
+		case "logType":
+
+			err := filters.ValidateUnsignedNumericFilterValues(values, 8, 1) // up to 255
+			if err != nil {
+				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 
 		default:

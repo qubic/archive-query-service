@@ -17,6 +17,8 @@ import (
 // gRPC Tests
 // =====================
 
+const validTransactionHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
+
 func (s *EventsE2ESuite) TestGRPC_GetEvents_NoFilters() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{})
@@ -102,7 +104,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Pagination() {
 func (s *EventsE2ESuite) TestGRPC_GetEvents_EmptyResult() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "nonexistent"},
+		Filters: map[string]string{"transactionHash": validTransactionHash},
 	})
 	require.NoError(t, err)
 	require.Empty(t, resp.Events)
@@ -411,7 +413,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction_Full
 
 func (s *EventsE2ESuite) TestHTTP_GetEvents_EmptyResult() {
 	t := s.T()
-	result, statusCode := s.postGetEvents(`{"filters":{"transactionHash":"nonexistent"}}`)
+	result, statusCode := s.postGetEvents(`{"filters":{"transactionHash":"` + validTransactionHash + `"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
 	events := result["events"].([]interface{})
