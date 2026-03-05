@@ -3,20 +3,27 @@ package grpc
 import (
 	"fmt"
 	"strconv"
-	"strings"
+
+	"github.com/qubic/archive-query-service/v2/grpc/filters"
 )
 
 var allowedEventFilters = [3]string{"transactionHash", "tickNumber", "logType"}
 
-func createEventsFilters(filters map[string]string) (map[string][]string, error) {
+func createEventsFilters(filterMap map[string]string) (map[string][]string, error) {
 	res := make(map[string][]string)
-	for k, v := range filters {
-		trimmed := strings.TrimSpace(v)
-		if trimmed == "" {
-			return nil, fmt.Errorf("filter %s contains an empty value", k)
+	for k, v := range filterMap {
+		vs, err := filters.CreateFilters(v, 1, 60)
+		if err != nil {
+			return nil, fmt.Errorf("handling filter [%s]: %w", k, err)
 		}
-		res[k] = []string{trimmed}
+		res[k] = vs
 	}
+
+	err := validateEventsFilters(res)
+	if err != nil {
+		return nil, fmt.Errorf("validating filter: %w", err)
+	}
+
 	return res, nil
 }
 

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/grpc/utils"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc"
@@ -77,7 +78,7 @@ func (i *IdentitiesValidatorInterceptor) GetInterceptor(ctx context.Context, req
 }
 
 func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase bool) error {
-	return validateDigest(idStr, isLowercase)
+	return utils.ValidateDigest(idStr, isLowercase)
 }
 
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {
@@ -197,7 +198,7 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 	if !ok {
 		return handler(ctx, req)
 	}
-	log.Printf("RedisCacheInterceptor: Request %s is cachable, proceed to check TTL and key\n", info.FullMethod)
+	log.Printf("RedisCacheInterceptor: Request %s is cacheable, proceed to check TTL and key\n", info.FullMethod)
 
 	// if TTL from the map is zero or key does not exist, then caching is disabled
 	ttl, exists := rci.ttlMap[info.FullMethod]
@@ -242,7 +243,7 @@ func (rci *RedisCacheInterceptor) GetInterceptor(ctx context.Context, req any, i
 			info.FullMethod,
 			int(ttl.Seconds()),
 		)
-		// then proceed to cache the response and even if caching fails for multiple reasons like redis cluster unavailable
+		// then proceed to cache the response even if caching fails for multiple reasons like redis cluster unavailable
 		// we still return the response
 		sfErr = cacheResponse(ctx, rci.redisClient, key, response, ttl)
 		if sfErr != nil {

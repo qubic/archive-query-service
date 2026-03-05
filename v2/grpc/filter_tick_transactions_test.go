@@ -32,24 +32,20 @@ func Test_createTickFilters(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "source filter with spaces trimmed",
+			name: "too many characters",
 			filters: map[string]string{
 				"source": "  " + validId + "  ",
 			},
-			want: map[string][]string{
-				"source": {validId},
-			},
-			wantErr: false,
+			want:    nil,
+			wantErr: true,
 		},
 		{
-			name: "comma-separated values NOT split",
+			name: "invalid identity",
 			filters: map[string]string{
-				"source": "value1,value2",
+				"source": " value1 and value2 ",
 			},
-			want: map[string][]string{
-				"source": {"value1,value2"},
-			},
-			wantErr: false,
+			want:    nil,
+			wantErr: true,
 		},
 		{
 			name: "multiple different filters",
@@ -86,13 +82,13 @@ func Test_createTickFilters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := createTickFilters(tt.filters)
+			got, err := createTickTransactionsFilters(tt.filters)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("createTickFilters() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("createTickTransactionsFilters() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("createTickFilters() got = %v, want %v", got, tt.want)
+				t.Errorf("createTickTransactionsFilters() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -143,37 +139,37 @@ func TestValidations_validateTickTransactionQueryFilters_givenTimestamp_thenErro
 func TestValidations_validateTickTransactionQueryFilters_givenMultipleSourceValues_thenError(t *testing.T) {
 	filters := map[string][]string{"source": {validId, validId}}
 	err := validateTickTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "must have exactly one value")
+	require.ErrorContains(t, err, "invalid number of values")
 }
 
 func TestValidations_validateTickTransactionQueryFilters_givenMultipleDestinationValues_thenError(t *testing.T) {
 	filters := map[string][]string{"destination": {validId, validId}}
 	err := validateTickTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "must have exactly one value")
+	require.ErrorContains(t, err, "invalid number of values")
 }
 
 func TestValidations_validateTickTransactionQueryFilters_givenInvalidSource_thenError(t *testing.T) {
 	filters := map[string][]string{"source": {invalidId}}
 	err := validateTickTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "invalid source filter")
+	require.ErrorContains(t, err, "invalid [source] filter")
 }
 
 func TestValidations_validateTickTransactionQueryFilters_givenInvalidDestination_thenError(t *testing.T) {
 	filters := map[string][]string{"destination": {invalidId}}
 	err := validateTickTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "invalid destination filter")
+	require.ErrorContains(t, err, "invalid [destination] filter")
 }
 
 func TestValidations_validateTickTransactionQueryFilters_givenInvalidAmount_thenError(t *testing.T) {
 	filters := map[string][]string{"amount": {"-1"}}
 	err := validateTickTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "invalid amount filter")
+	require.ErrorContains(t, err, "invalid [amount] filter")
 }
 
 func TestValidations_validateTickTransactionQueryFilters_givenInvalidInputType_thenError(t *testing.T) {
 	filters := map[string][]string{"inputType": {"foo"}}
 	err := validateTickTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "invalid inputType filter")
+	require.ErrorContains(t, err, "invalid [inputType] filter")
 }
 
 func TestValidations_validateTickTransactionQueryFilters_givenTooManyFilters_thenError(t *testing.T) {
@@ -243,7 +239,7 @@ func TestValidations_validateTickTransactionQueryRanges_givenDuplicateFilter_the
 	filters := map[string][]string{FilterAmount: {"100"}}
 	ranges := map[string]*api.Range{FilterAmount: nil}
 	_, err := validateTickTransactionQueryRanges(filters, ranges)
-	require.ErrorContains(t, err, "already declared as filter")
+	require.ErrorContains(t, err, "is already declared")
 }
 
 func TestValidations_validateTickTransactionQueryRanges_givenTooManyRanges_thenError(t *testing.T) {

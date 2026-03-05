@@ -270,7 +270,7 @@ func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "validating filters")
+	assert.Contains(t, st.Message(), "creating filters")
 	assert.Contains(t, st.Message(), "invalid [logType] filter")
 }
 
