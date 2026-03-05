@@ -36,11 +36,6 @@ openapi-v3-gen:
 	cd "$(PROTO_DIR)" && \
 	protoc --openapi_out=output_mode=source_relative,default_response=false:. $(OPT_ARGS) -I "$(PROTO_DIR)" \
 		query_services.proto
-	@echo "Cleaning up OpenAPI spec..."
-	cd "$(PROTO_DIR)" && \
-	yq -iy 'del(.paths."/health")' query_services.openapi.yaml && \
-	yq -iy '(.tags[] | select(.name == "ArchiveQueryService"))."x-scalar-ignore" = true' query_services.openapi.yaml && \
-	yq -iy '(.paths[][].tags) -= ["ArchiveQueryService"]' query_services.openapi.yaml
 
 test-cover:
 	@echo "Performing Go cover test..."

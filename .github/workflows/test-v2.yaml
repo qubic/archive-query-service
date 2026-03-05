@@ -45,6 +45,29 @@ jobs:
         with:
           version: v2.6
           working-directory: v2
+  check-openapi:
+    name: Check OpenAPI spec is up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.25.x
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: '28.x'
+      - name: Install protoc-gen-openapi
+        run: go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
+      - name: Regenerate OpenAPI spec
+        working-directory: v2
+        run: make openapi-v3-gen
+      - name: Check for differences
+        run: |
+          if ! git diff --exit-code v2/api/archive-query-service/v2/query_services.openapi.yaml; then
+            echo "::error::OpenAPI spec is out of date. Run 'make openapi-v3-gen' and commit the result."
+            exit 1
+          fi
   govulncheck:
     runs-on: ubuntu-latest
     name: Run govulncheck v2
