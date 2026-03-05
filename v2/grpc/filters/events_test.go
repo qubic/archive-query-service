@@ -9,6 +9,8 @@ import (
 )
 
 const validTransactionHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
+const validId4 = "FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYWJB"
+const validId5 = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQGNM"
 
 func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 	filters := map[string]string{
@@ -149,4 +151,214 @@ func TestValidateEventsFilters_EmptyFilters(t *testing.T) {
 
 	err = validateEventsFilters(map[string][]string{})
 	require.NoError(t, err)
+}
+
+// tests for source, destination, source-exclude, destination-exclude, epoch, and amount filters
+
+func TestCreateEventsFilters_IdentityFilters_SingleValue(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: validId,
+			}
+			result, err := CreateEventsFilters(filters)
+			require.NoError(t, err)
+			assert.Equal(t, []string{validId}, result[filterName])
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_MultipleValues(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: fmt.Sprintf("%s,%s,%s", validId, validId2, validId3),
+			}
+			result, err := CreateEventsFilters(filters)
+			require.NoError(t, err)
+			assert.Equal(t, []string{validId, validId2, validId3}, result[filterName])
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_MaxValues(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: fmt.Sprintf("%s,%s,%s,%s", validId, validId2, validId3, validId4),
+			}
+			result, err := CreateEventsFilters(filters)
+			require.NoError(t, err)
+			assert.Equal(t, []string{validId, validId2, validId3, validId4}, result[filterName])
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_TooManyValues(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: fmt.Sprintf("%s,%s,%s,%s,%s,%s", validId, validId2, validId3, validId4, validId5, validId),
+			}
+			_, err := CreateEventsFilters(filters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "exceeds maximum length")
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_EmptyValue(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: "",
+			}
+			_, err := CreateEventsFilters(filters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "empty value")
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_DuplicateValues(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: fmt.Sprintf("%s,%s,%s", validId, validId2, validId),
+			}
+			_, err := CreateEventsFilters(filters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "duplicate value")
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_InvalidIdentity(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: invalidId,
+			}
+			_, err := CreateEventsFilters(filters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid identity")
+		})
+	}
+}
+
+func TestCreateEventsFilters_IdentityFilters_EmptyInList(t *testing.T) {
+	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string]string{
+				filterName: fmt.Sprintf("%s,,%s", validId, validId2),
+			}
+			_, err := CreateEventsFilters(filters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "empty value")
+		})
+	}
+}
+
+func TestCreateEventsFilters_Epoch_ValidValue(t *testing.T) {
+	filters := map[string]string{
+		"epoch": "100",
+	}
+	result, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"100"}, result["epoch"])
+}
+
+func TestCreateEventsFilters_Epoch_ZeroValue(t *testing.T) {
+	filters := map[string]string{
+		"epoch": "0",
+	}
+	result, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0"}, result["epoch"])
+}
+
+func TestCreateEventsFilters_Epoch_InvalidNegative(t *testing.T) {
+	filters := map[string]string{
+		"epoch": "-1",
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [epoch] filter")
+}
+
+func TestCreateEventsFilters_Epoch_InvalidString(t *testing.T) {
+	filters := map[string]string{
+		"epoch": "abc",
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [epoch] filter")
+}
+
+func TestCreateEventsFilters_Amount_ValidValue(t *testing.T) {
+	filters := map[string]string{
+		"amount": "1000",
+	}
+	result, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"1000"}, result["amount"])
+}
+
+func TestCreateEventsFilters_Amount_InvalidNegative(t *testing.T) {
+	filters := map[string]string{
+		"amount": "-100",
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [amount] filter")
+}
+
+func TestCreateEventsFilters_Amount_InvalidString(t *testing.T) {
+	filters := map[string]string{
+		"amount": "not-a-number",
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [amount] filter")
+}
+
+func TestCreateEventsFilters_CombinedSourceAndDestination(t *testing.T) {
+	filters := map[string]string{
+		"source":      fmt.Sprintf("%s,%s", validId, validId2),
+		"destination": validId3,
+	}
+	result, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{validId, validId2}, result["source"])
+	assert.Equal(t, []string{validId3}, result["destination"])
+}
+
+func TestCreateEventsFilters_MaxLengthForIdentityFilters(t *testing.T) {
+	// 5 IDs (60 chars each) + 4 commas + 4 spaces = 309 chars total
+	longValue := fmt.Sprintf("%s,%s,%s,%s", validId, validId2, validId3, validId4)
+	filters := map[string]string{
+		"source": longValue,
+	}
+	result, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Len(t, result["source"], 4)
+}
+
+func TestCreateEventsFilters_ExceedsMaxLengthForIdentityFilters(t *testing.T) {
+	// Create a string that exceeds 309 characters
+	longValue := fmt.Sprintf("%s,%s,%s,%s,%s,%s", validId, validId2, validId3, validId4, validId5, validId)
+	filters := map[string]string{
+		"source": longValue,
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exceeds maximum length")
 }
