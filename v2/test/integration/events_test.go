@@ -340,6 +340,18 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_FullData() {
 	}
 }
 
+func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_ExcludeDestinationFilter() {
+	t := s.T()
+	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"15000", "destination-exclude": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ"}}`)
+	require.Equal(t, http.StatusOK, statusCode)
+
+	events := result["events"].([]interface{})
+	require.Len(t, events, 1) // only return one
+	ev := events[0].(map[string]interface{})
+
+	require.Equal(t, "1", ev["logId"])
+}
+
 func (s *EventsE2ESuite) TestHTTP_GetEvents_Type1_AssetIssuance_FullData() {
 	t := s.T()
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"15001"}}`)

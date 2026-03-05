@@ -125,3 +125,54 @@ func Test_createEventsQuery_withPagination(t *testing.T) {
 	assert.Equal(t, float64(20), parsed["from"])
 	assert.Equal(t, float64(50), parsed["size"])
 }
+
+func Test_createEventsQuery_withExcludeFilter(t *testing.T) {
+	filters := map[string][]string{
+		"source":         {"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+		"source-exclude": {"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},
+	}
+	query := createEventsQuery(filters, 0, 10)
+
+	var parsed map[string]any
+	err := json.Unmarshal([]byte(query), &parsed)
+	require.NoError(t, err)
+
+	q := parsed["query"].(map[string]any)
+	boolQuery := q["bool"].(map[string]any)
+
+	// Verify include filter
+	filterArr := boolQuery["filter"].([]any)
+	require.Len(t, filterArr, 1)
+	termFilter := filterArr[0].(map[string]any)["term"].(map[string]any)
+	assert.Equal(t, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", termFilter["source"])
+
+	// Verify exclude filter
+	mustNotArr := boolQuery["must_not"].([]any)
+	require.Len(t, mustNotArr, 1)
+	mustNotTerm := mustNotArr[0].(map[string]any)["term"].(map[string]any)
+	assert.Equal(t, "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", mustNotTerm["source"])
+}
+
+func Test_createEventsQuery_withOnlyExcludeFilter(t *testing.T) {
+	filters := map[string][]string{
+		"destination-exclude": {"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"},
+	}
+	query := createEventsQuery(filters, 0, 10)
+
+	var parsed map[string]any
+	err := json.Unmarshal([]byte(query), &parsed)
+	require.NoError(t, err)
+
+	q := parsed["query"].(map[string]any)
+	boolQuery := q["bool"].(map[string]any)
+
+	// Verify no include filters
+	_, hasFilter := boolQuery["filter"]
+	assert.False(t, hasFilter, "should not have filter clause")
+
+	// Verify exclude filter
+	mustNotArr := boolQuery["must_not"].([]any)
+	require.Len(t, mustNotArr, 1)
+	mustNotTerm := mustNotArr[0].(map[string]any)["term"].(map[string]any)
+	assert.Equal(t, "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", mustNotTerm["destination"])
+}
