@@ -1,10 +1,10 @@
 package elastic
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -103,34 +103,35 @@ func (r *EventsRepository) GetEvents(ctx context.Context, filters map[string][]s
 func createEventsQuery(filters map[string][]string, from, size uint32) string {
 	filterStrings := make([]string, 0, len(filters))
 
-	keys := getSortedKeys(filters)
-	for _, k := range keys {
-		esField := k
-		if k == "logType" {
-			esField = "type"
-		}
-		if len(filters[k]) == 1 {
-			filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, esField, filters[k][0]))
-		}
+	includeFilters, excludeFilters := splitFilters(filters)
+	// normal filters
+	filterStrings = append(filterStrings, getFilterStrings(includeFilters)...)
+	// filters for excluding results
+	excludeFilterStrings := getFilterStrings(excludeFilters)
+
+	boolFilters := make([]string, 0, 2)
+	filterClause := strings.Join(filterStrings, ",")
+	if len(filterClause) > 0 {
+		filterClause = fmt.Sprintf(`"filter": [%s]`, filterClause)
+		boolFilters = append(boolFilters, filterClause)
 	}
 
-	filterClause := ""
-	if len(filterStrings) > 0 {
-		filterClause = strings.Join(filterStrings, ",")
+	// only add exclude filters if present (otherwise empty)
+	mustNotClause := strings.Join(excludeFilterStrings, ",")
+	if len(mustNotClause) > 0 {
+		mustNotClause = fmt.Sprintf(`"must_not": [%s]`, mustNotClause)
+		boolFilters = append(boolFilters, mustNotClause)
 	}
 
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf(`{
+	query := fmt.Sprintf(`{
 		"query": {
-			"bool": {
-				"filter": [%s]
-			}
+			"bool": {%s}
 		},
 		"sort": [{"tickNumber":{"order":"desc"}},{"logId":{"order":"asc"}}],
 		"from": %d,
 		"size": %d,
 		"track_total_hits": %d
-	}`, filterClause, from, size, maxTrackTotalHits))
-
-	return buf.String()
+	}`, strings.Join(boolFilters, ","), from, size, maxTrackTotalHits)
+	log.Print(query)
+	return query
 }

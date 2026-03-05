@@ -1,4 +1,4 @@
-package grpc
+package filters
 
 import (
 	"reflect"
@@ -82,19 +82,19 @@ func Test_createTickFilters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := createTickTransactionsFilters(tt.filters)
+			got, err := CreateTickTransactionsFilters(tt.filters)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("createTickTransactionsFilters() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("createTickTransactionsFilters() got = %v, want %v", got, tt.want)
+				t.Errorf("got = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenAllValid_thenNoError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenAllValid_thenNoError(t *testing.T) {
 	filters := map[string][]string{
 		"source":      {validId},
 		"destination": {validId},
@@ -105,74 +105,74 @@ func TestValidations_validateTickTransactionQueryFilters_givenAllValid_thenNoErr
 	require.NoError(t, err)
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenEmpty_thenNoError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenEmpty_thenNoError(t *testing.T) {
 	err := validateTickTransactionQueryFilters(map[string][]string{})
 	require.NoError(t, err)
 	err = validateTickTransactionQueryFilters(nil)
 	require.NoError(t, err)
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenTickNumber_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenTickNumber_thenError(t *testing.T) {
 	filters := map[string][]string{"tickNumber": {"42"}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "unsupported filter: [tickNumber]")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenSourceExclude_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenSourceExclude_thenError(t *testing.T) {
 	filters := map[string][]string{"source-exclude": {validId}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "unsupported filter: [source-exclude]")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenDestinationExclude_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenDestinationExclude_thenError(t *testing.T) {
 	filters := map[string][]string{"destination-exclude": {validId}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "unsupported filter: [destination-exclude]")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenTimestamp_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenTimestamp_thenError(t *testing.T) {
 	filters := map[string][]string{"timestamp": {"1234567890"}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "unsupported filter: [timestamp]")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenMultipleSourceValues_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenMultipleSourceValues_thenError(t *testing.T) {
 	filters := map[string][]string{"source": {validId, validId}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid number of values")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenMultipleDestinationValues_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenMultipleDestinationValues_thenError(t *testing.T) {
 	filters := map[string][]string{"destination": {validId, validId}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid number of values")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenInvalidSource_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenInvalidSource_thenError(t *testing.T) {
 	filters := map[string][]string{"source": {invalidId}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid [source] filter")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenInvalidDestination_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenInvalidDestination_thenError(t *testing.T) {
 	filters := map[string][]string{"destination": {invalidId}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid [destination] filter")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenInvalidAmount_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenInvalidAmount_thenError(t *testing.T) {
 	filters := map[string][]string{"amount": {"-1"}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid [amount] filter")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenInvalidInputType_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenInvalidInputType_thenError(t *testing.T) {
 	filters := map[string][]string{"inputType": {"foo"}}
 	err := validateTickTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid [inputType] filter")
 }
 
-func TestValidations_validateTickTransactionQueryFilters_givenTooManyFilters_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryFilters_givenTooManyFilters_thenError(t *testing.T) {
 	filters := map[string][]string{
 		"source":      {validId},
 		"destination": {validId},
@@ -184,9 +184,9 @@ func TestValidations_validateTickTransactionQueryFilters_givenTooManyFilters_the
 	require.ErrorContains(t, err, "too many filters")
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenAllValid(t *testing.T) {
-	ranges, err := validateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterAmount: {
+func Test_validateTickTransactionQueryRanges_givenAllValid(t *testing.T) {
+	ranges, err := ValidateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterAmount: {
 			LowerBound: &api.Range_Gte{
 				Gte: "1000",
 			},
@@ -194,7 +194,7 @@ func TestValidations_validateTickTransactionQueryRanges_givenAllValid(t *testing
 				Lte: "10000",
 			},
 		},
-		FilterInputType: {
+		TickFilterInputType: {
 			LowerBound: &api.Range_Gt{
 				Gt: "0",
 			},
@@ -204,18 +204,18 @@ func TestValidations_validateTickTransactionQueryRanges_givenAllValid(t *testing
 	require.Len(t, ranges, 2)
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenEmpty(t *testing.T) {
-	_, err := validateTickTransactionQueryRanges(map[string][]string{}, nil)
+func Test_validateTickTransactionQueryRanges_givenEmpty(t *testing.T) {
+	_, err := ValidateTickTransactionQueryRanges(map[string][]string{}, nil)
 	require.NoError(t, err)
-	_, err = validateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{})
+	_, err = ValidateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{})
 	require.NoError(t, err)
-	_, err = validateTickTransactionQueryRanges(nil, nil)
+	_, err = ValidateTickTransactionQueryRanges(nil, nil)
 	require.NoError(t, err)
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenTickNumber_thenError(t *testing.T) {
-	_, err := validateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterTickNumber: {
+func Test_validateTickTransactionQueryRanges_givenTickNumber_thenError(t *testing.T) {
+	_, err := ValidateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterTickNumber: {
 			LowerBound: &api.Range_Gte{
 				Gte: "1",
 			},
@@ -224,9 +224,9 @@ func TestValidations_validateTickTransactionQueryRanges_givenTickNumber_thenErro
 	require.ErrorContains(t, err, "unsupported range: [tickNumber]")
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenTimestamp_thenError(t *testing.T) {
-	_, err := validateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterTimestamp: {
+func Test_validateTickTransactionQueryRanges_givenTimestamp_thenError(t *testing.T) {
+	_, err := ValidateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterTimestamp: {
 			LowerBound: &api.Range_Gt{
 				Gt: "1000000",
 			},
@@ -235,41 +235,41 @@ func TestValidations_validateTickTransactionQueryRanges_givenTimestamp_thenError
 	require.ErrorContains(t, err, "unsupported range: [timestamp]")
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenDuplicateFilter_thenError(t *testing.T) {
-	filters := map[string][]string{FilterAmount: {"100"}}
-	ranges := map[string]*api.Range{FilterAmount: nil}
-	_, err := validateTickTransactionQueryRanges(filters, ranges)
+func Test_validateTickTransactionQueryRanges_givenDuplicateFilter_thenError(t *testing.T) {
+	filters := map[string][]string{TickFilterAmount: {"100"}}
+	ranges := map[string]*api.Range{TickFilterAmount: nil}
+	_, err := ValidateTickTransactionQueryRanges(filters, ranges)
 	require.ErrorContains(t, err, "is already declared")
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenTooManyRanges_thenError(t *testing.T) {
+func Test_validateTickTransactionQueryRanges_givenTooManyRanges_thenError(t *testing.T) {
 	ranges := map[string]*api.Range{
 		"amount":    {},
 		"inputType": {},
 		"extra":     {},
 	}
-	_, err := validateTickTransactionQueryRanges(map[string][]string{}, ranges)
+	_, err := ValidateTickTransactionQueryRanges(map[string][]string{}, ranges)
 	require.ErrorContains(t, err, "too many ranges")
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenInvalidAmountRange_thenError(t *testing.T) {
-	_, err := validateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterAmount: {
+func Test_validateTickTransactionQueryRanges_givenInvalidAmountRange_thenError(t *testing.T) {
+	_, err := ValidateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterAmount: {
 			LowerBound: &api.Range_Gte{
 				Gte: "foo",
 			},
 		},
 	})
-	require.ErrorContains(t, err, "invalid amount range")
+	require.ErrorContains(t, err, "invalid [amount] range")
 }
 
-func TestValidations_validateTickTransactionQueryRanges_givenInvalidInputTypeRange_thenError(t *testing.T) {
-	_, err := validateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterInputType: {
+func Test_validateTickTransactionQueryRanges_givenInvalidInputTypeRange_thenError(t *testing.T) {
+	_, err := ValidateTickTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterInputType: {
 			LowerBound: &api.Range_Gt{
 				Gt: "foo",
 			},
 		},
 	})
-	require.ErrorContains(t, err, "invalid inputType range")
+	require.ErrorContains(t, err, "invalid [inputType] range")
 }

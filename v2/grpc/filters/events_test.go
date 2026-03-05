@@ -1,6 +1,7 @@
-package grpc
+package filters
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"tickNumber":      "42",
 		"logType":         "1",
 	}
-	result, err := createEventsFilters(filters)
+	result, err := CreateEventsFilters(filters)
 	require.NoError(t, err)
 	assert.Equal(t, map[string][]string{
 		"transactionHash": {validTransactionHash},
@@ -28,9 +29,49 @@ func TestCreateEventsFilters_EmptyValue(t *testing.T) {
 	filters := map[string]string{
 		"transactionHash": "",
 	}
-	_, err := createEventsFilters(filters)
+	_, err := CreateEventsFilters(filters)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "empty value")
+}
+
+func TestCreateEventsFilters_MultipleValues(t *testing.T) {
+	filters := map[string]string{
+		"source": fmt.Sprintf(" %s, %s  ,%s  ", validId, validId2, validId3),
+	}
+	created, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Len(t, created["source"], 3)
+	assert.Equal(t, created["source"], []string{validId, validId2, validId3})
+}
+
+func TestCreateEventsFilters_InvalidIdentity_Error(t *testing.T) {
+	filters := map[string]string{
+		"source": fmt.Sprintf("%s, %s", validId, invalidId),
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "invalid identity")
+}
+
+func TestCreateEventsFilters_InvalidSourceFilterCombination(t *testing.T) {
+	filters := map[string]string{
+		"source":         fmt.Sprintf("%s, %s", validId, validId3),
+		"source-exclude": fmt.Sprintf("%s", validId2),
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "conflicting filter")
+
+}
+
+func TestCreateEventsFilters_InvalidDestinationFilterCombination(t *testing.T) {
+	filters := map[string]string{
+		"destination-exclude": fmt.Sprintf("%s", validId2),
+		"destination":         fmt.Sprintf("%s, %s", validId, validId3),
+	}
+	_, err := CreateEventsFilters(filters)
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "conflicting filter")
 }
 
 func TestValidateEventsFilters_ValidTransactionHash(t *testing.T) {

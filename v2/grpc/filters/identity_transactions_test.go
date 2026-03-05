@@ -1,4 +1,4 @@
-package grpc
+package filters
 
 import (
 	"fmt"
@@ -60,13 +60,13 @@ func Test_createIdentityTransactionFilters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := createIdentityTransactionFilters(tt.filters)
+			got, err := CreateIdentityTransactionFilters(tt.filters)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("createIdentityTransactionFilters() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("createIdentityTransactionFilters() got = %v, want %v", got, tt.want)
+				t.Errorf("got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -211,8 +211,8 @@ func Test_validateIdentityTransactionFilters_givenEmpty(t *testing.T) {
 // ranges
 
 func Test_createIdentityTransactionRanges_givenAllValid(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterAmount: {
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterAmount: {
 			LowerBound: &api.Range_Gte{
 				Gte: "1000",
 			},
@@ -220,7 +220,7 @@ func Test_createIdentityTransactionRanges_givenAllValid(t *testing.T) {
 				Lte: "10000",
 			},
 		},
-		FilterTickNumber: {
+		TickFilterTickNumber: {
 			LowerBound: &api.Range_Gte{
 				Gte: "1",
 			},
@@ -228,12 +228,12 @@ func Test_createIdentityTransactionRanges_givenAllValid(t *testing.T) {
 				Lt: "999999",
 			},
 		},
-		FilterInputType: {
+		TickFilterInputType: {
 			LowerBound: &api.Range_Gt{
 				Gt: "0",
 			},
 		},
-		FilterTimestamp: {
+		TickFilterTimestamp: {
 			LowerBound: &api.Range_Gt{
 				Gt: "1000000",
 			},
@@ -243,27 +243,27 @@ func Test_createIdentityTransactionRanges_givenAllValid(t *testing.T) {
 }
 
 func Test_createIdentityTransactionRanges(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, nil)
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, nil)
 	require.NoError(t, err)
 }
 
 func Test_createIdentityTransactionRanges_givenUnsupported_thenError(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
 		"foo": {},
 	})
 	require.ErrorContains(t, err, "unsupported range: [foo]")
 }
 
 func Test_createIdentityTransactionRanges_EmptyRange_thenError(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterAmount: {},
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterAmount: {},
 	})
 	require.ErrorContains(t, err, "invalid range: no bounds")
 }
 
 func Test_createIdentityTransactionRanges_givenInvalidRange_thenError(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterAmount: {
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterAmount: {
 			LowerBound: &api.Range_Gte{
 				Gte: "42",
 			},
@@ -276,43 +276,43 @@ func Test_createIdentityTransactionRanges_givenInvalidRange_thenError(t *testing
 }
 
 func Test_createIdentityTransactionRanges_givenEmpty(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, nil)
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, nil)
 	require.NoError(t, err)
-	_, err = createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{})
+	_, err = CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{})
 	require.NoError(t, err)
-	_, err = createIdentityTransactionQueryRanges(nil, map[string]*api.Range{})
+	_, err = CreateIdentityTransactionQueryRanges(nil, map[string]*api.Range{})
 	require.NoError(t, err)
-	_, err = createIdentityTransactionQueryRanges(nil, nil)
+	_, err = CreateIdentityTransactionQueryRanges(nil, nil)
 	require.NoError(t, err)
 }
 
 func Test_createIdentityTransactionRanges_givenInvalidRangeValue_thenError(t *testing.T) {
-	_, err := createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterAmount: {
+	_, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterAmount: {
 			LowerBound: &api.Range_Gte{
 				Gte: "foo",
 			},
 		},
 	})
 	require.ErrorContains(t, err, "invalid amount range: invalid [gte] value")
-	_, err = createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterTickNumber: {
+	_, err = CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterTickNumber: {
 			LowerBound: &api.Range_Gt{
 				Gt: "foo",
 			},
 		},
 	})
 	require.ErrorContains(t, err, "invalid tickNumber range: invalid [gt] value")
-	_, err = createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterTimestamp: {
+	_, err = CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterTimestamp: {
 			UpperBound: &api.Range_Lte{
 				Lte: "foo",
 			},
 		},
 	})
 	require.ErrorContains(t, err, "invalid timestamp range: invalid [lte] value")
-	_, err = createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterInputType: {
+	_, err = CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterInputType: {
 			UpperBound: &api.Range_Lt{
 				Lt: "foo",
 			},
@@ -322,15 +322,15 @@ func Test_createIdentityTransactionRanges_givenInvalidRangeValue_thenError(t *te
 }
 
 func Test_createIdentityTransactionRanges_givenDuplicateFilter_thenError(t *testing.T) {
-	filters := map[string][]string{FilterAmount: {"foo"}}
-	ranges := map[string]*api.Range{FilterAmount: nil}
-	_, err := createIdentityTransactionQueryRanges(filters, ranges)
+	filters := map[string][]string{TickFilterAmount: {"foo"}}
+	ranges := map[string]*api.Range{TickFilterAmount: nil}
+	_, err := CreateIdentityTransactionQueryRanges(filters, ranges)
 	require.ErrorContains(t, err, "is already declared")
 }
 
 func Test_createIdentityTransactionRanges_tickNumberWithUpperAndLowerRange(t *testing.T) {
-	result, err := createIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
-		FilterTickNumber: {
+	result, err := CreateIdentityTransactionQueryRanges(map[string][]string{}, map[string]*api.Range{
+		TickFilterTickNumber: {
 			LowerBound: &api.Range_Gte{
 				Gte: "100",
 			},
@@ -341,9 +341,9 @@ func Test_createIdentityTransactionRanges_tickNumberWithUpperAndLowerRange(t *te
 	})
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.Contains(t, result, FilterTickNumber)
+	require.Contains(t, result, TickFilterTickNumber)
 
-	tickRange := result[FilterTickNumber]
+	tickRange := result[TickFilterTickNumber]
 	require.Len(t, tickRange, 2)
 	require.Equal(t, "gte", tickRange[0].Operation)
 	require.Equal(t, "100", tickRange[0].Value)

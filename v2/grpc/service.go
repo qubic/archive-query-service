@@ -8,6 +8,7 @@ import (
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/qubic/archive-query-service/v2/grpc/filters"
 	"github.com/qubic/archive-query-service/v2/grpc/utils"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"google.golang.org/grpc"
@@ -87,17 +88,17 @@ func (s *ArchiveQueryService) GetTransactionByHash(ctx context.Context, req *api
 }
 
 func (s *ArchiveQueryService) GetTransactionsForTick(ctx context.Context, req *api.GetTransactionsForTickRequest) (*api.GetTransactionsForTickResponse, error) {
-	filters, err := createTickTransactionsFilters(req.GetFilters())
+	filterMap, err := filters.CreateTickTransactionsFilters(req.GetFilters())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
 	}
 
-	ranges, err := validateTickTransactionQueryRanges(filters, req.GetRanges())
+	ranges, err := filters.ValidateTickTransactionQueryRanges(filterMap, req.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
-	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, filters, ranges)
+	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, filterMap, ranges)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for tick [%d]", req.GetTickNumber()), err)
 	}
@@ -121,12 +122,12 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid identity: %v", err)
 	}
 
-	filters, err := createIdentityTransactionFilters(request.GetFilters())
+	queryFilters, err := filters.CreateIdentityTransactionFilters(request.GetFilters())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
 	}
 
-	ranges, err := createIdentityTransactionQueryRanges(filters, request.GetRanges())
+	queryRanges, err := filters.CreateIdentityTransactionQueryRanges(queryFilters, request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
@@ -138,7 +139,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, filters, ranges, from, size)
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, queryFilters, queryRanges, from, size)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}
@@ -200,7 +201,7 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 }
 
 func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsRequest) (*api.GetEventsResponse, error) {
-	filters, err := createEventsFilters(req.GetFilters())
+	filterMap, err := filters.CreateEventsFilters(req.GetFilters())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "creating filters: %v", err)
 	}
@@ -210,7 +211,7 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.evService.GetEvents(ctx, filters, from, size)
+	result, err := s.evService.GetEvents(ctx, filterMap, from, size)
 	if err != nil {
 		return nil, createInternalError("failed to get events", err)
 	}

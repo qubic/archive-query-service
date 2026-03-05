@@ -18,8 +18,7 @@ func Test_createEventsQuery_noFilters(t *testing.T) {
 	// Verify query structure
 	q := parsed["query"].(map[string]any)
 	boolQuery := q["bool"].(map[string]any)
-	filters := boolQuery["filter"].([]any)
-	assert.Empty(t, filters, "no filters should be present")
+	assert.Empty(t, boolQuery, "no filters should be present")
 
 	assert.Equal(t, float64(0), parsed["from"])
 	assert.Equal(t, float64(10), parsed["size"])
