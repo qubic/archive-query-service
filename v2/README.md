@@ -223,5 +223,14 @@ See [messages.proto](api/archive-query-service/v2/messages.proto)
 and [query_services.proto](api/archive-query-service/v2/query_services.proto) 
 for full details.
 
+## Regenerating protobuf and OpenAPI files
+
+Run `make` (or `make all`) to regenerate all protobuf and OpenAPI files.
+
+### Dev dependencies
+
+- `protoc` with Go plugins (`protoc-gen-go`, `protoc-gen-go-grpc`, `protoc-gen-grpc-gateway`)
+- `protoc-gen-openapi` (`go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest`)
+
 ## Caching
 See [CACHE.md](CACHE.md) for details about enabling and using caching in Archive Query Service v2.

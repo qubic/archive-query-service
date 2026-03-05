@@ -12,12 +12,32 @@ jobs:
   api-docs-update-trigger:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Apply OpenAPI adjustments
+        run: |
+          cd v2/api/archive-query-service/v2
+          cp query_services.openapi.yaml query_services.openapi.adjusted.yaml
+          yq -i --indent 4 'del(.paths."/health")' query_services.openapi.adjusted.yaml
+          yq -i --indent 4 'del(.paths."/getEvents")' query_services.openapi.adjusted.yaml
+          yq -i --indent 4 '(.tags[] | select(.name == "ArchiveQueryService")).x-scalar-ignore = true' query_services.openapi.adjusted.yaml
+          yq -i --indent 4 'del(.tags[] | select(.name == "Events (Beta)"))' query_services.openapi.adjusted.yaml
+          yq -i --indent 4 '(.paths[][].tags) -= ["ArchiveQueryService"]' query_services.openapi.adjusted.yaml
+
+      - name: Encode adjusted spec
+        id: encode
+        run: |
+          CONTENT=$(base64 -w 0 v2/api/archive-query-service/v2/query_services.openapi.adjusted.yaml)
+          echo "spec_base64=$CONTENT" >> "$GITHUB_OUTPUT"
+
       - name: Dispatch to qubic/integration
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GH_PAT }}
           repository: qubic/integration
-          event-type: api-docs-update
+          event-type: query-api-update
+          client-payload: '{"openapi_spec_base64": "${{ steps.encode.outputs.spec_base64 }}"}'
 
       - name: Dispatch to qubic/docs
         uses: peter-evans/repository-dispatch@v3
@@ -25,3 +45,4 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           repository: qubic/docs
           event-type: query-api-update
+          client-payload: '{"openapi_spec_base64": "${{ steps.encode.outputs.spec_base64 }}"}'
