@@ -43,7 +43,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.6
+          version: v2.11.1
           working-directory: v2
   govulncheck:
     runs-on: ubuntu-latest
