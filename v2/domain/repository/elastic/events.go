@@ -2,9 +2,7 @@ package elastic
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -70,26 +68,16 @@ type eventsSearchResponse struct {
 	} `json:"hits"`
 }
 
-func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
-	query := createEventsQuery(filters, from, size)
-
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.eventIndex),
-		r.esClient.Search.WithBody(strings.NewReader(query)),
-	)
+func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Event, *entities.Hits, error) {
+	query, err := createEventsQuery(filters, ranges, from, size)
 	if err != nil {
-		return nil, nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, nil, fmt.Errorf("error response from data store: %s", res.String())
+		return nil, nil, fmt.Errorf("creating events query: %w", err)
 	}
 
 	var result eventsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, nil, fmt.Errorf("decoding response: %w", err)
+	err = performElasticSearch(ctx, r.esClient, r.eventIndex, strings.NewReader(query), &result)
+	if err != nil {
+		return nil, nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 
 	hits := &entities.Hits{
@@ -100,26 +88,37 @@ func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filte
 	return eventHitsToAPIEvents(result.Hits.Hits), hits, nil
 }
 
-func createEventsQuery(filters entities.Filters, from, size uint32) string {
+func createEventsQuery(filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) (string, error) {
 	filterStrings := make([]string, 0, len(filters.Include))
 
-	// normal filters
+	// include filters
 	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
-	// filters for excluding results
+
+	// append range filters to include filters
+	rangeFilterStrings, err := getRangeFilterStrings(ranges)
+	if err != nil {
+		return "", err
+	}
+	filterStrings = append(filterStrings, rangeFilterStrings...)
+
+	// exclude filters
 	excludeFilterStrings := getFilterStrings(filters.Exclude)
 
-	boolFilters := make([]string, 0, 2)
+	// empty bool query clause
+	boolClause := make([]string, 0, 2)
+
+	// append include filters if not empty
 	filterClause := strings.Join(filterStrings, ",")
 	if len(filterClause) > 0 {
 		filterClause = fmt.Sprintf(`"filter": [%s]`, filterClause)
-		boolFilters = append(boolFilters, filterClause)
+		boolClause = append(boolClause, filterClause)
 	}
 
-	// only add exclude filters if present (otherwise empty)
+	// append exclude filters if not empty
 	mustNotClause := strings.Join(excludeFilterStrings, ",")
 	if len(mustNotClause) > 0 {
 		mustNotClause = fmt.Sprintf(`"must_not": [%s]`, mustNotClause)
-		boolFilters = append(boolFilters, mustNotClause)
+		boolClause = append(boolClause, mustNotClause)
 	}
 
 	query := fmt.Sprintf(`{
@@ -130,7 +129,7 @@ func createEventsQuery(filters entities.Filters, from, size uint32) string {
 		"from": %d,
 		"size": %d,
 		"track_total_hits": %d
-	}`, strings.Join(boolFilters, ","), from, size, maxTrackTotalHits)
-	log.Print(query)
-	return query
+	}`, strings.Join(boolClause, ","), from, size, maxTrackTotalHits)
+	// log.Printf("[DEBUG] %s", query)
+	return query, nil
 }

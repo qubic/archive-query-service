@@ -790,8 +790,8 @@ type GetTransactionsForIdentityRequest struct {
 	Identity      string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
 	Filters       map[string]string      `protobuf:"bytes,2,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Exclude       map[string]string      `protobuf:"bytes,3,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Ranges        map[string]*Range      `protobuf:"bytes,4,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,5,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Ranges        map[string]*Range      `protobuf:"bytes,6,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination            `protobuf:"bytes,9,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2157,7 +2157,8 @@ type GetEventsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filters       map[string]string      `protobuf:"bytes,1,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Exclude       map[string]string      `protobuf:"bytes,2,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Ranges        map[string]*Range      `protobuf:"bytes,5,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination            `protobuf:"bytes,9,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2202,6 +2203,13 @@ func (x *GetEventsRequest) GetFilters() map[string]string {
 func (x *GetEventsRequest) GetExclude() map[string]string {
 	if x != nil {
 		return x.Exclude
+	}
+	return nil
+}
+
+func (x *GetEventsRequest) GetRanges() map[string]*Range {
+	if x != nil {
+		return x.Ranges
 	}
 	return nil
 }
@@ -2344,14 +2352,14 @@ const file_messages_proto_rawDesc = "" +
 	"Less than.H\x01R\x02lt\x12-\n" +
 	"\x03lte\x18\x04 \x01(\tB\x19\xbaG\x16\x92\x02\x13Less than or equal.H\x01R\x03lteB\r\n" +
 	"\vlower_boundB\r\n" +
-	"\vupper_bound\"\xdb\t\n" +
+	"\vupper_bound\"\xde\t\n" +
 	"!GetTransactionsForIdentityRequest\x12\x86\x01\n" +
 	"\bidentity\x18\x01 \x01(\tBj\xbaGg\x92\x02dThe identity to get the transactions for. Incoming and outgoing transactions are queried by default.R\bidentity\x12\xa6\x01\n" +
 	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryBG\xbaGD\x92\x02AInclude filters: the value must appear in the matching documents.R\afilters\x12\xaa\x01\n" +
-	"\aexclude\x18\x03 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntryBK\xbaGH\x92\x02EExclude filters: the value must not appear in the matching documents.R\aexclude\x12\x9d\x01\n" +
-	"\x06ranges\x18\x04 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryBA\xbaG>\x92\x02;Ranges restrict the results by a maximum and minimum value.R\x06ranges\x12d\n" +
+	"\aexclude\x18\x03 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntryBK\xbaGH\x92\x02EExclude filters: the value must not appear in the matching documents.R\aexclude\x12\xa0\x01\n" +
+	"\x06ranges\x18\x06 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x12d\n" +
 	"\n" +
-	"pagination\x18\x05 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB#\xbaG \x92\x02\x1dOptional paging information .R\n" +
+	"pagination\x18\t \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB#\xbaG \x92\x02\x1dOptional paging information .R\n" +
 	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -2472,19 +2480,23 @@ const file_messages_proto_rawDesc = "" +
 	"\n" +
 	"event_dataB\x13\n" +
 	"\x11_transaction_hashB\x0e\n" +
-	"\f_raw_payload\"\xa8\x05\n" +
-	"\x10GetEventsRequest\x12\x95\x01\n" +
-	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBG\xbaGD\x92\x02AInclude filters: the value must appear in the matching documents.R\afilters\x12\x99\x01\n" +
-	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryBK\xbaGH\x92\x02EExclude filters: the value must not appear in the matching documents.R\aexclude\x12c\n" +
+	"\f_raw_payload\"\x8d\a\n" +
+	"\x10GetEventsRequest\x12\x93\x01\n" +
+	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBE\xbaGB\x92\x02?Include filters: the value must appear in the matching results.R\afilters\x12\x97\x01\n" +
+	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryBI\xbaGF\x92\x02CExclude filters: the value must not appear in the matching results.R\aexclude\x12\x8f\x01\n" +
+	"\x06ranges\x18\x05 \x03(\v21.qubic.v2.archive.pb.GetEventsRequest.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x12c\n" +
 	"\n" +
-	"pagination\x18\x03 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
+	"pagination\x18\t \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
 	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a:\n" +
 	"\fExcludeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x82\x01\xbaG\x7f:}\x12{filters:\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
+	"\vRangesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01:\x82\x01\xbaG\x7f:}\x12{filters:\n" +
 	"  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\n" +
 	"pagination:\n" +
 	"  offset: 0\n" +
@@ -2505,7 +2517,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_messages_proto_goTypes = []any{
 	(*LastProcessedTick)(nil),                  // 0: qubic.v2.archive.pb.LastProcessedTick
 	(*NextAvailableTick)(nil),                  // 1: qubic.v2.archive.pb.NextAvailableTick
@@ -2547,6 +2559,7 @@ var file_messages_proto_goTypes = []any{
 	nil,                                        // 37: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
 	nil,                                        // 38: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
 	nil,                                        // 39: qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
+	nil,                                        // 40: qubic.v2.archive.pb.GetEventsRequest.RangesEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
@@ -2572,16 +2585,18 @@ var file_messages_proto_depIdxs = []int32{
 	29, // 20: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
 	38, // 21: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
 	39, // 22: qubic.v2.archive.pb.GetEventsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
-	5,  // 23: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 24: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	30, // 25: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
-	10, // 26: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 27: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	40, // 23: qubic.v2.archive.pb.GetEventsRequest.ranges:type_name -> qubic.v2.archive.pb.GetEventsRequest.RangesEntry
+	5,  // 24: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	12, // 25: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	30, // 26: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
+	10, // 27: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 28: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 29: qubic.v2.archive.pb.GetEventsRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }
@@ -2611,7 +2626,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messages_proto_rawDesc), len(file_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   40,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

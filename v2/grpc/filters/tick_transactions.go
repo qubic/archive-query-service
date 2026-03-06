@@ -70,13 +70,15 @@ func validateTickTransactionQueryFilters(filterMap map[string][]string) error {
 	return nil
 }
 
+const allowedNumberOfTickQueryRanges = 2
+
 func ValidateTickTransactionQueryRanges(filterMap map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
 	convertedRanges := map[string][]*entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
 	}
-	if len(ranges) > len(allowedTickRanges) {
-		return nil, errors.New("too many ranges")
+	if len(ranges) > allowedNumberOfTickQueryRanges {
+		return nil, fmt.Errorf("too many ranges (%d)", len(ranges))
 	}
 
 	err := VerifyNoFilterDuplicates(filterMap, ranges)

@@ -47,7 +47,7 @@ type ComputorsListService interface {
 }
 
 type EventsService interface {
-	GetEvents(ctx context.Context, queryFilters entities.Filters, from, size uint32) (*entities.EventsResult, error)
+	GetEvents(ctx context.Context, queryFilters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) (*entities.EventsResult, error)
 }
 
 type ArchiveQueryService struct {
@@ -244,9 +244,9 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		return nil, status.Errorf(codes.InvalidArgument, "conflicting filters: %v", err)
 	}
 
-	queryFilters := entities.Filters{
-		Include: includeFilters,
-		Exclude: excludeFilters,
+	queryRanges, err := filters.CreateEventQueryRanges(includeFilters, excludeFilters, req.GetRanges())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
 	from, size, err := s.pageSizeLimits.ValidatePagination(req.GetPagination())
@@ -254,7 +254,8 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.evService.GetEvents(ctx, queryFilters, from, size)
+	queryFilters := entities.Filters{Include: includeFilters, Exclude: excludeFilters}
+	result, err := s.evService.GetEvents(ctx, queryFilters, queryRanges, from, size)
 	if err != nil {
 		return nil, createInternalError("failed to get events", err)
 	}

@@ -33,10 +33,11 @@ paths:
     post:
       tags:
         - Events (Beta)
-      summary: Get Events
-      description: "Query event logs with optional filters. Beta endpoint.\n\n ###\
-        \  Request structure\n\n | Name       | Type               | Necessity | Description\
-        \                                                    |\n |------------|--------------------|-----------|----------------------------------------------------------------|\n\
+      summary: Get Event Logs
+      description: "Query event logs with optional filters.\n\n ## Please note: Beta\
+        \ version – may be subject to incompatible changes.\n\n ###  Request structure\n\
+        \n | Name       | Type               | Necessity | Description           \
+        \                                         |\n |------------|--------------------|-----------|----------------------------------------------------------------|\n\
         \ | filters    | map<string,string> | optional  | The filter value must appear\
         \ in the matching documents.        |\n | exclude    | map<string,string>\
         \ | optional  | The filter value must not appear in the matching documents.\
@@ -58,7 +59,34 @@ paths:
         \ | source      | string | 60 character identity, up to 5, comma separated.\
         \ | Only find logs with another source. |\n | destination | string | 60 character\
         \ identity, up to 5, comma separated.  | Only find logs with another destination.\
-        \   |"
+        \   |\n\n ### Ranges\n\n Ranges restrict the results to a range of values\
+        \ by defining a maximum and/or minimum value.\n\n #### Range properties\n\n\
+        \ | Name       | Type   | Format                                   | Description\
+        \                                 |\n |------------|--------|------------------------------------------|---------------------------------------------|\n\
+        \ | amount     | string | Numeric                                  | Only\
+        \ find logs in the amount range.     |\n | numberOfShares | string | Numeric\
+        \                              | Only find logs withing the number of shares\
+        \ range (assets). |\n | tickNumber | string | Numeric                    \
+        \              | Only find logs in the tick range.       |\n | timestamp \
+        \ | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in\
+        \ the time range.       |\n\n #### Range definition\n\n | Name      | Type\
+        \   | Necessity | Description                               |\n |-----------|--------|-----------|-------------------------------------------|\n\
+        \ | field     | string | required  | Name of the property you wish to search\
+        \ for. |\n | gt        | string | optional  | Greater than.              \
+        \               |\n | gte       | string | optional  | Greater than or equal\
+        \ to.                 |\n | lt        | string | optional  | Less than.  \
+        \                              |\n | lte       | string | optional  | Less\
+        \ than or equal to.                    |\n\n Only one lower bound and one\
+        \ upper bound can be specified. One bound is needed. A range with size of\
+        \ 0 or 1 is not allowed.\n\n #### Examples\nt\n ```\n \"amount\": { \"gt\"\
+        : \"1000000\" }\n \"tickNumber\": { \"gte\": \"25563000\", \"lte\": \"28300000\"\
+        \ }\n ```\n\n ### Pagination\n\n | Name   | Type   | Necessity | Description\
+        \                                                                        \
+        \                 |\n |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|\n\
+        \ | offset | uint32 | optional  | The offset of the first record to return.\
+        \ Defaults to zero (first record). Maximum offset is 10000. |\n | size   |\
+        \ uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is\
+        \ ignored (uses default). |"
       operationId: ArchiveQueryService_GetEvents
       requestBody:
         content:
@@ -460,13 +488,18 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: 'Include filters: the value must appear in the matching documents.'
+          description: 'Include filters: the value must appear in the matching results.'
         exclude:
           type: object
           additionalProperties:
             type: string
           description: 'Exclude filters: the value must not appear in the matching
-            documents.'
+            results.'
+        ranges:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Range'
+          description: Ranges restrict the results by a maximum and/or minimum value.
         pagination:
           $ref: '#/components/schemas/Pagination'
       description: GetEventsRequest
@@ -566,7 +599,7 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/Range'
-          description: Ranges restrict the results by a maximum and minimum value.
+          description: Ranges restrict the results by a maximum and/or minimum value.
         pagination:
           $ref: '#/components/schemas/Pagination'
       description: GetTransactionsForIdentityRequest

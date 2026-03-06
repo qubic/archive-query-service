@@ -3,6 +3,8 @@ package filters
 import (
 	"fmt"
 
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/qubic/archive-query-service/v2/grpc/utils"
 )
 
@@ -15,6 +17,7 @@ const (
 	EventFilterEpoch           = "epoch"
 	EventFilterAmount          = "amount"
 	EventFilterNumberOfShares  = "numberOfShares"
+	EventRangeTimestamp        = "timestamp"
 )
 
 const maxFilters = 10
@@ -63,6 +66,53 @@ func CheckForConflictingFilters(includeFilters, excludeFilters map[string][]stri
 		}
 	}
 	return nil
+}
+
+const maxNumberOfEventQueryRanges = 5
+
+func CreateEventQueryRanges(includeFilters, excludeFilters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
+	convertedRanges := map[string][]*entities.Range{}
+	if len(ranges) == 0 {
+		return nil, nil
+	}
+	if len(ranges) > maxNumberOfEventQueryRanges {
+		return nil, fmt.Errorf("too many ranges (%d)", len(ranges))
+	}
+
+	err := VerifyNoFilterDuplicates(includeFilters, ranges)
+	if err != nil {
+		return nil, fmt.Errorf("checking for duplicate filters: %w", err)
+	}
+
+	err = VerifyNoFilterDuplicates(excludeFilters, ranges)
+	if err != nil {
+		return nil, fmt.Errorf("checking for duplicate filters: %w", err)
+	}
+
+	for key, value := range ranges {
+		switch key {
+		case EventFilterAmount, EventFilterNumberOfShares, EventRangeTimestamp:
+			r, err := CreateNumericRange(value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
+			}
+		case EventFilterTickNumber:
+			r, err := CreateNumericRange(value, 32)
+			if err != nil {
+				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
+			}
+		default:
+			return nil, fmt.Errorf("unsupported range: [%s]", key)
+		}
+	}
+
+	return convertedRanges, nil
 }
 
 func validateEventsFilters(filterMap map[string][]string) error {

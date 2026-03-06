@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -373,4 +374,44 @@ func TestCheckForConflictingFilters(t *testing.T) {
 	// no conflict
 	err = CheckForConflictingFilters(includeFilters, map[string][]string{"foo": {"bar"}})
 	require.NoError(t, err)
+}
+
+func TestCreateEventQueryRanges_ValidRange(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"amount": {
+			LowerBound: &api.Range_Gte{Gte: "100"},
+			UpperBound: &api.Range_Lte{Lte: "1000"},
+		},
+	}
+	result, err := CreateEventQueryRanges(nil, nil, ranges)
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.Contains(t, result, "amount")
+	assert.Len(t, result["amount"], 2)
+	assert.Equal(t, "gte", result["amount"][0].Operation)
+	assert.Equal(t, "100", result["amount"][0].Value)
+	assert.Equal(t, "lte", result["amount"][1].Operation)
+	assert.Equal(t, "1000", result["amount"][1].Value)
+}
+
+func TestCreateEventQueryRanges_UnsupportedRangeType(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"logType": {
+			LowerBound: &api.Range_Gt{Gt: "1"},
+			UpperBound: &api.Range_Lte{Lte: "6"},
+		},
+	}
+	_, err := CreateEventQueryRanges(nil, nil, ranges)
+	require.ErrorContains(t, err, "unsupported range")
+}
+
+func TestCreateEventQueryRanges_InvalidRangeBounds(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"numberOfShares": {
+			LowerBound: &api.Range_Gte{Gte: "100"},
+			UpperBound: &api.Range_Lte{Lte: "20"},
+		},
+	}
+	_, err := CreateEventQueryRanges(nil, nil, ranges)
+	require.ErrorContains(t, err, "invalid [numberOfShares] range")
 }

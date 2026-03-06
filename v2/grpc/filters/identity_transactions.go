@@ -1,7 +1,6 @@
 package filters
 
 import (
-	"errors"
 	"fmt"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
@@ -88,16 +87,15 @@ func validateIdentityTransactionQueryFilters(filterMap map[string][]string) erro
 	return nil
 }
 
-var allowedRanges = [4]string{IdentityFilterAmount, IdentityFilterTickNumber, IdentityFilterInputType, IdentityFilterTimestamp}
-var allowedTickRanges = [2]string{IdentityFilterAmount, IdentityFilterInputType}
+const allowedNumberOfPerIdentityQueryRanges = 4
 
 func CreateIdentityTransactionQueryRanges(includeFilters, excludeFilters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
 	convertedRanges := map[string][]*entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
 	}
-	if len(ranges) > len(allowedRanges) {
-		return nil, errors.New("too many ranges")
+	if len(ranges) > allowedNumberOfPerIdentityQueryRanges {
+		return nil, fmt.Errorf("too many ranges (%d)", len(ranges))
 	}
 
 	err := VerifyNoFilterDuplicates(includeFilters, ranges)

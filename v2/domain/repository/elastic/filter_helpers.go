@@ -28,8 +28,8 @@ func getFilterStrings(filters map[string][]string) []string {
 }
 
 func getRangeFilterStrings(ranges map[string][]*entities.Range) ([]string, error) {
-	keys := getSortedKeys(ranges) // sort for a deterministic filter order
 	filterStrings := make([]string, 0, len(ranges))
+	keys := getSortedKeys(ranges) // sort for a deterministic filter order
 	for _, k := range keys {
 		esField := k
 		if k == "logType" {

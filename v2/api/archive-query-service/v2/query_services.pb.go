@@ -27,7 +27,7 @@ var File_query_services_proto protoreflect.FileDescriptor
 
 const file_query_services_proto_rawDesc = "" +
 	"\n" +
-	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bopenapiv3/annotations.proto2\xc5\x0e\n" +
+	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bopenapiv3/annotations.proto2\xc9\x0e\n" +
 	"\x13ArchiveQueryService\x12\xfb\x01\n" +
 	"\x14GetTransactionByHash\x120.qubic.v2.archive.pb.GetTransactionByHashRequest\x1a1.qubic.v2.archive.pb.GetTransactionByHashResponse\"~\xbaGN\n" +
 	"\fTransactions\x12\x17Get Transaction By Hash\x1a%Get a single transaction by its hash.\x82\xd3\xe4\x93\x02':\x01*b\vtransaction\"\x15/getTransactionByHash\x12\xdf\x01\n" +
@@ -42,10 +42,9 @@ const file_query_services_proto_rawDesc = "" +
 	"\x14GetLastProcessedTick\x12\x16.google.protobuf.Empty\x1a1.qubic.v2.archive.pb.GetLastProcessedTickResponse\"B\xbaG\"\n" +
 	"\aArchive\x12\x17Get Last Processed Tick\x82\xd3\xe4\x93\x02\x17\x12\x15/getLastProcessedTick\x12\xd3\x01\n" +
 	"\x19GetProcessedTickIntervals\x12\x16.google.protobuf.Empty\x1a6.qubic.v2.archive.pb.GetProcessedTickIntervalsResponse\"f\xbaG'\n" +
-	"\aArchive\x12\x1cGet Processed Tick Intervals\x82\xd3\xe4\x93\x026b\x18processed_tick_intervals\x12\x1a/getProcessedTickIntervals\x12\x8f\x01\n" +
-	"\tGetEvents\x12%.qubic.v2.archive.pb.GetEventsRequest\x1a&.qubic.v2.archive.pb.GetEventsResponse\"3\xbaG\x1b\n" +
-	"\rEvents (Beta)\x12\n" +
-	"Get Events\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
+	"\aArchive\x12\x1cGet Processed Tick Intervals\x82\xd3\xe4\x93\x026b\x18processed_tick_intervals\x12\x1a/getProcessedTickIntervals\x12\x93\x01\n" +
+	"\tGetEvents\x12%.qubic.v2.archive.pb.GetEventsRequest\x1a&.qubic.v2.archive.pb.GetEventsResponse\"7\xbaG\x1f\n" +
+	"\rEvents (Beta)\x12\x0eGet Event Logs\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
 	"/getEvents\x12\xcd\x01\n" +
 	"\tGetHealth\x12\x16.google.protobuf.Empty\x1a#.qubic.v2.archive.pb.HealthResponse\"\x82\x01\xbaGp\x12\n" +
 	"Get Health\x1abHealth check. This is for internal use only and can change any time. Do not rely on this endpoint.\x82\xd3\xe4\x93\x02\t\x12\a/healthB\xfe\x03\xbaG\xce\x03\x12H\n" +

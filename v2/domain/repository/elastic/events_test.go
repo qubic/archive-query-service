@@ -10,10 +10,11 @@ import (
 )
 
 func Test_createEventsQuery_noFilters(t *testing.T) {
-	query := createEventsQuery(entities.Filters{}, 0, 10)
+	query, err := createEventsQuery(entities.Filters{}, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err, "query should be valid JSON")
 
 	// Verify query structure
@@ -47,10 +48,11 @@ func Test_createEventsQuery_withTransactionHash(t *testing.T) {
 	f := entities.Filters{
 		Include: filters,
 	}
-	query := createEventsQuery(f, 0, 10)
+	query, err := createEventsQuery(f, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	q := parsed["query"].(map[string]any)
@@ -69,10 +71,11 @@ func Test_createEventsQuery_withTickNumber(t *testing.T) {
 	f := entities.Filters{
 		Include: filters,
 	}
-	query := createEventsQuery(f, 0, 10)
+	query, err := createEventsQuery(f, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	q := parsed["query"].(map[string]any)
@@ -91,10 +94,11 @@ func Test_createEventsQuery_withEventType(t *testing.T) {
 	f := entities.Filters{
 		Include: filters,
 	}
-	query := createEventsQuery(f, 0, 10)
+	query, err := createEventsQuery(f, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	q := parsed["query"].(map[string]any)
@@ -116,10 +120,11 @@ func Test_createEventsQuery_withMultipleFilters(t *testing.T) {
 	f := entities.Filters{
 		Include: filters,
 	}
-	query := createEventsQuery(f, 0, 10)
+	query, err := createEventsQuery(f, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	q := parsed["query"].(map[string]any)
@@ -129,10 +134,11 @@ func Test_createEventsQuery_withMultipleFilters(t *testing.T) {
 }
 
 func Test_createEventsQuery_withPagination(t *testing.T) {
-	query := createEventsQuery(entities.Filters{}, 20, 50)
+	query, err := createEventsQuery(entities.Filters{}, nil, 20, 50)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	assert.Equal(t, float64(20), parsed["from"])
@@ -148,10 +154,11 @@ func Test_createEventsQuery_withExcludeFilter(t *testing.T) {
 			"destination": {"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},
 		},
 	}
-	query := createEventsQuery(f, 0, 10)
+	query, err := createEventsQuery(f, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	q := parsed["query"].(map[string]any)
@@ -177,10 +184,11 @@ func Test_createEventsQuery_withOnlyExcludeFilter(t *testing.T) {
 	f := entities.Filters{
 		Exclude: filters,
 	}
-	query := createEventsQuery(f, 0, 10)
+	query, err := createEventsQuery(f, nil, 0, 10)
+	require.NoError(t, err)
 
 	var parsed map[string]any
-	err := json.Unmarshal([]byte(query), &parsed)
+	err = json.Unmarshal([]byte(query), &parsed)
 	require.NoError(t, err)
 
 	q := parsed["query"].(map[string]any)
@@ -195,4 +203,36 @@ func Test_createEventsQuery_withOnlyExcludeFilter(t *testing.T) {
 	require.Len(t, mustNotArr, 1)
 	mustNotTerm := mustNotArr[0].(map[string]any)["term"].(map[string]any)
 	assert.Equal(t, "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", mustNotTerm["destination"])
+}
+
+func Test_createEventsQuery_withRangeFilter(t *testing.T) {
+	ranges := map[string][]*entities.Range{
+		"amount": {
+			{Operation: "gte", Value: "100"},
+			{Operation: "lte", Value: "1000"},
+		},
+		"tickNumber": {
+			{Operation: "gt", Value: "123"},
+		},
+	}
+	query, err := createEventsQuery(entities.Filters{}, ranges, 0, 10)
+	require.NoError(t, err)
+
+	var parsed map[string]any
+	err = json.Unmarshal([]byte(query), &parsed)
+	require.NoError(t, err)
+
+	q := parsed["query"].(map[string]any)
+	boolQuery := q["bool"].(map[string]any)
+	filterArr := boolQuery["filter"].([]any)
+	require.Len(t, filterArr, 2)
+
+	rangeFilter := filterArr[0].(map[string]any)["range"].(map[string]any)
+	amountRange := rangeFilter["amount"].(map[string]any)
+	assert.Equal(t, "100", amountRange["gte"])
+	assert.Equal(t, "1000", amountRange["lte"])
+
+	rangeFilter = filterArr[1].(map[string]any)["range"].(map[string]any)
+	tickNumberRange := rangeFilter["tickNumber"].(map[string]any)
+	assert.Equal(t, "123", tickNumberRange["gt"])
 }

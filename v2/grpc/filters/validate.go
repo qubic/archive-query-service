@@ -7,19 +7,6 @@ import (
 	"github.com/qubic/archive-query-service/v2/grpc/utils"
 )
 
-func VerifyNoFilterDuplicates(filterMap map[string][]string, ranges map[string]*api.Range) error {
-	if filterMap != nil {
-		// check for ranges that are already declared as filter
-		for key := range ranges {
-			_, ok := filterMap[key]
-			if ok {
-				return fmt.Errorf("[%s] is already declared", key)
-			}
-		}
-	}
-	return nil
-}
-
 func ValidateUnsignedNumericFilterValues(values []string, bitSize, maxNumberOfValues int) error {
 	err := checkQuantity(values, maxNumberOfValues)
 	if err != nil {
@@ -51,6 +38,19 @@ func validateDigest(values []string, maxValues int, lowercase bool) error {
 		err := utils.ValidateDigest(val, lowercase)
 		if err != nil {
 			return fmt.Errorf("invalid transaction hash: %w", err)
+		}
+	}
+	return nil
+}
+
+func VerifyNoFilterDuplicates(filterMap map[string][]string, ranges map[string]*api.Range) error {
+	if filterMap != nil {
+		// check for ranges that are already declared as filter
+		for key := range ranges {
+			_, ok := filterMap[key]
+			if ok {
+				return fmt.Errorf("[%s] is already declared", key)
+			}
 		}
 	}
 	return nil

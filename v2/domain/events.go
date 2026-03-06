@@ -10,7 +10,7 @@ import (
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/events.mock.go -package=mock -source events.go
 
 type EventsRepository interface {
-	GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error)
+	GetEvents(ctx context.Context, filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Event, *entities.Hits, error)
 }
 
 type EventsService struct {
@@ -21,8 +21,8 @@ func NewEventsService(repo EventsRepository) *EventsService {
 	return &EventsService{repo: repo}
 }
 
-func (s *EventsService) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) (*entities.EventsResult, error) {
-	events, hits, err := s.repo.GetEvents(ctx, filters, from, size)
+func (s *EventsService) GetEvents(ctx context.Context, filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) (*entities.EventsResult, error) {
+	events, hits, err := s.repo.GetEvents(ctx, filters, ranges, from, size)
 	if err != nil {
 		return nil, err
 	}

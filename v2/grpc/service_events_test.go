@@ -15,15 +15,17 @@ import (
 )
 
 type EventsServiceStub struct {
-	events []*api.Event
-	hits   *entities.Hits
-	err    error
+	events         []*api.Event
+	hits           *entities.Hits
+	err            error
+	ReceivedRanges map[string][]*entities.Range
 }
 
 const validTransactionHash1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
 const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
 
-func (s *EventsServiceStub) GetEvents(_ context.Context, _ entities.Filters, _, _ uint32) (*entities.EventsResult, error) {
+func (s *EventsServiceStub) GetEvents(_ context.Context, _ entities.Filters, ranges map[string][]*entities.Range, _, _ uint32) (*entities.EventsResult, error) {
+	s.ReceivedRanges = ranges
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -131,4 +133,32 @@ func TestArchiveQueryService_GetEvents_GivenInvalidExcludeFilter_ThenError(t *te
 		Exclude: map[string]string{"tickNumber": "123"},
 	})
 	require.ErrorContains(t, err, "invalid exclude filter")
+}
+
+func TestArchiveQueryService_GetEvents_WithRanges(t *testing.T) {
+	evService := &EventsServiceStub{
+		events: []*api.Event{{}}, // single dummy event
+		hits:   &entities.Hits{Total: 1, Relation: "eq"},
+	}
+	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
+
+	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Ranges: map[string]*api.Range{
+			"amount": {
+				LowerBound: &api.Range_Gte{Gte: "1000"},
+				UpperBound: &api.Range_Lte{Lte: "2000"},
+			},
+		},
+		Pagination: &api.Pagination{Offset: 0, Size: 10},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	assert.Len(t, response.Events, 1)
+	assert.Equal(t, uint32(1), response.Hits.Total)
+
+	assert.Len(t, evService.ReceivedRanges, 1)
+	assert.Len(t, evService.ReceivedRanges["amount"], 2)
+	assert.Contains(t, evService.ReceivedRanges["amount"], &entities.Range{Operation: "gte", Value: "1000"})
+	assert.Contains(t, evService.ReceivedRanges["amount"], &entities.Range{Operation: "lte", Value: "2000"})
+
 }

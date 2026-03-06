@@ -148,7 +148,7 @@ func (s *ServerTestSuite) TestGetTickIntervals() {
 
 func (s *ServerTestSuite) TestGetEvents_Success() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(0), uint32(10)).
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
 			Events: []*api.Event{
@@ -220,7 +220,7 @@ func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {
 
 func (s *ServerTestSuite) TestGetEvents_Pagination() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(5), uint32(3)).
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), uint32(5), uint32(3)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 20, Relation: "eq"},
 			Events: []*api.Event{{}, {}, {}},
@@ -237,7 +237,7 @@ func (s *ServerTestSuite) TestGetEvents_Pagination() {
 
 func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 0, Relation: "eq"},
 			Events: []*api.Event{},

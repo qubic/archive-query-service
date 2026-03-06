@@ -192,7 +192,9 @@ type ArchiveQueryServiceClient interface {
 	// that need to process all available ticks. For most users it is enough to switch to a new
 	// interval by using the `get last processed tick` endpoint.
 	GetProcessedTickIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTickIntervalsResponse, error)
-	// Query event logs with optional filters. Beta endpoint.
+	// Query event logs with optional filters.
+	//
+	// ## Please note: Beta version – may be subject to incompatible changes.
 	//
 	// ###  Request structure
 	//
@@ -222,6 +224,45 @@ type ArchiveQueryServiceClient interface {
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with another destination.   |
+	//
+	// ### Ranges
+	//
+	// Ranges restrict the results to a range of values by defining a maximum and/or minimum value.
+	//
+	// #### Range properties
+	//
+	// | Name       | Type   | Format                                   | Description                                 |
+	// |------------|--------|------------------------------------------|---------------------------------------------|
+	// | amount     | string | Numeric                                  | Only find logs in the amount range.     |
+	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
+	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
+	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
+	//
+	// #### Range definition
+	//
+	// | Name      | Type   | Necessity | Description                               |
+	// |-----------|--------|-----------|-------------------------------------------|
+	// | field     | string | required  | Name of the property you wish to search for. |
+	// | gt        | string | optional  | Greater than.                             |
+	// | gte       | string | optional  | Greater than or equal to.                 |
+	// | lt        | string | optional  | Less than.                                |
+	// | lte       | string | optional  | Less than or equal to.                    |
+	//
+	// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+	//
+	// #### Examples
+	// t
+	// ```
+	// "amount": { "gt": "1000000" }
+	// "tickNumber": { "gte": "25563000", "lte": "28300000" }
+	// ```
+	//
+	// ### Pagination
+	//
+	// | Name   | Type   | Necessity | Description                                                                                         |
+	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
+	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
+	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error)
 	GetHealth(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
 }
@@ -485,7 +526,9 @@ type ArchiveQueryServiceServer interface {
 	// that need to process all available ticks. For most users it is enough to switch to a new
 	// interval by using the `get last processed tick` endpoint.
 	GetProcessedTickIntervals(context.Context, *emptypb.Empty) (*GetProcessedTickIntervalsResponse, error)
-	// Query event logs with optional filters. Beta endpoint.
+	// Query event logs with optional filters.
+	//
+	// ## Please note: Beta version – may be subject to incompatible changes.
 	//
 	// ###  Request structure
 	//
@@ -515,6 +558,45 @@ type ArchiveQueryServiceServer interface {
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with another destination.   |
+	//
+	// ### Ranges
+	//
+	// Ranges restrict the results to a range of values by defining a maximum and/or minimum value.
+	//
+	// #### Range properties
+	//
+	// | Name       | Type   | Format                                   | Description                                 |
+	// |------------|--------|------------------------------------------|---------------------------------------------|
+	// | amount     | string | Numeric                                  | Only find logs in the amount range.     |
+	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
+	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
+	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
+	//
+	// #### Range definition
+	//
+	// | Name      | Type   | Necessity | Description                               |
+	// |-----------|--------|-----------|-------------------------------------------|
+	// | field     | string | required  | Name of the property you wish to search for. |
+	// | gt        | string | optional  | Greater than.                             |
+	// | gte       | string | optional  | Greater than or equal to.                 |
+	// | lt        | string | optional  | Less than.                                |
+	// | lte       | string | optional  | Less than or equal to.                    |
+	//
+	// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+	//
+	// #### Examples
+	// t
+	// ```
+	// "amount": { "gt": "1000000" }
+	// "tickNumber": { "gte": "25563000", "lte": "28300000" }
+	// ```
+	//
+	// ### Pagination
+	//
+	// | Name   | Type   | Necessity | Description                                                                                         |
+	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
+	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
+	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error)
 	GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -80,11 +79,11 @@ func (r *ArchiveRepository) GetTransactionByHash(_ context.Context, hash string)
 func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
 	query, err := createTickTransactionsQuery(tickNumber, filters, ranges)
 	if err != nil {
-		return nil, fmt.Errorf("creating query: %w", err)
+		return nil, fmt.Errorf("creating transactions for tick query: %w", err)
 	}
 
 	var result transactionsSearchResponse
-	err = r.performElasticSearch(ctx, r.txIndex, &query, &result)
+	err = performElasticSearch(ctx, r.esClient, r.txIndex, &query, &result)
 	if err != nil {
 		return nil, fmt.Errorf("performing elastic search: %w", err)
 	}
@@ -129,27 +128,13 @@ func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, iden
 
 	query, err := createIdentitiesQuery(identity, filters, ranges, from, size, maxTick)
 	if err != nil {
-		return nil, nil, fmt.Errorf("creating query: %w", err)
-	}
-
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.txIndex),
-		r.esClient.Search.WithBody(strings.NewReader(query)),
-	)
-	if err != nil {
-		log.Printf("calling es client search with query: %v", query)
-		return nil, nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, nil, fmt.Errorf("error response from data store: %s", res.String())
+		return nil, nil, fmt.Errorf("creating transactions for identity query: %w", err)
 	}
 
 	var result transactionsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, nil, fmt.Errorf("decoding response: %w", err)
+	err = performElasticSearch(ctx, r.esClient, r.txIndex, strings.NewReader(query), &result)
+	if err != nil {
+		return nil, nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 
 	hits := &entities.Hits{
