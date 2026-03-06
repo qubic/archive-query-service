@@ -23,7 +23,7 @@ type EventsServiceStub struct {
 const validTransactionHash1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
 const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
 
-func (s *EventsServiceStub) GetEvents(_ context.Context, _ map[string][]string, _, _ uint32) (*entities.EventsResult, error) {
+func (s *EventsServiceStub) GetEvents(_ context.Context, _ entities.Filters, _, _ uint32) (*entities.EventsResult, error) {
 	if s.err != nil {
 		return nil, s.err
 	}

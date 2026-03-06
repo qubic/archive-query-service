@@ -102,6 +102,22 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 	return ranges, nil
 }
 
+const excludeSuffix = "-exclude"
+
+// SplitIncludeExcludeFilters method for backwards compatibility that divides filters into normal and exclude filters (can have same name after splitting).
+func SplitIncludeExcludeFilters(filters map[string][]string) (map[string][]string, map[string][]string) {
+	includeFilters := make(map[string][]string)
+	excludeFilters := make(map[string][]string)
+	for k, v := range filters {
+		if strings.HasSuffix(k, excludeSuffix) {
+			excludeFilters[strings.TrimSuffix(k, excludeSuffix)] = v
+		} else {
+			includeFilters[k] = v
+		}
+	}
+	return includeFilters, excludeFilters
+}
+
 func stringToNumericValue(val string, bitSize int) (uint64, error) {
 	number, err := strconv.ParseUint(val, 10, bitSize)
 	if err != nil {

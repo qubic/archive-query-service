@@ -43,13 +43,13 @@ func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context,
 func (t *TransactionServiceStub) GetTransactionsForIdentity(
 	ctx context.Context,
 	identity string,
-	filters map[string][]string,
+	filters entities.Filters,
 	ranges map[string][]*entities.Range,
 	_, _ uint32,
 ) (*entities.TransactionsResult, error) {
 	t.ctx = ctx
 	t.identity = identity
-	t.filters = filters
+	t.filters = filters.Include // this is not 100% correct as it doesn't use the exclude filters
 	t.ranges = ranges
 	return &entities.TransactionsResult{LastProcessedTick: 42, Hits: t.hits, Transactions: t.transactions}, nil
 }

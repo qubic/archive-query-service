@@ -47,9 +47,9 @@ func TestTransactionService_GetTransactionByIdentity(t *testing.T) {
 	apiTransactions := []*api.Transaction{{Hash: "test-hash-1"}, {Hash: "test-hash-2"}}
 	entityHits := &entities.Hits{Total: 42, Relation: "eq"}
 	ctx := context.Background()
-	repo.EXPECT().GetTransactionsForIdentity(ctx, "test-identity", uint32(10), nil, nil, uint32(0), uint32(2)).Return(apiTransactions, entityHits, nil)
+	repo.EXPECT().GetTransactionsForIdentity(ctx, "test-identity", uint32(10), entities.Filters{}, nil, uint32(0), uint32(2)).Return(apiTransactions, entityHits, nil)
 
-	result, err := service.GetTransactionsForIdentity(ctx, "test-identity", nil, nil, 0, 2)
+	result, err := service.GetTransactionsForIdentity(ctx, "test-identity", entities.Filters{}, nil, 0, 2)
 	require.NoError(t, err)
 
 	require.Len(t, result.GetTransactions(), 2)

@@ -9,21 +9,6 @@ import (
 	"github.com/qubic/archive-query-service/v2/entities"
 )
 
-const excludeSuffix = "-exclude"
-
-func splitFilters(filters map[string][]string) (map[string][]string, map[string][]string) {
-	includeFilters := make(map[string][]string)
-	excludeFilters := make(map[string][]string)
-	for k, v := range filters {
-		if strings.HasSuffix(k, excludeSuffix) {
-			excludeFilters[strings.TrimSuffix(k, excludeSuffix)] = v
-		} else {
-			includeFilters[k] = v
-		}
-	}
-	return includeFilters, excludeFilters
-}
-
 func getFilterStrings(filters map[string][]string) []string {
 	keys := getSortedKeys(filters) // sort for a deterministic filter order
 

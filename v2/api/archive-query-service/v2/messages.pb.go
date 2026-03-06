@@ -2148,7 +2148,8 @@ func (*Event_CustomMessage) isEvent_EventData() {}
 type GetEventsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filters       map[string]string      `protobuf:"bytes,1,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Exclude       map[string]string      `protobuf:"bytes,2,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination            `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2186,6 +2187,13 @@ func (*GetEventsRequest) Descriptor() ([]byte, []int) {
 func (x *GetEventsRequest) GetFilters() map[string]string {
 	if x != nil {
 		return x.Filters
+	}
+	return nil
+}
+
+func (x *GetEventsRequest) GetExclude() map[string]string {
+	if x != nil {
+		return x.Exclude
 	}
 	return nil
 }
@@ -2452,13 +2460,17 @@ const file_messages_proto_rawDesc = "" +
 	"\n" +
 	"event_dataB\x13\n" +
 	"\x11_transaction_hashB\x0e\n" +
-	"\f_raw_payload\"\xed\x03\n" +
-	"\x10GetEventsRequest\x12\xb2\x01\n" +
-	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBd\xbaGa\x92\x02^Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventTypeR\afilters\x12c\n" +
+	"\f_raw_payload\"\xb3\x05\n" +
+	"\x10GetEventsRequest\x12\x8b\x01\n" +
+	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryB=\xbaG:\x92\x027Filters restrict the results by single matching values.R\afilters\x12\xae\x01\n" +
+	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryB`\xbaG]\x92\x02ZExclude filters restrict the results by single values that must not appear in the results.R\aexclude\x12c\n" +
 	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
+	"pagination\x18\x03 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
 	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a:\n" +
+	"\fExcludeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x82\x01\xbaG\x7f:}\x12{filters:\n" +
 	"  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\n" +
@@ -2481,7 +2493,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_messages_proto_goTypes = []any{
 	(*LastProcessedTick)(nil),                  // 0: qubic.v2.archive.pb.LastProcessedTick
 	(*NextAvailableTick)(nil),                  // 1: qubic.v2.archive.pb.NextAvailableTick
@@ -2521,6 +2533,7 @@ var file_messages_proto_goTypes = []any{
 	nil,                                        // 35: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
 	nil,                                        // 36: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
 	nil,                                        // 37: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	nil,                                        // 38: qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
@@ -2544,16 +2557,17 @@ var file_messages_proto_depIdxs = []int32{
 	28, // 18: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
 	29, // 19: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
 	37, // 20: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	5,  // 21: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 22: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	30, // 23: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
-	10, // 24: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 25: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	38, // 21: qubic.v2.archive.pb.GetEventsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
+	5,  // 22: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	12, // 23: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	30, // 24: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
+	10, // 25: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 26: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }
@@ -2583,7 +2597,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messages_proto_rawDesc), len(file_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

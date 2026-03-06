@@ -70,7 +70,7 @@ type eventsSearchResponse struct {
 	} `json:"hits"`
 }
 
-func (r *EventsRepository) GetEvents(ctx context.Context, filters map[string][]string, from, size uint32) ([]*api.Event, *entities.Hits, error) {
+func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
 	query := createEventsQuery(filters, from, size)
 
 	res, err := r.esClient.Search(
@@ -100,14 +100,13 @@ func (r *EventsRepository) GetEvents(ctx context.Context, filters map[string][]s
 	return eventHitsToAPIEvents(result.Hits.Hits), hits, nil
 }
 
-func createEventsQuery(filters map[string][]string, from, size uint32) string {
-	filterStrings := make([]string, 0, len(filters))
+func createEventsQuery(filters entities.Filters, from, size uint32) string {
+	filterStrings := make([]string, 0, len(filters.Include))
 
-	includeFilters, excludeFilters := splitFilters(filters)
 	// normal filters
-	filterStrings = append(filterStrings, getFilterStrings(includeFilters)...)
+	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
 	// filters for excluding results
-	excludeFilterStrings := getFilterStrings(excludeFilters)
+	excludeFilterStrings := getFilterStrings(filters.Exclude)
 
 	boolFilters := make([]string, 0, 2)
 	filterClause := strings.Join(filterStrings, ",")

@@ -435,8 +435,13 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: 'Filters restrict the results by single values. Allowed: transactionHash,
-            tickNumber, eventType'
+          description: Filters restrict the results by single matching values.
+        exclude:
+          type: object
+          additionalProperties:
+            type: string
+          description: Exclude filters restrict the results by single values that
+            must not appear in the results.
         pagination:
           $ref: '#/components/schemas/Pagination'
       description: GetEventsRequest

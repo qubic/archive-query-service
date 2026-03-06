@@ -342,7 +342,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_FullData() {
 
 func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_ExcludeDestinationFilter() {
 	t := s.T()
-	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"15000", "destination-exclude": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ"}}`)
+	result, statusCode := s.postGetEvents(`{ "filters":{"tickNumber":"15000"}, "exclude": {"destination": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ"} }`)
 	require.Equal(t, http.StatusOK, statusCode)
 
 	events := result["events"].([]interface{})

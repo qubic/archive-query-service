@@ -124,7 +124,7 @@ func createTickTransactionsQuery(tick uint32, filters map[string][]string, range
 	return buf, nil
 }
 
-func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string][]string, ranges map[string][]*entities.Range,
+func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters, ranges map[string][]*entities.Range,
 	from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
 
 	query, err := createIdentitiesQuery(identity, filters, ranges, from, size, maxTick)
@@ -160,11 +160,9 @@ func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, iden
 	return transactionHitsToAPITransactions(result.Hits.Hits), hits, nil
 }
 
-func createIdentitiesQuery(identity string, filters map[string][]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+func createIdentitiesQuery(identity string, filters entities.Filters, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
 
 	var query string
-
-	includeFilters, excludeFilters := splitFilters(filters)
 
 	// Check if there's an upper bound tickNumber range filter (lt/lte) and adjust if needed
 	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
@@ -172,13 +170,13 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 		return "", err
 	}
 
-	filterStrings := make([]string, 0, len(includeFilters)+len(ranges)+1)
+	filterStrings := make([]string, 0, len(filters.Include)+len(ranges)+1)
 	// restrict to max tick only if no upper bound tickNumber filter is present
 	if !hasUpperBoundTickFilter {
 		filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
 	}
 	// normal filters
-	filterStrings = append(filterStrings, getFilterStrings(includeFilters)...)
+	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
 	// append range filters
 	rangeFilterStrings, err := getRangeFilterStrings(ranges)
 	if err != nil {
@@ -187,7 +185,7 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 	filterStrings = append(filterStrings, rangeFilterStrings...)
 
 	// filters for excluding results
-	excludeFilterStrings := getFilterStrings(excludeFilters)
+	excludeFilterStrings := getFilterStrings(filters.Exclude)
 
 	// filters are always present because we need to restrict to max tick
 	filterQueryString := strings.Join(filterStrings, ",")

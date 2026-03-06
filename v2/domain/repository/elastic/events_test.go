@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_createEventsQuery_noFilters(t *testing.T) {
-	query := createEventsQuery(nil, 0, 10)
+	query := createEventsQuery(entities.Filters{}, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -43,7 +44,10 @@ func Test_createEventsQuery_withTransactionHash(t *testing.T) {
 	filters := map[string][]string{
 		"transactionHash": {"abc123"},
 	}
-	query := createEventsQuery(filters, 0, 10)
+	f := entities.Filters{
+		Include: filters,
+	}
+	query := createEventsQuery(f, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -62,7 +66,10 @@ func Test_createEventsQuery_withTickNumber(t *testing.T) {
 	filters := map[string][]string{
 		"tickNumber": {"42"},
 	}
-	query := createEventsQuery(filters, 0, 10)
+	f := entities.Filters{
+		Include: filters,
+	}
+	query := createEventsQuery(f, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -81,7 +88,10 @@ func Test_createEventsQuery_withEventType(t *testing.T) {
 	filters := map[string][]string{
 		"logType": {"1"},
 	}
-	query := createEventsQuery(filters, 0, 10)
+	f := entities.Filters{
+		Include: filters,
+	}
+	query := createEventsQuery(f, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -103,7 +113,10 @@ func Test_createEventsQuery_withMultipleFilters(t *testing.T) {
 		"tickNumber":      {"42"},
 		"logType":         {"2"},
 	}
-	query := createEventsQuery(filters, 0, 10)
+	f := entities.Filters{
+		Include: filters,
+	}
+	query := createEventsQuery(f, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -116,7 +129,7 @@ func Test_createEventsQuery_withMultipleFilters(t *testing.T) {
 }
 
 func Test_createEventsQuery_withPagination(t *testing.T) {
-	query := createEventsQuery(nil, 20, 50)
+	query := createEventsQuery(entities.Filters{}, 20, 50)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -127,11 +140,15 @@ func Test_createEventsQuery_withPagination(t *testing.T) {
 }
 
 func Test_createEventsQuery_withExcludeFilter(t *testing.T) {
-	filters := map[string][]string{
-		"source":         {"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
-		"source-exclude": {"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},
+	f := entities.Filters{
+		Include: map[string][]string{
+			"source": {"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+		},
+		Exclude: map[string][]string{
+			"destination": {"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"},
+		},
 	}
-	query := createEventsQuery(filters, 0, 10)
+	query := createEventsQuery(f, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)
@@ -150,14 +167,17 @@ func Test_createEventsQuery_withExcludeFilter(t *testing.T) {
 	mustNotArr := boolQuery["must_not"].([]any)
 	require.Len(t, mustNotArr, 1)
 	mustNotTerm := mustNotArr[0].(map[string]any)["term"].(map[string]any)
-	assert.Equal(t, "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", mustNotTerm["source"])
+	assert.Equal(t, "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", mustNotTerm["destination"])
 }
 
 func Test_createEventsQuery_withOnlyExcludeFilter(t *testing.T) {
 	filters := map[string][]string{
-		"destination-exclude": {"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"},
+		"destination": {"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"},
 	}
-	query := createEventsQuery(filters, 0, 10)
+	f := entities.Filters{
+		Exclude: filters,
+	}
+	query := createEventsQuery(f, 0, 10)
 
 	var parsed map[string]any
 	err := json.Unmarshal([]byte(query), &parsed)

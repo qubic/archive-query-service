@@ -55,27 +55,6 @@ func TestCreateEventsFilters_InvalidIdentity_Error(t *testing.T) {
 	assert.ErrorContains(t, err, "invalid identity")
 }
 
-func TestCreateEventsFilters_InvalidSourceFilterCombination(t *testing.T) {
-	filters := map[string]string{
-		"source":         fmt.Sprintf("%s, %s", validId, validId3),
-		"source-exclude": fmt.Sprintf("%s", validId2),
-	}
-	_, err := CreateEventsFilters(filters)
-	require.Error(t, err)
-	assert.ErrorContains(t, err, "conflicting filter")
-
-}
-
-func TestCreateEventsFilters_InvalidDestinationFilterCombination(t *testing.T) {
-	filters := map[string]string{
-		"destination-exclude": fmt.Sprintf("%s", validId2),
-		"destination":         fmt.Sprintf("%s, %s", validId, validId3),
-	}
-	_, err := CreateEventsFilters(filters)
-	require.Error(t, err)
-	assert.ErrorContains(t, err, "conflicting filter")
-}
-
 func TestValidateEventsFilters_ValidTransactionHash(t *testing.T) {
 	filters := map[string][]string{"transactionHash": {validTransactionHash}}
 	err := validateEventsFilters(filters)
@@ -129,6 +108,14 @@ func TestValidateEventsFilters_TooManyFilters(t *testing.T) {
 		"tickNumber":      {"42"},
 		"logType":         {"1"},
 		"extra":           {"value"},
+		"extra2":          {"value"},
+		"extra3":          {"value"},
+		"extra4":          {"value"},
+		"extra5":          {"value"},
+		"extra6":          {"value"},
+		"extra7":          {"value"},
+		"extra8":          {"value"},
+		"extra9":          {"value"},
 	}
 	err := validateEventsFilters(filters)
 	require.Error(t, err)
@@ -153,10 +140,10 @@ func TestValidateEventsFilters_EmptyFilters(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// tests for source, destination, source-exclude, destination-exclude, epoch, and amount filters
+// tests for source, destination, epoch, and amount filters
 
 func TestCreateEventsFilters_IdentityFilters_SingleValue(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -170,7 +157,7 @@ func TestCreateEventsFilters_IdentityFilters_SingleValue(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_MultipleValues(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -184,7 +171,7 @@ func TestCreateEventsFilters_IdentityFilters_MultipleValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_MaxValues(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -198,7 +185,7 @@ func TestCreateEventsFilters_IdentityFilters_MaxValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_TooManyValues(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -212,7 +199,7 @@ func TestCreateEventsFilters_IdentityFilters_TooManyValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_EmptyValue(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -226,7 +213,7 @@ func TestCreateEventsFilters_IdentityFilters_EmptyValue(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_DuplicateValues(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -240,7 +227,7 @@ func TestCreateEventsFilters_IdentityFilters_DuplicateValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_InvalidIdentity(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -254,7 +241,7 @@ func TestCreateEventsFilters_IdentityFilters_InvalidIdentity(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_EmptyInList(t *testing.T) {
-	filterNames := []string{"source", "destination", "source-exclude", "destination-exclude"}
+	filterNames := []string{"source", "destination"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -330,6 +317,15 @@ func TestCreateEventsFilters_Amount_InvalidString(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid [amount] filter")
 }
 
+func TestCreateEventsFilters_NumberOfShares_ValidValue(t *testing.T) {
+	filters := map[string]string{
+		"numberOfShares": "1000",
+	}
+	result, err := CreateEventsFilters(filters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"1000"}, result["numberOfShares"])
+}
+
 func TestCreateEventsFilters_CombinedSourceAndDestination(t *testing.T) {
 	filters := map[string]string{
 		"source":      fmt.Sprintf("%s,%s", validId, validId2),
@@ -361,4 +357,20 @@ func TestCreateEventsFilters_ExceedsMaxLengthForIdentityFilters(t *testing.T) {
 	_, err := CreateEventsFilters(filters)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "exceeds maximum length")
+}
+
+func TestCheckForConflictingFilters(t *testing.T) {
+	includeFilters := map[string][]string{
+		"source": {"value1"},
+	}
+	excludeFilters := map[string][]string{
+		"source": {"value2"},
+	}
+	err := CheckForConflictingFilters(includeFilters, excludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "include and exclude [source] filter")
+
+	// no conflict
+	err = CheckForConflictingFilters(includeFilters, map[string][]string{"foo": {"bar"}})
+	require.NoError(t, err)
 }

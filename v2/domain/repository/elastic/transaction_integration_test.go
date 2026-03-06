@@ -232,11 +232,14 @@ func (t *transactionsSuite) Test_GetTransactionByHash() {
 }
 
 func (t *transactionsSuite) Test_GetIdentityTransactions() {
+	filters := entities.Filters{
+		Include: map[string][]string{"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}},
+	}
 	txs, hits, err := t.repo.GetTransactionsForIdentity(t.ctx,
 		"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
 		200,
-		map[string][]string{"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}}, // excludes tx 3
-		map[string][]*entities.Range{"tickNumber": {{Operation: "lt", Value: "100"}}},                        // does not match tx 4
+		filters, // excludes tx 3
+		map[string][]*entities.Range{"tickNumber": {{Operation: "lt", Value: "100"}}}, // does not match tx 4
 		0, 10,
 	)
 	require.NoError(t.T(), err, "getting transactions for identity")
@@ -254,13 +257,20 @@ func (t *transactionsSuite) Test_GetIdentityTransactions() {
 }
 
 func (t *transactionsSuite) Test_GetIdentityTransactions_GivenExcludeFilters() {
+	filters := entities.Filters{
+		Include: map[string][]string{
+			"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}, // excludes tx 3
+
+		},
+		Exclude: map[string][]string{
+			"source": {"ENYTRGQOXEUCDFYZUSJTKTKJIZJABAHZQQANAQCPDBKJRDAZQIFMGIRDWGPO"}, // excludes tx 1
+		},
+	}
+
 	txs, hits, err := t.repo.GetTransactionsForIdentity(t.ctx,
 		"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
 		200,
-		map[string][]string{
-			"destination":    {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}, // excludes tx 3
-			"source-exclude": {"ENYTRGQOXEUCDFYZUSJTKTKJIZJABAHZQQANAQCPDBKJRDAZQIFMGIRDWGPO"}, // excludes tx 1
-		},
+		filters,
 		map[string][]*entities.Range{},
 		0, 10,
 	)
