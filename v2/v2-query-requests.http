@@ -6,8 +6,10 @@ Accept: application/json
 {
     "identity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
     "filters": {
-           "inputType": "0",
-           "source-exclude": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ, HOPUKLUXCKGDDEBSYRRPJTSFYEKBTDYCJSVZJLEIZEBJCDLAVOCMKMTBTDLB"
+           "inputType": "0"
+    },
+    "exclude": {
+        "source": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ, HOPUKLUXCKGDDEBSYRRPJTSFYEKBTDYCJSVZJLEIZEBJCDLAVOCMKMTBTDLB"
     },
     "ranges": {
         "amount": {
@@ -47,7 +49,18 @@ Accept: application/json
 
 {
     "filters": {
-        "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+        "logType": "6"
+    },
+    "exclude": {
+        "source": "BDSEQVHDWENCDACLLMEPWHTDJPGDSDGTODHPYNMRPDHKTOAXFKSPRYGEXEOF"
+    },
+    "ranges": {
+        "numberOfShares": {
+            "gt": "10000"
+        }
+    },
+    "pagination": {
+      "size": 1
     }
 }
 
