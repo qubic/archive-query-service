@@ -46,6 +46,15 @@ func CreateIdentityTransactionFilters(filterMap map[string]string) (map[string][
 	return res, nil
 }
 
+func ValidateExcludeFilterKeys(excludeFilters map[string][]string) error {
+	for k := range excludeFilters {
+		if k != EventFilterSource && k != EventFilterDestination {
+			return fmt.Errorf("unsupported exclude filter [%s]", k)
+		}
+	}
+	return nil
+}
+
 func validateIdentityTransactionQueryFilters(filterMap map[string][]string) error {
 	if len(filterMap) == 0 {
 		return nil
@@ -82,7 +91,7 @@ func validateIdentityTransactionQueryFilters(filterMap map[string][]string) erro
 var allowedRanges = [4]string{IdentityFilterAmount, IdentityFilterTickNumber, IdentityFilterInputType, IdentityFilterTimestamp}
 var allowedTickRanges = [2]string{IdentityFilterAmount, IdentityFilterInputType}
 
-func CreateIdentityTransactionQueryRanges(filtersMap map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
+func CreateIdentityTransactionQueryRanges(includeFilters, excludeFilters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
 	convertedRanges := map[string][]*entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
@@ -91,7 +100,12 @@ func CreateIdentityTransactionQueryRanges(filtersMap map[string][]string, ranges
 		return nil, errors.New("too many ranges")
 	}
 
-	err := VerifyNoFilterDuplicates(filtersMap, ranges)
+	err := VerifyNoFilterDuplicates(includeFilters, ranges)
+	if err != nil {
+		return nil, fmt.Errorf("checking for duplicate: %w", err)
+	}
+
+	err = VerifyNoFilterDuplicates(excludeFilters, ranges)
 	if err != nil {
 		return nil, fmt.Errorf("checking for duplicate: %w", err)
 	}

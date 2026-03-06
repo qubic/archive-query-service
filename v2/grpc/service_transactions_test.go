@@ -158,9 +158,8 @@ func TestArchiveQueryService_GetTransactionsForIdentity_WithDeprecatedExcludeFil
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
-		Identity:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
-		Filters:    map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "source-exclude": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
-		Pagination: &api.Pagination{Offset: 0, Size: 10},
+		Identity: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Filters:  map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "source-exclude": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
 	}
 
 	response, err := service.GetTransactionsForIdentity(ctx, request)
@@ -181,10 +180,9 @@ func TestArchiveQueryService_GetTransactionsForIdentity_WithExcludeMap(t *testin
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
-		Identity:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
-		Filters:    map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"},
-		Exclude:    map[string]string{"source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
-		Pagination: &api.Pagination{Offset: 0, Size: 10},
+		Identity: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Filters:  map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"},
+		Exclude:  map[string]string{"source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
 	}
 
 	response, err := service.GetTransactionsForIdentity(ctx, request)
@@ -205,12 +203,23 @@ func TestArchiveQueryService_GetTransactionsForIdentity_DeprecatedApiMismatchErr
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
-		Identity:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
-		Filters:    map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "source-exclude": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
-		Exclude:    map[string]string{"source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
-		Pagination: &api.Pagination{Offset: 0, Size: 10},
+		Identity: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Filters:  map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "source-exclude": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+		Exclude:  map[string]string{"source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
 	}
 
 	_, err := service.GetTransactionsForIdentity(ctx, request)
 	require.ErrorContains(t, err, "cannot use both")
+}
+
+func TestArchiveQueryService_GetTransactionsForIdentity_GivenInvalidExcludeFilter_ThenErrors(t *testing.T) {
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+
+	request := &api.GetTransactionsForIdentityRequest{
+		Identity: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Exclude:  map[string]string{"amount": "123"},
+	}
+
+	_, err := service.GetTransactionsForIdentity(nil, request)
+	require.ErrorContains(t, err, "unsupported exclude filter")
 }

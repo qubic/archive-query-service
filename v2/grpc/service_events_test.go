@@ -124,3 +124,11 @@ func TestArchiveQueryService_GetEvents_EmptyResult(t *testing.T) {
 	assert.Empty(t, response.Events)
 	assert.Equal(t, uint32(0), response.Hits.Total)
 }
+
+func TestArchiveQueryService_GetEvents_GivenInvalidExcludeFilter_ThenError(t *testing.T) {
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Exclude: map[string]string{"tickNumber": "123"},
+	})
+	require.ErrorContains(t, err, "invalid exclude filter")
+}

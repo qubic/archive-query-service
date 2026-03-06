@@ -140,12 +140,17 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "creating exclude filters: %v", err)
 	}
 
+	err = filters.ValidateExcludeFilterKeys(excludeFilters)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
 	err = filters.CheckForConflictingFilters(includeFilters, excludeFilters)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "conflicting filters: %v", err)
 	}
 
-	queryRanges, err := filters.CreateIdentityTransactionQueryRanges(includeFilters, request.GetRanges())
+	queryRanges, err := filters.CreateIdentityTransactionQueryRanges(includeFilters, excludeFilters, request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
@@ -227,6 +232,11 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 	excludeFilters, err := filters.CreateEventsFilters(req.GetExclude())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "creating filters: %v", err)
+	}
+
+	err = filters.VerifyExcludeFilterKeys(excludeFilters)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	err = filters.CheckForConflictingFilters(includeFilters, excludeFilters)

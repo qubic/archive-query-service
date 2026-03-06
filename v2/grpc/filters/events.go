@@ -47,6 +47,15 @@ func CreateEventsFilters(filterMap map[string]string) (map[string][]string, erro
 	return res, nil
 }
 
+func VerifyExcludeFilterKeys(excludeFilters map[string][]string) error {
+	for k := range excludeFilters {
+		if k != EventFilterSource && k != EventFilterDestination {
+			return fmt.Errorf("invalid exclude filter [%s]", k)
+		}
+	}
+	return nil
+}
+
 func CheckForConflictingFilters(includeFilters, excludeFilters map[string][]string) error {
 	for k := range excludeFilters {
 		if _, found := includeFilters[k]; found {
