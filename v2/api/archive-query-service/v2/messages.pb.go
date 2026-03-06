@@ -789,8 +789,9 @@ type GetTransactionsForIdentityRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Identity      string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
 	Filters       map[string]string      `protobuf:"bytes,2,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Ranges        map[string]*Range      `protobuf:"bytes,3,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Exclude       map[string]string      `protobuf:"bytes,3,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Ranges        map[string]*Range      `protobuf:"bytes,4,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination            `protobuf:"bytes,5,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -835,6 +836,13 @@ func (x *GetTransactionsForIdentityRequest) GetIdentity() string {
 func (x *GetTransactionsForIdentityRequest) GetFilters() map[string]string {
 	if x != nil {
 		return x.Filters
+	}
+	return nil
+}
+
+func (x *GetTransactionsForIdentityRequest) GetExclude() map[string]string {
+	if x != nil {
+		return x.Exclude
 	}
 	return nil
 }
@@ -2310,11 +2318,11 @@ const file_messages_proto_rawDesc = "" +
 	"\x1bGetTransactionByHashRequest\x126\n" +
 	"\x04hash\x18\x01 \x01(\tB\"\xbaG\x1f\x92\x02\x1cThe hash of the transaction.R\x04hash\"\x91\x01\n" +
 	"\x1cGetTransactionByHashResponse\x12q\n" +
-	"\vtransaction\x18\x01 \x01(\v2 .qubic.v2.archive.pb.TransactionB-\xbaG*\x92\x02'The transaction for the requested hash.R\vtransaction\"\x95\x06\n" +
+	"\vtransaction\x18\x01 \x01(\v2 .qubic.v2.archive.pb.TransactionB-\xbaG*\x92\x02'The transaction for the requested hash.R\vtransaction\"\xa8\x06\n" +
 	"\x1dGetTransactionsForTickRequest\x12S\n" +
 	"\vtick_number\x18\x01 \x01(\rB2\xbaG/\x92\x02,The tick number to get the transactions for.R\n" +
-	"tickNumber\x12\xbf\x01\n" +
-	"\afilters\x18\x02 \x03(\v2?.qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntryBd\xbaGa\x92\x02^Filters restrict the results by single values. Allowed: source, destination, amount, inputTypeR\afilters\x12\xb4\x01\n" +
+	"tickNumber\x12\xd2\x01\n" +
+	"\afilters\x18\x02 \x03(\v2?.qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntryBw\xbaGt\x92\x02qInclude filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputTypeR\afilters\x12\xb4\x01\n" +
 	"\x06ranges\x18\x03 \x03(\v2>.qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntryB\\\xbaGY\x92\x02VRanges restrict the results by a maximum and minimum value. Allowed: amount, inputTypeR\x06ranges\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -2336,15 +2344,19 @@ const file_messages_proto_rawDesc = "" +
 	"Less than.H\x01R\x02lt\x12-\n" +
 	"\x03lte\x18\x04 \x01(\tB\x19\xbaG\x16\x92\x02\x13Less than or equal.H\x01R\x03lteB\r\n" +
 	"\vlower_boundB\r\n" +
-	"\vupper_bound\"\xdf\a\n" +
+	"\vupper_bound\"\xdb\t\n" +
 	"!GetTransactionsForIdentityRequest\x12\x86\x01\n" +
-	"\bidentity\x18\x01 \x01(\tBj\xbaGg\x92\x02dThe identity to get the transactions for. Incoming and outgoing transactions are queried by default.R\bidentity\x12\x93\x01\n" +
-	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryB4\xbaG1\x92\x02.Filters restrict the results by single values.R\afilters\x12\x9d\x01\n" +
-	"\x06ranges\x18\x03 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryBA\xbaG>\x92\x02;Ranges restrict the results by a maximum and minimum value.R\x06ranges\x12d\n" +
+	"\bidentity\x18\x01 \x01(\tBj\xbaGg\x92\x02dThe identity to get the transactions for. Incoming and outgoing transactions are queried by default.R\bidentity\x12\xa6\x01\n" +
+	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryBG\xbaGD\x92\x02AInclude filters: the value must appear in the matching documents.R\afilters\x12\xaa\x01\n" +
+	"\aexclude\x18\x03 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntryBK\xbaGH\x92\x02EExclude filters: the value must not appear in the matching documents.R\aexclude\x12\x9d\x01\n" +
+	"\x06ranges\x18\x04 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryBA\xbaG>\x92\x02;Ranges restrict the results by a maximum and minimum value.R\x06ranges\x12d\n" +
 	"\n" +
-	"pagination\x18\x04 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB#\xbaG \x92\x02\x1dOptional paging information .R\n" +
+	"pagination\x18\x05 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB#\xbaG \x92\x02\x1dOptional paging information .R\n" +
 	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a:\n" +
+	"\fExcludeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
 	"\vRangesEntry\x12\x10\n" +
@@ -2460,10 +2472,10 @@ const file_messages_proto_rawDesc = "" +
 	"\n" +
 	"event_dataB\x13\n" +
 	"\x11_transaction_hashB\x0e\n" +
-	"\f_raw_payload\"\xb3\x05\n" +
-	"\x10GetEventsRequest\x12\x8b\x01\n" +
-	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryB=\xbaG:\x92\x027Filters restrict the results by single matching values.R\afilters\x12\xae\x01\n" +
-	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryB`\xbaG]\x92\x02ZExclude filters restrict the results by single values that must not appear in the results.R\aexclude\x12c\n" +
+	"\f_raw_payload\"\xa8\x05\n" +
+	"\x10GetEventsRequest\x12\x95\x01\n" +
+	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBG\xbaGD\x92\x02AInclude filters: the value must appear in the matching documents.R\afilters\x12\x99\x01\n" +
+	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryBK\xbaGH\x92\x02EExclude filters: the value must not appear in the matching documents.R\aexclude\x12c\n" +
 	"\n" +
 	"pagination\x18\x03 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
 	"pagination\x1a:\n" +
@@ -2493,7 +2505,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_messages_proto_goTypes = []any{
 	(*LastProcessedTick)(nil),                  // 0: qubic.v2.archive.pb.LastProcessedTick
 	(*NextAvailableTick)(nil),                  // 1: qubic.v2.archive.pb.NextAvailableTick
@@ -2531,9 +2543,10 @@ var file_messages_proto_goTypes = []any{
 	nil,                                        // 33: qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
 	nil,                                        // 34: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
 	nil,                                        // 35: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	nil,                                        // 36: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	nil,                                        // 37: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	nil,                                        // 38: qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
+	nil,                                        // 36: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
+	nil,                                        // 37: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	nil,                                        // 38: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	nil,                                        // 39: qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
@@ -2541,33 +2554,34 @@ var file_messages_proto_depIdxs = []int32{
 	34, // 2: qubic.v2.archive.pb.GetTransactionsForTickRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
 	2,  // 3: qubic.v2.archive.pb.GetTransactionsForTickResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
 	35, // 4: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	36, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	5,  // 6: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 7: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	2,  // 8: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	3,  // 9: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
-	4,  // 10: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
-	19, // 11: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
-	22, // 12: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
-	23, // 13: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
-	24, // 14: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
-	25, // 15: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
-	26, // 16: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
-	27, // 17: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
-	28, // 18: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
-	29, // 19: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
-	37, // 20: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	38, // 21: qubic.v2.archive.pb.GetEventsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
-	5,  // 22: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 23: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	30, // 24: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
-	10, // 25: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 26: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	36, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.exclude:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
+	37, // 6: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	5,  // 7: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	12, // 8: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	2,  // 9: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
+	3,  // 10: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
+	4,  // 11: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
+	19, // 12: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
+	22, // 13: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
+	23, // 14: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
+	24, // 15: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
+	25, // 16: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
+	26, // 17: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
+	27, // 18: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
+	28, // 19: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
+	29, // 20: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
+	38, // 21: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	39, // 22: qubic.v2.archive.pb.GetEventsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
+	5,  // 23: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	12, // 24: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	30, // 25: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
+	10, // 26: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 27: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }
@@ -2597,7 +2611,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messages_proto_rawDesc), len(file_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   39,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

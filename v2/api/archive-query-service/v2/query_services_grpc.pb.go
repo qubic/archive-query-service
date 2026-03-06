@@ -95,7 +95,8 @@ type ArchiveQueryServiceClient interface {
 	// | Name       | Type               | Necessity | Description                                                                    |
 	// |------------|--------------------|-----------|--------------------------------------------------------------------------------|
 	// | identity   | string             | required  | 60 characters uppercase identity.                                              |
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.                                 |
+	// | filters    | map<string,string> | optional  | The filter value must appear in the matching documents.                        |
+	// | exclude    | map<string,string> | optional  | The filter value must not appear in the matching documents.                    |
 	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.                                |
 	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.  |
 	//
@@ -103,22 +104,24 @@ type ArchiveQueryServiceClient interface {
 	//
 	// ### Filters
 	//
-	// Filters restrict the results by single values.
+	// Including and excluding filters for the same property are mutually exclusive.
 	//
-	// #### Allowed properties
+	// #### Include filter properties
 	//
 	// | Name        |  Type   | Format                 | Description                                                        |
 	// |-------------|---------|------------------------|--------------------------------------------------------------------|
-	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions that were sent from the specified identities. |
-	// | source-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent from the specified identities. |
-	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were sent to the specified identities.   |
-	// | destination-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent to the specified identities.   |
+	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions with the specified source. |
+	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions with the specified destination. |
 	// | amount      | string | Numeric                | Only find transactions with the specified amount.                  |
 	// | inputType   | string | Numeric                | Only find transactions with the specified input type.              |
 	// | tickNumber  | string | Numeric                | Only find transactions with the specified tick number.             |
 	//
-	// source` and `source-exclude` are mutually exclusive.
-	// destination` and `destination-exclude` are mutually exclusive.
+	// ### Exclude filter properties
+	//
+	// | Name            |  Type   | Format   | Description                                             |
+	// |-----------------|---------|----------|---------------------------------------------------------|
+	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions with another source. |
+	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions with another destination.   |
 	//
 	// #### Examples
 	//
@@ -195,10 +198,15 @@ type ArchiveQueryServiceClient interface {
 	//
 	// | Name       | Type               | Necessity | Description                                                    |
 	// |------------|--------------------|-----------|----------------------------------------------------------------|
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.                 |
+	// | filters    | map<string,string> | optional  | The filter value must appear in the matching documents.        |
+	// | exclude    | map<string,string> | optional  | The filter value must not appear in the matching documents.    |
 	// | pagination | Pagination         | optional  | Allows to specify the first record and number of records.      |
 	//
 	// ### Filters
+	//
+	// Including and excluding filters for the same property are mutually exclusive.
+	//
+	// #### Include filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
@@ -380,7 +388,8 @@ type ArchiveQueryServiceServer interface {
 	// | Name       | Type               | Necessity | Description                                                                    |
 	// |------------|--------------------|-----------|--------------------------------------------------------------------------------|
 	// | identity   | string             | required  | 60 characters uppercase identity.                                              |
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.                                 |
+	// | filters    | map<string,string> | optional  | The filter value must appear in the matching documents.                        |
+	// | exclude    | map<string,string> | optional  | The filter value must not appear in the matching documents.                    |
 	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.                                |
 	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved.  |
 	//
@@ -388,22 +397,24 @@ type ArchiveQueryServiceServer interface {
 	//
 	// ### Filters
 	//
-	// Filters restrict the results by single values.
+	// Including and excluding filters for the same property are mutually exclusive.
 	//
-	// #### Allowed properties
+	// #### Include filter properties
 	//
 	// | Name        |  Type   | Format                 | Description                                                        |
 	// |-------------|---------|------------------------|--------------------------------------------------------------------|
-	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions that were sent from the specified identities. |
-	// | source-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent from the specified identities. |
-	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were sent to the specified identities.   |
-	// | destination-exclude | string | 60 character identity, up to 5, comma separated.  | Only find transactions that were not sent to the specified identities.   |
+	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions with the specified source. |
+	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions with the specified destination. |
 	// | amount      | string | Numeric                | Only find transactions with the specified amount.                  |
 	// | inputType   | string | Numeric                | Only find transactions with the specified input type.              |
 	// | tickNumber  | string | Numeric                | Only find transactions with the specified tick number.             |
 	//
-	// source` and `source-exclude` are mutually exclusive.
-	// destination` and `destination-exclude` are mutually exclusive.
+	// ### Exclude filter properties
+	//
+	// | Name            |  Type   | Format   | Description                                             |
+	// |-----------------|---------|----------|---------------------------------------------------------|
+	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions with another source. |
+	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions with another destination.   |
 	//
 	// #### Examples
 	//
@@ -480,10 +491,15 @@ type ArchiveQueryServiceServer interface {
 	//
 	// | Name       | Type               | Necessity | Description                                                    |
 	// |------------|--------------------|-----------|----------------------------------------------------------------|
-	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.                 |
+	// | filters    | map<string,string> | optional  | The filter value must appear in the matching documents.        |
+	// | exclude    | map<string,string> | optional  | The filter value must not appear in the matching documents.    |
 	// | pagination | Pagination         | optional  | Allows to specify the first record and number of records.      |
 	//
 	// ### Filters
+	//
+	// Including and excluding filters for the same property are mutually exclusive.
+	//
+	// #### Include filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|

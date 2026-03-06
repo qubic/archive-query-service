@@ -123,18 +123,29 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 	}
 
 	// we need to stay backwards compatible here. exclude filters are postfixed with -exclude.
-	mixedFilters, err := filters.CreateIdentityTransactionFilters(request.GetFilters())
+	includes, excludes := filters.SplitDeprecatedIncludeExcludeFilters(request.GetFilters())
+	if len(excludes) > 0 && len(request.GetExclude()) > 0 { // old and new api mismatch
+		return nil, status.Errorf(codes.InvalidArgument, "cannot use both -exclude filters postfix and exclude filters together")
+	} else if len(excludes) == 0 { // use new exclude filters
+		excludes = request.GetExclude()
+	}
+
+	includeFilters, err := filters.CreateIdentityTransactionFilters(includes)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "creating include filters: %v", err)
 	}
 
-	includeFilters, excludeFilters := filters.SplitIncludeExcludeFilters(mixedFilters)
-	queryFilters := entities.Filters{
-		Include: includeFilters,
-		Exclude: excludeFilters,
+	excludeFilters, err := filters.CreateIdentityTransactionFilters(excludes)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "creating exclude filters: %v", err)
 	}
 
-	queryRanges, err := filters.CreateIdentityTransactionQueryRanges(queryFilters.Include, request.GetRanges())
+	err = filters.CheckForConflictingFilters(includeFilters, excludeFilters)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "conflicting filters: %v", err)
+	}
+
+	queryRanges, err := filters.CreateIdentityTransactionQueryRanges(includeFilters, request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
@@ -146,7 +157,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, queryFilters, queryRanges, from, size)
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, entities.Filters{Include: includeFilters, Exclude: excludeFilters}, queryRanges, from, size)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}

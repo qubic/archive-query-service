@@ -34,7 +34,31 @@ paths:
       tags:
         - Events (Beta)
       summary: Get Events
-      description: Query event logs with optional filters. Beta endpoint.
+      description: "Query event logs with optional filters. Beta endpoint.\n\n ###\
+        \  Request structure\n\n | Name       | Type               | Necessity | Description\
+        \                                                    |\n |------------|--------------------|-----------|----------------------------------------------------------------|\n\
+        \ | filters    | map<string,string> | optional  | The filter value must appear\
+        \ in the matching documents.        |\n | exclude    | map<string,string>\
+        \ | optional  | The filter value must not appear in the matching documents.\
+        \    |\n | pagination | Pagination         | optional  | Allows to specify\
+        \ the first record and number of records.      |\n\n ### Filters\n\n Including\
+        \ and excluding filters for the same property are mutually exclusive.\n\n\
+        \ #### Include filter properties\n\n | Name            |  Type   | Format\
+        \   | Description                                             |\n |-----------------|---------|----------|---------------------------------------------------------|\n\
+        \ | source      | string | 60 character identity, up to 5, comma separated.\
+        \ | Only find logs with this source. |\n | destination | string | 60 character\
+        \ identity, up to 5, comma separated.  | Only find logs with this destination.\
+        \   |\n | transactionHash | string  | Hash     | Only find events for the\
+        \ specified transaction hash.    |\n | tickNumber      | string  | Numeric\
+        \  | Only find events for the specified tick number.         |\n | logType\
+        \         | string  | Numeric  | Only find events with the specified type\
+        \ (0,1,2,3,8,13).|\n\n ### Exclude filters\n\n | Name            |  Type \
+        \  | Format   | Description                                             |\n\
+        \ |-----------------|---------|----------|---------------------------------------------------------|\n\
+        \ | source      | string | 60 character identity, up to 5, comma separated.\
+        \ | Only find logs with another source. |\n | destination | string | 60 character\
+        \ identity, up to 5, comma separated.  | Only find logs with another destination.\
+        \   |"
       operationId: ArchiveQueryService_GetEvents
       requestBody:
         content:
@@ -138,38 +162,39 @@ paths:
         \          |\n |------------|--------------------|-----------|--------------------------------------------------------------------------------|\n\
         \ | identity   | string             | required  | 60 characters uppercase\
         \ identity.                                              |\n | filters   \
-        \ | map<string,string> | optional  | Filters that restrict results to single\
-        \ value.                                 |\n | ranges     | map<string,Range>\
-        \  | optional  | Filters that restrict results to a value range.         \
-        \                       |\n | pagination | Pagination         | optional \
-        \ | Allows to specify the first record and the number of records to be retrieved.\
-        \  |\n\n Without filters and ranges all transactions from and to that identity\
-        \ ordered by tick number descending are returned.\n\n ### Filters\n\n Filters\
-        \ restrict the results by single values.\n\n #### Allowed properties\n\n |\
-        \ Name        |  Type   | Format                 | Description           \
-        \                                             |\n |-------------|---------|------------------------|--------------------------------------------------------------------|\n\
+        \ | map<string,string> | optional  | The filter value must appear in the matching\
+        \ documents.                        |\n | exclude    | map<string,string>\
+        \ | optional  | The filter value must not appear in the matching documents.\
+        \                    |\n | ranges     | map<string,Range>  | optional  | Filters\
+        \ that restrict results to a value range.                                |\n\
+        \ | pagination | Pagination         | optional  | Allows to specify the first\
+        \ record and the number of records to be retrieved.  |\n\n Without filters\
+        \ and ranges all transactions from and to that identity ordered by tick number\
+        \ descending are returned.\n\n ### Filters\n\n Including and excluding filters\
+        \ for the same property are mutually exclusive.\n\n #### Include filter properties\n\
+        \n | Name        |  Type   | Format                 | Description        \
+        \                                                |\n |-------------|---------|------------------------|--------------------------------------------------------------------|\n\
         \ | source      | string | 60 character identity, up to 5, comma separated.\
-        \ | Only find transactions that were sent from the specified identities. |\n\
-        \ | source-exclude | string | 60 character identity, up to 5, comma separated.\
-        \  | Only find transactions that were not sent from the specified identities.\
-        \ |\n | destination | string | 60 character identity, up to 5, comma separated.\
-        \  | Only find transactions that were sent to the specified identities.  \
-        \ |\n | destination-exclude | string | 60 character identity, up to 5, comma\
-        \ separated.  | Only find transactions that were not sent to the specified\
-        \ identities.   |\n | amount      | string | Numeric                | Only\
-        \ find transactions with the specified amount.                  |\n | inputType\
-        \   | string | Numeric                | Only find transactions with the specified\
-        \ input type.              |\n | tickNumber  | string | Numeric          \
-        \      | Only find transactions with the specified tick number.          \
-        \   |\n\n source` and `source-exclude` are mutually exclusive.\n destination`\
-        \ and `destination-exclude` are mutually exclusive.\n\n #### Examples\n\n\
-        \ ```\n \"source\": \"IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB\"\
-        ,\n \"destination\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\"\
-        \n \"amount\": \"1000000\"\n \"inputType\": \"0\"\n ```\n\n ### Ranges\n\n\
-        \ Ranges restrict the results by a range of values. On range per property\
-        \ is supported.\n\n #### Allowed properties\n\n | Name       | Type   | Format\
-        \                                   | Description                        \
-        \         |\n |------------|--------|------------------------------------------|---------------------------------------------|\n\
+        \ | Only find transactions with the specified source. |\n | destination |\
+        \ string | 60 character identity, up to 5, comma separated.  | Only find transactions\
+        \ with the specified destination. |\n | amount      | string | Numeric   \
+        \             | Only find transactions with the specified amount.        \
+        \          |\n | inputType   | string | Numeric                | Only find\
+        \ transactions with the specified input type.              |\n | tickNumber\
+        \  | string | Numeric                | Only find transactions with the specified\
+        \ tick number.             |\n\n ### Exclude filter properties\n\n | Name\
+        \            |  Type   | Format   | Description                          \
+        \                   |\n |-----------------|---------|----------|---------------------------------------------------------|\n\
+        \ | source      | string | 60 character identity, up to 5, comma separated.\
+        \ | Only find transactions with another source. |\n | destination | string\
+        \ | 60 character identity, up to 5, comma separated.  | Only find transactions\
+        \ with another destination.   |\n\n #### Examples\n\n ```\n \"source\": \"\
+        IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB\",\n \"destination\"\
+        : \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\"\n \"amount\"\
+        : \"1000000\"\n \"inputType\": \"0\"\n ```\n\n ### Ranges\n\n Ranges restrict\
+        \ the results by a range of values. On range per property is supported.\n\n\
+        \ #### Allowed properties\n\n | Name       | Type   | Format             \
+        \                      | Description                                 |\n |------------|--------|------------------------------------------|---------------------------------------------|\n\
         \ | amount     | string | Numeric                                  | Only\
         \ find transactions in amount range.     |\n | tickNumber | string | Numeric\
         \                                  | Only find transactions in tick range.\
@@ -435,13 +460,13 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Filters restrict the results by single matching values.
+          description: 'Include filters: the value must appear in the matching documents.'
         exclude:
           type: object
           additionalProperties:
             type: string
-          description: Exclude filters restrict the results by single values that
-            must not appear in the results.
+          description: 'Exclude filters: the value must not appear in the matching
+            documents.'
         pagination:
           $ref: '#/components/schemas/Pagination'
       description: GetEventsRequest
@@ -530,7 +555,13 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: Filters restrict the results by single values.
+          description: 'Include filters: the value must appear in the matching documents.'
+        exclude:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Exclude filters: the value must not appear in the matching
+            documents.'
         ranges:
           type: object
           additionalProperties:
@@ -572,8 +603,8 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: 'Filters restrict the results by single values. Allowed: source,
-            destination, amount, inputType'
+          description: 'Include filters: the value must appear in the matching documents.
+            Allowed: source, destination, amount, inputType'
         ranges:
           type: object
           additionalProperties:

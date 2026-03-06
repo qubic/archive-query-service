@@ -16,6 +16,7 @@ type TransactionServiceStub struct {
 	ctx          context.Context
 	identity     string
 	filters      map[string][]string
+	newFilters   entities.Filters
 	ranges       map[string][]*entities.Range
 	transactions []*api.Transaction
 	hits         *entities.Hits
@@ -49,7 +50,7 @@ func (t *TransactionServiceStub) GetTransactionsForIdentity(
 ) (*entities.TransactionsResult, error) {
 	t.ctx = ctx
 	t.identity = identity
-	t.filters = filters.Include // this is not 100% correct as it doesn't use the exclude filters
+	t.newFilters = filters // this is not 100% correct as it doesn't use the exclude filters
 	t.ranges = ranges
 	return &entities.TransactionsResult{LastProcessedTick: 42, Hits: t.hits, Transactions: t.transactions}, nil
 }
@@ -140,9 +141,76 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 	// verify tx service call
 	assert.Equal(t, ctx, txService.ctx)
 	assert.Equal(t, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", txService.identity)
-	assert.Equal(t, map[string][]string{"inputType": {"1"}}, txService.filters)
+	assert.Equal(t, map[string][]string{"inputType": {"1"}}, txService.newFilters.Include)
 	assert.Equal(t, map[string][]*entities.Range{"amount": {
 		&entities.Range{Operation: "gte", Value: "1"},
 		&entities.Range{Operation: "lt", Value: "10000"},
 	}}, txService.ranges)
+}
+
+func TestArchiveQueryService_GetTransactionsForIdentity_WithDeprecatedExcludeFilter(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{{Hash: "tx-hash-1"}},
+		hits:         &entities.Hits{Total: 1, Relation: "eq"},
+	}
+
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+
+	ctx := context.Background()
+	request := &api.GetTransactionsForIdentityRequest{
+		Identity:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Filters:    map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "source-exclude": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+		Pagination: &api.Pagination{Offset: 0, Size: 10},
+	}
+
+	response, err := service.GetTransactionsForIdentity(ctx, request)
+	require.NoError(t, err)
+	require.NotNil(t, response)
+
+	require.Equal(t, txService.newFilters.Exclude, map[string][]string{"source": {"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"}})
+	require.Equal(t, txService.newFilters.Include, map[string][]string{"destination": {"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"}})
+}
+
+func TestArchiveQueryService_GetTransactionsForIdentity_WithExcludeMap(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{{Hash: "tx-hash-1"}},
+		hits:         &entities.Hits{Total: 1, Relation: "eq"},
+	}
+
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+
+	ctx := context.Background()
+	request := &api.GetTransactionsForIdentityRequest{
+		Identity:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Filters:    map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"},
+		Exclude:    map[string]string{"source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+		Pagination: &api.Pagination{Offset: 0, Size: 10},
+	}
+
+	response, err := service.GetTransactionsForIdentity(ctx, request)
+	require.NoError(t, err)
+	require.NotNil(t, response)
+
+	require.Equal(t, txService.newFilters.Exclude, map[string][]string{"source": {"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"}})
+	require.Equal(t, txService.newFilters.Include, map[string][]string{"destination": {"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"}})
+}
+
+func TestArchiveQueryService_GetTransactionsForIdentity_DeprecatedApiMismatchErrors(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{{Hash: "tx-hash-1"}},
+		hits:         &entities.Hits{Total: 1, Relation: "eq"},
+	}
+
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+
+	ctx := context.Background()
+	request := &api.GetTransactionsForIdentityRequest{
+		Identity:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+		Filters:    map[string]string{"destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", "source-exclude": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+		Exclude:    map[string]string{"source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+		Pagination: &api.Pagination{Offset: 0, Size: 10},
+	}
+
+	_, err := service.GetTransactionsForIdentity(ctx, request)
+	require.ErrorContains(t, err, "cannot use both")
 }

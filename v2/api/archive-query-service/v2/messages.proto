@@ -75,7 +75,7 @@ message GetTransactionsForTickRequest {
   };
   // the tick number to get the transactions for.
   uint32 tick_number = 1 [(openapi.v3.property) = {description:"The tick number to get the transactions for."}];
-  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: source, destination, amount, inputType"}];
+  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputType"}];
   map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType"}];
 }
 
@@ -105,9 +105,10 @@ message GetTransactionsForIdentityRequest {
   };
 
   string identity = 1 [(openapi.v3.property) = {description:"The identity to get the transactions for. Incoming and outgoing transactions are queried by default."}];
-  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values."}];
-  map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value."}];
-  Pagination pagination = 4 [(openapi.v3.property) = {description:"Optional paging information ."}];
+  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents."}];
+  map<string, string> exclude = 3 [(openapi.v3.property) = {description:"Exclude filters: the value must not appear in the matching documents."}];
+  map<string, Range> ranges = 4 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value."}];
+  Pagination pagination = 5 [(openapi.v3.property) = {description:"Optional paging information ."}];
 }
 
 // Hits
@@ -262,8 +263,8 @@ message GetEventsRequest {
       yaml: "filters:\n  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\npagination:\n  offset: 0\n  size: 10"
     };
   };
-  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Filters restrict the results by single matching values."}];
-  map<string, string> exclude = 2 [(openapi.v3.property) = {description:"Exclude filters restrict the results by single values that must not appear in the results."}];
+  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents."}];
+  map<string, string> exclude = 2 [(openapi.v3.property) = {description:"Exclude filters: the value must not appear in the matching documents."}];
   Pagination pagination = 3 [(openapi.v3.property) = {description:"Optional paging information."}];
 }
 

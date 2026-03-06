@@ -72,11 +72,11 @@ func Test_createIdentityTransactionFilters(t *testing.T) {
 
 func Test_validateIdentityTransactionFilters_givenAllValid_thenNoError(t *testing.T) {
 	filters := map[string][]string{
-		"source":              {validId},
-		"destination-exclude": {validId},
-		"amount":              {"100"},
-		"inputType":           {"42"},
-		"tickNumber":          {"43"},
+		"source":      {validId},
+		"destination": {validId},
+		"amount":      {"100"},
+		"inputType":   {"42"},
+		"tickNumber":  {"43"},
 	}
 	err := validateIdentityTransactionQueryFilters(filters)
 	require.NoError(t, err)
@@ -84,10 +84,10 @@ func Test_validateIdentityTransactionFilters_givenAllValid_thenNoError(t *testin
 
 func Test_validateIdentityTransactionFilters_givenMultipleValidValues_thenNoError(t *testing.T) {
 	filters := map[string][]string{
-		"source-exclude": {validId, validId},
-		"destination":    {validId, validId},
-		"amount":         {"100"},
-		"inputType":      {"42"},
+		"source":      {validId, validId},
+		"destination": {validId, validId},
+		"amount":      {"100"},
+		"inputType":   {"42"},
 	}
 	err := validateIdentityTransactionQueryFilters(filters)
 	require.NoError(t, err)
@@ -169,18 +169,6 @@ func Test_validateIdentityTransactionFilters_givenInvalidDestination(t *testing.
 	filters := map[string][]string{"destination": {invalidId}}
 	err := validateIdentityTransactionQueryFilters(filters)
 	require.ErrorContains(t, err, "invalid [destination] filter")
-}
-
-func Test_validateIdentityTransactionFilters_givenInvalidSourceExclude(t *testing.T) {
-	filters := map[string][]string{"source-exclude": {invalidId}}
-	err := validateIdentityTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "invalid [source-exclude] filter")
-}
-
-func Test_validateIdentityTransactionFilters_givenInvalidDestinationExclude(t *testing.T) {
-	filters := map[string][]string{"destination-exclude": {invalidId}}
-	err := validateIdentityTransactionQueryFilters(filters)
-	require.ErrorContains(t, err, "invalid [destination-exclude] filter")
 }
 
 func Test_validateIdentityTransactionFilters_givenMultipleIdValuesIncludingInvalid_thenError(t *testing.T) {

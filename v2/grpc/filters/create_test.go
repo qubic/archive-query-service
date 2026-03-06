@@ -349,62 +349,62 @@ func Test_trimFilterValue(t *testing.T) {
 func Test_splitIncludeExcludeFilters(t *testing.T) {
 	tests := []struct {
 		name        string
-		filters     map[string][]string
-		wantInclude map[string][]string
-		wantExclude map[string][]string
+		filters     map[string]string
+		wantInclude map[string]string
+		wantExclude map[string]string
 	}{
 		{
 			name:        "empty filters",
-			filters:     map[string][]string{},
-			wantInclude: map[string][]string{},
-			wantExclude: map[string][]string{},
+			filters:     map[string]string{},
+			wantInclude: map[string]string{},
+			wantExclude: map[string]string{},
 		},
 		{
 			name: "only include filters",
-			filters: map[string][]string{
-				"source":      {"identity1"},
-				"destination": {"identity2", "identity3"},
+			filters: map[string]string{
+				"x": "a",
+				"y": "b",
 			},
-			wantInclude: map[string][]string{
-				"source":      {"identity1"},
-				"destination": {"identity2", "identity3"},
+			wantInclude: map[string]string{
+				"x": "a",
+				"y": "b",
 			},
-			wantExclude: map[string][]string{},
+			wantExclude: map[string]string{},
 		},
 		{
 			name: "only exclude filters",
-			filters: map[string][]string{
-				"source-exclude":      {"identity1"},
-				"destination-exclude": {"identity2", "identity3"},
+			filters: map[string]string{
+				"x-exclude": "a",
+				"y-exclude": "b",
 			},
-			wantInclude: map[string][]string{},
-			wantExclude: map[string][]string{
-				"source":      {"identity1"},
-				"destination": {"identity2", "identity3"},
+			wantInclude: map[string]string{},
+			wantExclude: map[string]string{
+				"x": "a",
+				"y": "b",
 			},
 		},
 		{
 			name: "mixed filters",
-			filters: map[string][]string{
-				"source":            {"identity1"},
-				"source-exclude":    {"identity2"},
-				"amount":            {"100"},
-				"inputType-exclude": {"1"},
+			filters: map[string]string{
+				"x":         "a",
+				"x-exclude": "b",
+				"y":         "c",
+				"z-exclude": "d",
 			},
-			wantInclude: map[string][]string{
-				"source": {"identity1"},
-				"amount": {"100"},
+			wantInclude: map[string]string{
+				"x": "a",
+				"y": "c",
 			},
-			wantExclude: map[string][]string{
-				"source":    {"identity2"},
-				"inputType": {"1"},
+			wantExclude: map[string]string{
+				"x": "b",
+				"z": "d",
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotInclude, gotExclude := SplitIncludeExcludeFilters(tt.filters)
+			gotInclude, gotExclude := SplitDeprecatedIncludeExcludeFilters(tt.filters)
 			require.Equal(t, tt.wantInclude, gotInclude)
 			require.Equal(t, tt.wantExclude, gotExclude)
 		})

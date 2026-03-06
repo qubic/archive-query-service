@@ -10,26 +10,22 @@ import (
 )
 
 const (
-	IdentityFilterSource             = "source"
-	IdentityFilterSourceExclude      = "source-exclude"
-	IdentityFilterDestination        = "destination"
-	IdentityFilterDestinationExclude = "destination-exclude"
-	IdentityFilterAmount             = "amount"
-	IdentityFilterInputType          = "inputType"
-	IdentityFilterTickNumber         = "tickNumber"
-	IdentityFilterTimestamp          = "timestamp"
+	IdentityFilterSource      = "source"
+	IdentityFilterDestination = "destination"
+	IdentityFilterAmount      = "amount"
+	IdentityFilterInputType   = "inputType"
+	IdentityFilterTickNumber  = "tickNumber"
+	IdentityFilterTimestamp   = "timestamp"
 )
 
 const maxValuesPerIdentityFilter = 5
 const maxValueLengthPerIdentityFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
-
-var allowedIdentityTransactionsTermFilters = [7]string{IdentityFilterSource, IdentityFilterSourceExclude, IdentityFilterDestination,
-	IdentityFilterDestinationExclude, IdentityFilterAmount, IdentityFilterInputType, IdentityFilterTickNumber}
+const maxNumberOfPerIdentityFilters = 5
 
 func CreateIdentityTransactionFilters(filterMap map[string]string) (map[string][]string, error) {
 	res := make(map[string][]string)
 	for k, v := range filterMap {
-		shouldSplit := k == IdentityFilterSource || k == IdentityFilterDestination || k == IdentityFilterSourceExclude || k == IdentityFilterDestinationExclude
+		shouldSplit := k == IdentityFilterSource || k == IdentityFilterDestination
 
 		maxValues := utils.If(shouldSplit, maxValuesPerIdentityFilter, 1)
 		maxLength := utils.If(shouldSplit, maxValueLengthPerIdentityFilter, 20)
@@ -55,19 +51,13 @@ func validateIdentityTransactionQueryFilters(filterMap map[string][]string) erro
 		return nil
 	}
 
-	if len(filterMap) > len(allowedIdentityTransactionsTermFilters) {
-		return errors.New("too many filters")
-	}
-
-	// it's not allowed to use a match-filter and a corresponding exclude-filter at the same time
-	if (filterMap[IdentityFilterSource] != nil && filterMap[IdentityFilterSourceExclude] != nil) ||
-		(filterMap[IdentityFilterDestination] != nil && filterMap[IdentityFilterDestinationExclude] != nil) {
-		return fmt.Errorf("conflicting filters")
+	if len(filterMap) > maxNumberOfPerIdentityFilters {
+		return fmt.Errorf("too many filters (%d)", len(filterMap))
 	}
 
 	for key, values := range filterMap {
 		switch key {
-		case IdentityFilterSource, IdentityFilterDestination, IdentityFilterSourceExclude, IdentityFilterDestinationExclude:
+		case IdentityFilterSource, IdentityFilterDestination:
 			err := ValidateIdentityFilterValues(values, maxValuesPerIdentityFilter)
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
