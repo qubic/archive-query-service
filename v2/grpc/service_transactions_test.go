@@ -31,7 +31,7 @@ func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash st
 	return nil, nil
 }
 
-func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, _ map[string][]string, _ map[string][]*entities.Range) ([]*api.Transaction, error) {
 	transactions := make([]*api.Transaction, 0)
 	for _, tx := range t.transactions {
 		if tx.TickNumber == tickNumber {

@@ -48,7 +48,7 @@ func CreateEventsFilters(filterMap map[string]string) (map[string][]string, erro
 }
 
 func CheckForConflictingFilters(includeFilters, excludeFilters map[string][]string) error {
-	for k, _ := range excludeFilters {
+	for k := range excludeFilters {
 		if _, found := includeFilters[k]; found {
 			return fmt.Errorf("include and exclude [%s] filter", k)
 		}
