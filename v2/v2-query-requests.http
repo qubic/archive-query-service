@@ -40,4 +40,15 @@ Accept: application/json
     "hash": "wnkujtaavborugjhgudeimborfpgyudnuekalkbsjeaxiejvvdgahdrerajo"
 }
 
+### Get event logs
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": {
+        "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+    }
+}
+
 ###
