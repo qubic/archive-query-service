@@ -63,24 +63,31 @@ paths:
         \ | source      | string | 60 character identity, up to 5, comma separated.\
         \ | Only find logs with another source. |\n | destination | string | 60 character\
         \ identity, up to 5, comma separated.  | Only find logs with another destination.\
-        \   |\n\n #### Should filter properties\n\n | Name            |  Type   |\
-        \ Format   | Description                                             |\n |-----------------|---------|----------|---------------------------------------------------------|\n\
+        \   |\n\n #### Should filter term properties\n\n | Name            |  Type\
+        \   | Format   | Description                                             |\n\
+        \ |-----------------|---------|----------|---------------------------------------------------------|\n\
         \ | source      | string | 60 character identity, up to 5, comma separated.\
         \ | Find logs with this source. |\n | destination | string | 60 character\
-        \ identity, up to 5, comma separated.  | Find logs with this source.  |\n\n\
-        \ #### Range filter properties\n\n Ranges restrict the results to a range\
-        \ of values by defining a maximum and/or minimum value.\n\n | Name       |\
-        \ Type   | Format                                   | Description        \
-        \                         |\n |------------|--------|------------------------------------------|---------------------------------------------|\n\
+        \ identity, up to 5, comma separated.  | Find logs with this source.  |\n\
+        \ | amount      | string | Numeric | Find logs with this amount. |\n | numberOfShares\
+        \ | string | Numeric  | Find logs with these number of shares.  |\n\n ####\
+        \ Should filter range properties\n\n | Name            |  Type   | Format\
+        \   | Description                                             |\n |-----------------|---------|----------|---------------------------------------------------------|\n\
+        \ | amount      | string | Numeric | Find logs in the amount range. |\n |\
+        \ numberOfShares | string | Numeric  | Find logs in the number of shares range.\
+        \  |\n\n #### Range filter properties\n\n Ranges restrict the results to a\
+        \ range of values by defining a maximum and/or minimum value.\n\n | Name \
+        \      | Type   | Format                                   | Description \
+        \                                |\n |------------|--------|------------------------------------------|---------------------------------------------|\n\
         \ | amount     | string | Numeric                                  | Only\
         \ find logs in the amount range.     |\n | numberOfShares | string | Numeric\
         \                              | Only find logs withing the number of shares\
-        \ range (assets). |\n | tickNumber | string | Numeric                    \
-        \              | Only find logs in the tick range.       |\n | timestamp \
-        \ | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in\
-        \ the time range.       |\n\n ### Pagination\n\n | Name   | Type   | Necessity\
-        \ | Description                                                          \
-        \                               |\n |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|\n\
+        \ range. |\n | tickNumber | string | Numeric                             \
+        \     | Only find logs in the tick range.       |\n | timestamp  | string\
+        \ | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time\
+        \ range.       |\n\n ### Pagination\n\n | Name   | Type   | Necessity | Description\
+        \                                                                        \
+        \                 |\n |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|\n\
         \ | offset | uint32 | optional  | The offset of the first record to return.\
         \ Defaults to zero (first record). Maximum offset is 10000. |\n | size   |\
         \ uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is\

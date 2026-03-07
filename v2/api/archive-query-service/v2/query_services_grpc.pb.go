@@ -193,12 +193,21 @@ type ArchiveQueryServiceClient interface {
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with another destination.   |
 	//
-	// #### Should filter properties
+	// #### Should filter term properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Find logs with this source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Find logs with this source.  |
+	// | amount      | string | Numeric | Find logs with this amount. |
+	// | numberOfShares | string | Numeric  | Find logs with these number of shares.  |
+	//
+	// #### Should filter range properties
+	//
+	// | Name            |  Type   | Format   | Description                                             |
+	// |-----------------|---------|----------|---------------------------------------------------------|
+	// | amount      | string | Numeric | Find logs in the amount range. |
+	// | numberOfShares | string | Numeric  | Find logs in the number of shares range.  |
 	//
 	// #### Range filter properties
 	//
@@ -207,7 +216,7 @@ type ArchiveQueryServiceClient interface {
 	// | Name       | Type   | Format                                   | Description                                 |
 	// |------------|--------|------------------------------------------|---------------------------------------------|
 	// | amount     | string | Numeric                                  | Only find logs in the amount range.     |
-	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
+	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range. |
 	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
 	//
@@ -481,12 +490,21 @@ type ArchiveQueryServiceServer interface {
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with another destination.   |
 	//
-	// #### Should filter properties
+	// #### Should filter term properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Find logs with this source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Find logs with this source.  |
+	// | amount      | string | Numeric | Find logs with this amount. |
+	// | numberOfShares | string | Numeric  | Find logs with these number of shares.  |
+	//
+	// #### Should filter range properties
+	//
+	// | Name            |  Type   | Format   | Description                                             |
+	// |-----------------|---------|----------|---------------------------------------------------------|
+	// | amount      | string | Numeric | Find logs in the amount range. |
+	// | numberOfShares | string | Numeric  | Find logs in the number of shares range.  |
 	//
 	// #### Range filter properties
 	//
@@ -495,7 +513,7 @@ type ArchiveQueryServiceServer interface {
 	// | Name       | Type   | Format                                   | Description                                 |
 	// |------------|--------|------------------------------------------|---------------------------------------------|
 	// | amount     | string | Numeric                                  | Only find logs in the amount range.     |
-	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
+	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range. |
 	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
 	//
