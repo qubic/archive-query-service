@@ -84,7 +84,17 @@ message GetTransactionsForTickResponse {
   repeated Transaction transactions = 1 [(openapi.v3.property) = {description:"The transactions for the requested tick number."}];
 }
 
-// Range
+// Range filter
+//
+// | Name      | Type   | Necessity | Description                               |
+// |-----------|--------|-----------|-------------------------------------------|
+// | field     | string | required  | Name of the property you wish to search for. |
+// | gt        | string | optional  | Greater than.                             |
+// | gte       | string | optional  | Greater than or equal to.                 |
+// | lt        | string | optional  | Less than.                                |
+// | lte       | string | optional  | Less than or equal to.                    |
+//
+// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
 message Range {
   oneof lower_bound {
     string gt = 1 [(openapi.v3.property) = {description:"Greater than."}];
@@ -94,6 +104,15 @@ message Range {
     string lt = 3 [(openapi.v3.property) = {description:"Less than."}];
     string lte = 4 [(openapi.v3.property) = {description:"Less than or equal."}];
   }
+}
+
+// Should Filters
+//
+// One should filter can contain multiple terms and ranges. At least one of them has to match by default. See other
+// documentation how to specify term and range filters.
+message ShouldFilter {
+  map<string, string> terms = 1 [(openapi.v3.property) = {description:"Or filters: One or more of the values must match."}];
+  map<string, Range> ranges = 2 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and/or minimum value."}];
 }
 
 // GetTransactionsForIdentityRequest
@@ -263,8 +282,9 @@ message GetEventsRequest {
       yaml: "filters:\n  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\npagination:\n  offset: 0\n  size: 10"
     };
   };
-  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching results."}];
-  map<string, string> exclude = 2 [(openapi.v3.property) = {description:"Exclude filters: the value must not appear in the matching results."}];
+  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Include filters: all the values must match."}];
+  map<string, string> exclude = 2 [(openapi.v3.property) = {description:"Exclude filters: all the values must must not match."}];
+  repeated ShouldFilter should = 3 [(openapi.v3.property) = {description:"Should filters: one or more of the values must match."}];
   map<string, Range> ranges = 5 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and/or minimum value."}];
   Pagination pagination = 9 [(openapi.v3.property) = {description:"Optional paging information."}];
 }

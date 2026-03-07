@@ -42,8 +42,8 @@ func CreateFilters(value string, maxValues, maxLength int) ([]string, error) {
 	return val, nil
 }
 
-func CreateNumericRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
-	var ranges []*entities.Range
+func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
+	var ranges []entities.Range
 	var err error
 	var lowerBound uint64
 	var upperBound uint64
@@ -54,7 +54,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
 		}
-		ranges = append(ranges, &entities.Range{
+		ranges = append(ranges, entities.Range{
 			Operation: "gt",
 			Value:     r.GetGt(),
 		})
@@ -63,7 +63,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gte] value: %w", err)
 		}
-		ranges = append(ranges, &entities.Range{
+		ranges = append(ranges, entities.Range{
 			Operation: "gte",
 			Value:     r.GetGte(),
 		})
@@ -76,7 +76,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
 		}
-		ranges = append(ranges, &entities.Range{
+		ranges = append(ranges, entities.Range{
 			Operation: "lt",
 			Value:     r.GetLt(),
 		})
@@ -85,7 +85,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]*entities.Range, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lte] value: %w", err)
 		}
-		ranges = append(ranges, &entities.Range{
+		ranges = append(ranges, entities.Range{
 			Operation: "lte",
 			Value:     r.GetLte(),
 		})

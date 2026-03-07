@@ -3,7 +3,7 @@ package filters
 import (
 	"fmt"
 
-	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/qubic/archive-query-service/v2/grpc/utils"
 )
 
@@ -43,17 +43,40 @@ func validateDigest(values []string, maxValues int, lowercase bool) error {
 	return nil
 }
 
-func VerifyNoFilterDuplicates(filterMap map[string][]string, ranges map[string]*api.Range) error {
-	if filterMap != nil {
-		// check for ranges that are already declared as filter
-		for key := range ranges {
-			_, ok := filterMap[key]
-			if ok {
-				return fmt.Errorf("[%s] is already declared", key)
-			}
+func VerifyNoConflictingFilters(queryFilters entities.Filters) error {
+	valid, err := checkForConflictingFilters(make(map[string]bool, 10), queryFilters.Include)
+	if err != nil {
+		return err
+	}
+	valid, err = checkForConflictingFilters(valid, queryFilters.Exclude)
+	if err != nil {
+		return err
+	}
+	valid, err = checkForConflictingFilters(valid, queryFilters.Ranges)
+	if err != nil {
+		return err
+	}
+	for _, should := range queryFilters.Should {
+		valid, err = checkForConflictingFilters(valid, should.Terms)
+		if err != nil {
+			return err
+		}
+		valid, err = checkForConflictingFilters(valid, should.Ranges)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func checkForConflictingFilters[F any](known map[string]bool, checked map[string]F) (map[string]bool, error) {
+	for k := range checked {
+		if _, found := known[k]; found {
+			return nil, fmt.Errorf("duplicate [%s] filter", k)
+		}
+		known[k] = true
+	}
+	return known, nil
 }
 
 func checkQuantity(values []string, maxValues int) error {

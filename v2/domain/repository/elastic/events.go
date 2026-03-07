@@ -68,8 +68,8 @@ type eventsSearchResponse struct {
 	} `json:"hits"`
 }
 
-func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Event, *entities.Hits, error) {
-	query, err := createEventsQuery(filters, ranges, from, size)
+func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
+	query, err := createEventsQuery(filters, from, size)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating events query: %w", err)
 	}
@@ -88,18 +88,25 @@ func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filte
 	return eventHitsToAPIEvents(result.Hits.Hits), hits, nil
 }
 
-func createEventsQuery(filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) (string, error) {
+func createEventsQuery(filters entities.Filters, from, size uint32) (string, error) {
 	filterStrings := make([]string, 0, len(filters.Include))
 
-	// include filters
+	// append include filters to filter section
 	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
 
-	// append range filters to include filters
-	rangeFilterStrings, err := getRangeFilterStrings(ranges)
+	// append range filters to filter section
+	rangeFilterStrings, err := getRangeFilterStrings(filters.Ranges)
 	if err != nil {
 		return "", err
 	}
 	filterStrings = append(filterStrings, rangeFilterStrings...)
+
+	// append should filters to filter section
+	shouldFilterStrings, err := getShouldFilterStrings(filters.Should)
+	if err != nil {
+		return "", fmt.Errorf("creating should filters: %w", err)
+	}
+	filterStrings = append(filterStrings, shouldFilterStrings...)
 
 	// exclude filters
 	excludeFilterStrings := getFilterStrings(filters.Exclude)

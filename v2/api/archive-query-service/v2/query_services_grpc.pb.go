@@ -145,20 +145,6 @@ type ArchiveQueryServiceClient interface {
 	// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
 	//
-	// #### Range definition
-	//
-	// A range with size of 0 or 1 is not allowed.
-	//
-	// | Name      | Type   | Necessity | Description                               |
-	// |-----------|--------|-----------|-------------------------------------------|
-	// | field | string | required  | Name of the field you wish to search for. |
-	// | gt        | string | optional  | Greater than.                             |
-	// | gte       | string | optional  | Greater than or equal to.                 |
-	// | lt        | string | optional  | Less than.                                |
-	// | lte       | string | optional  | Less than or equal to.                    |
-	//
-	// Only one lower bound and one upper bound can be specified.
-	//
 	// #### Examples
 	//
 	// ```
@@ -237,18 +223,6 @@ type ArchiveQueryServiceClient interface {
 	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
 	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
-	//
-	// #### Range definition
-	//
-	// | Name      | Type   | Necessity | Description                               |
-	// |-----------|--------|-----------|-------------------------------------------|
-	// | field     | string | required  | Name of the property you wish to search for. |
-	// | gt        | string | optional  | Greater than.                             |
-	// | gte       | string | optional  | Greater than or equal to.                 |
-	// | lt        | string | optional  | Less than.                                |
-	// | lte       | string | optional  | Less than or equal to.                    |
-	//
-	// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
 	//
 	// #### Examples
 	// t
@@ -479,20 +453,6 @@ type ArchiveQueryServiceServer interface {
 	// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
 	//
-	// #### Range definition
-	//
-	// A range with size of 0 or 1 is not allowed.
-	//
-	// | Name      | Type   | Necessity | Description                               |
-	// |-----------|--------|-----------|-------------------------------------------|
-	// | field | string | required  | Name of the field you wish to search for. |
-	// | gt        | string | optional  | Greater than.                             |
-	// | gte       | string | optional  | Greater than or equal to.                 |
-	// | lt        | string | optional  | Less than.                                |
-	// | lte       | string | optional  | Less than or equal to.                    |
-	//
-	// Only one lower bound and one upper bound can be specified.
-	//
 	// #### Examples
 	//
 	// ```
@@ -571,18 +531,6 @@ type ArchiveQueryServiceServer interface {
 	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
 	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
-	//
-	// #### Range definition
-	//
-	// | Name      | Type   | Necessity | Description                               |
-	// |-----------|--------|-----------|-------------------------------------------|
-	// | field     | string | required  | Name of the property you wish to search for. |
-	// | gt        | string | optional  | Greater than.                             |
-	// | gte       | string | optional  | Greater than or equal to.                 |
-	// | lt        | string | optional  | Less than.                                |
-	// | lte       | string | optional  | Less than or equal to.                    |
-	//
-	// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
 	//
 	// #### Examples
 	// t

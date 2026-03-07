@@ -23,12 +23,11 @@ var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
-	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error)
+	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error)
 	GetTransactionsForIdentity(
 		ctx context.Context,
 		identity string,
-		filters2 entities.Filters,
-		ranges map[string][]*entities.Range,
+		queryFilters entities.Filters,
 		from, size uint32,
 	) (*entities.TransactionsResult, error)
 }
@@ -47,7 +46,7 @@ type ComputorsListService interface {
 }
 
 type EventsService interface {
-	GetEvents(ctx context.Context, queryFilters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) (*entities.EventsResult, error)
+	GetEvents(ctx context.Context, queryFilters entities.Filters, from, size uint32) (*entities.EventsResult, error)
 }
 
 type ArchiveQueryService struct {
@@ -145,14 +144,15 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err = filters.CheckForConflictingFilters(includeFilters, excludeFilters)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "conflicting filters: %v", err)
-	}
-
-	queryRanges, err := filters.CreateIdentityTransactionQueryRanges(includeFilters, excludeFilters, request.GetRanges())
+	filterRanges, err := filters.CreateIdentityTransactionQueryRanges(request.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
+	}
+
+	queryFilters := entities.Filters{Include: includeFilters, Exclude: excludeFilters, Ranges: filterRanges}
+	err = filters.VerifyNoConflictingFilters(queryFilters)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "conflicting filters: %v", err)
 	}
 
 	from, size, err := s.pageSizeLimits.ValidatePagination(request.GetPagination())
@@ -162,7 +162,7 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, entities.Filters{Include: includeFilters, Exclude: excludeFilters}, queryRanges, from, size)
+	result, err := s.txService.GetTransactionsForIdentity(ctx, request.Identity, queryFilters, from, size)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for identity [%s]", request.GetIdentity()), err)
 	}
@@ -224,29 +224,41 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 }
 
 func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsRequest) (*api.GetEventsResponse, error) {
-	includeFilters, err := filters.CreateEventsFilters(req.GetFilters())
+	includeFilters, err := filters.CreateEventFilters(req.GetFilters(), filters.AllowedEventIncludeFilters)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "creating filters: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "creating include filters: %v", err)
 	}
 
-	excludeFilters, err := filters.CreateEventsFilters(req.GetExclude())
+	excludeFilters, err := filters.CreateEventFilters(req.GetExclude(), filters.AllowedEventExcludeFilters)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "creating filters: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "creating exclude filters: %v", err)
 	}
 
-	err = filters.VerifyExcludeFilterKeys(excludeFilters)
+	queryRanges, err := filters.CreateEventRanges(req.GetRanges(), filters.AllowedEventRanges)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "creating range filters: %v", err)
 	}
 
-	err = filters.CheckForConflictingFilters(includeFilters, excludeFilters)
+	var shouldFilters = make([]entities.ShouldFilter, 0, len(req.GetShould()))
+	for _, shouldFilter := range req.GetShould() {
+		shouldFilterTerms, err := filters.CreateEventFilters(shouldFilter.GetTerms(), filters.AllowedEventShouldFilters)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "creating should filters: %v", err)
+		}
+		shouldFilterRanges, err := filters.CreateEventRanges(shouldFilter.GetRanges(), filters.AllowedEventShouldRanges)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "creating should ranges: %v", err)
+		}
+		shouldFilters = append(shouldFilters, entities.ShouldFilter{
+			Terms:  shouldFilterTerms,
+			Ranges: shouldFilterRanges,
+		})
+	}
+
+	queryFilters := entities.Filters{Include: includeFilters, Exclude: excludeFilters, Ranges: queryRanges, Should: shouldFilters}
+	err = filters.VerifyNoConflictingFilters(queryFilters)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "conflicting filters: %v", err)
-	}
-
-	queryRanges, err := filters.CreateEventQueryRanges(includeFilters, excludeFilters, req.GetRanges())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
 	from, size, err := s.pageSizeLimits.ValidatePagination(req.GetPagination())
@@ -254,8 +266,7 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	queryFilters := entities.Filters{Include: includeFilters, Exclude: excludeFilters}
-	result, err := s.evService.GetEvents(ctx, queryFilters, queryRanges, from, size)
+	result, err := s.evService.GetEvents(ctx, queryFilters, from, size)
 	if err != nil {
 		return nil, createInternalError("failed to get events", err)
 	}

@@ -67,18 +67,18 @@ func Test_getFilterStrings(t *testing.T) {
 func Test_getRangeFilterStrings(t *testing.T) {
 	tests := []struct {
 		name    string
-		ranges  map[string][]*entities.Range
+		ranges  map[string][]entities.Range
 		want    []string
 		wantErr bool
 	}{
 		{
 			name:   "empty ranges",
-			ranges: map[string][]*entities.Range{},
+			ranges: map[string][]entities.Range{},
 			want:   []string{},
 		},
 		{
 			name: "single range with single operation",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"amount": {
 					{Operation: "gte", Value: "1000"},
 				},
@@ -89,7 +89,7 @@ func Test_getRangeFilterStrings(t *testing.T) {
 		},
 		{
 			name: "single range with multiple operations",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"tickNumber": {
 					{Operation: "gte", Value: "100"},
 					{Operation: "lte", Value: "200"},
@@ -101,7 +101,7 @@ func Test_getRangeFilterStrings(t *testing.T) {
 		},
 		{
 			name: "multiple ranges",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"amount": {
 					{Operation: "gt", Value: "0"},
 				},
@@ -116,7 +116,7 @@ func Test_getRangeFilterStrings(t *testing.T) {
 		},
 		{
 			name: "empty range slice returns error",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"amount": {},
 			},
 			wantErr: true,

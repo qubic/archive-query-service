@@ -28,7 +28,7 @@ func Test_createIdentitiesQuery_returnQuery(t *testing.T) {
 	  "track_total_hits": 10000
 	}`
 
-	query, err := createIdentitiesQuery(testIdentity, entities.Filters{}, nil, 0, 10, 12345)
+	query, err := createIdentitiesQuery(testIdentity, entities.Filters{}, 0, 10, 12345)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -61,7 +61,7 @@ func Test_createIdentitiesQuery_givenFilters_returnQueryWithFilters(t *testing.T
 	f := entities.Filters{
 		Include: filters,
 	}
-	query, err := createIdentitiesQuery(testIdentity, f, nil, 0, 5, 1000000)
+	query, err := createIdentitiesQuery(testIdentity, f, 0, 5, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -96,7 +96,7 @@ func Test_createIdentitiesQuery_givenExcludeFilters_returnQueryWithExcludeFilter
 	f := entities.Filters{
 		Exclude: filters,
 	}
-	query, err := createIdentitiesQuery(testIdentity, f, nil, 0, 5, 1000000)
+	query, err := createIdentitiesQuery(testIdentity, f, 0, 5, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -126,11 +126,11 @@ func Test_createIdentitiesQuery_givenRanges_returnQueryWithFilters(t *testing.T)
 	  "track_total_hits": 10000
 	}`
 
-	range1 := []*entities.Range{{Operation: "lt", Value: "42"}}
-	range2 := []*entities.Range{{Operation: "gte", Value: "12"}, {Operation: "lte", Value: "43"}}
-	range3 := []*entities.Range{{Operation: "gt", Value: "44"}}
-	ranges := map[string][]*entities.Range{"some-value": range1, "another-value": range2, "third-value": range3}
-	query, err := createIdentitiesQuery(testIdentity, entities.Filters{}, ranges, 0, 5, 1000000)
+	range1 := []entities.Range{{Operation: "lt", Value: "42"}}
+	range2 := []entities.Range{{Operation: "gte", Value: "12"}, {Operation: "lte", Value: "43"}}
+	range3 := []entities.Range{{Operation: "gt", Value: "44"}}
+	ranges := map[string][]entities.Range{"some-value": range1, "another-value": range2, "third-value": range3}
+	query, err := createIdentitiesQuery(testIdentity, entities.Filters{Ranges: ranges}, 0, 5, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -164,13 +164,14 @@ func Test_createIdentitiesQuery_givenRangesAndFilters_returnQueryWithAllFilters(
 	  "track_total_hits": 10000
 	}`
 
-	range1 := []*entities.Range{{Operation: "lte", Value: "42"}, {Operation: "gt", Value: "0"}}
-	ranges := map[string][]*entities.Range{"range-value": range1}
+	range1 := []entities.Range{{Operation: "lte", Value: "42"}, {Operation: "gt", Value: "0"}}
+	ranges := map[string][]entities.Range{"range-value": range1}
 	filters := entities.Filters{
 		Include: map[string][]string{"some-value": {"42"}, "another-value": {"foo"}},
 		Exclude: map[string][]string{"other-value": {"exclude-me", "exclude-me-too"}},
+		Ranges:  ranges,
 	}
-	query, err := createIdentitiesQuery(testIdentity, filters, ranges, 200, 100, 1000000)
+	query, err := createIdentitiesQuery(testIdentity, filters, 200, 100, 1000000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -179,7 +180,7 @@ func Test_createIdentitiesQuery_givenRangesAndFilters_returnQueryWithAllFilters(
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_noRangeFilter(t *testing.T) {
-	ranges := map[string][]*entities.Range{}
+	ranges := map[string][]entities.Range{}
 	maxTick := uint32(1000)
 
 	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
@@ -188,7 +189,7 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_noRangeFilter(t *testing.T
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_upperBoundReplacedWithMaxTick(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "lte", Value: "5000"},
 		},
@@ -198,11 +199,12 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_upperBoundReplacedWithMaxT
 	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
 	require.NoError(t, err)
 	require.True(t, hasUpperBound)
+	require.Equal(t, "lte", ranges["tickNumber"][0].Operation)
 	require.Equal(t, "1000", ranges["tickNumber"][0].Value)
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_upperBoundNotReplaced(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "lte", Value: "999"},
 		},
@@ -212,11 +214,12 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_upperBoundNotReplaced(t *t
 	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
 	require.NoError(t, err)
 	require.True(t, hasUpperBound)
+	require.Equal(t, "lte", ranges["tickNumber"][0].Operation)
 	require.Equal(t, "999", ranges["tickNumber"][0].Value)
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_onlyLowerBound(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "gte", Value: "100"},
 		},
@@ -226,11 +229,12 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_onlyLowerBound(t *testing.
 	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
 	require.NoError(t, err)
 	require.False(t, hasUpperBound)
+	require.Equal(t, "gte", ranges["tickNumber"][0].Operation)
 	require.Equal(t, "100", ranges["tickNumber"][0].Value)
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_ltOperatorNotReplacedWithMaxTick(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "lt", Value: "1001"},
 		},
@@ -240,11 +244,12 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_ltOperatorNotReplacedWithM
 	hasUpperBound, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
 	require.NoError(t, err)
 	require.True(t, hasUpperBound)
+	require.Equal(t, "lt", ranges["tickNumber"][0].Operation)
 	require.Equal(t, "1001", ranges["tickNumber"][0].Value)
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_ltOperatorReplacedWithMaxTick(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "lt", Value: "1002"},
 		},
@@ -258,7 +263,7 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_ltOperatorReplacedWithMaxT
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_lteOperatorReplacedWithMaxTick(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "lte", Value: "5000"},
 		},
@@ -272,7 +277,7 @@ func Test_modifyUpperBoundTickNumberFilterIfNecessary_lteOperatorReplacedWithMax
 }
 
 func Test_modifyUpperBoundTickNumberFilterIfNecessary_invalidValueReturnsError(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {
 			{Operation: "lte", Value: "not-a-number"},
 		},
@@ -305,10 +310,10 @@ func Test_createIdentitiesQuery_withTickNumberUpperBound_omitsMaxTickFilter(t *t
 	  "track_total_hits": 10000
 	}`
 
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {{Operation: "lte", Value: "500"}},
 	}
-	query, err := createIdentitiesQuery(testIdentity, entities.Filters{}, ranges, 0, 10, 1000)
+	query, err := createIdentitiesQuery(testIdentity, entities.Filters{Ranges: ranges}, 0, 10, 1000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -335,10 +340,10 @@ func Test_createIdentitiesQuery_withTickNumberUpperBoundExceedingMaxTick_replace
 	  "track_total_hits": 10000
 	}`
 
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {{Operation: "lt", Value: "5000"}},
 	}
-	query, err := createIdentitiesQuery(testIdentity, entities.Filters{}, ranges, 0, 10, 1000)
+	query, err := createIdentitiesQuery(testIdentity, entities.Filters{Ranges: ranges}, 0, 10, 1000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 
@@ -366,10 +371,10 @@ func Test_createIdentitiesQuery_withTickNumberLowerBoundOnly_includesMaxTickFilt
 	  "track_total_hits": 10000
 	}`
 
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"tickNumber": {{Operation: "gte", Value: "100"}},
 	}
-	query, err := createIdentitiesQuery(testIdentity, entities.Filters{}, ranges, 0, 10, 1000)
+	query, err := createIdentitiesQuery(testIdentity, entities.Filters{Ranges: ranges}, 0, 10, 1000)
 	require.NoError(t, err)
 	require.NotEmpty(t, query)
 

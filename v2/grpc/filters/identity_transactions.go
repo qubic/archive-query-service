@@ -89,23 +89,13 @@ func validateIdentityTransactionQueryFilters(filterMap map[string][]string) erro
 
 const allowedNumberOfPerIdentityQueryRanges = 4
 
-func CreateIdentityTransactionQueryRanges(includeFilters, excludeFilters map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
-	convertedRanges := map[string][]*entities.Range{}
+func CreateIdentityTransactionQueryRanges(ranges map[string]*api.Range) (map[string][]entities.Range, error) {
+	convertedRanges := map[string][]entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
 	}
 	if len(ranges) > allowedNumberOfPerIdentityQueryRanges {
 		return nil, fmt.Errorf("too many ranges (%d)", len(ranges))
-	}
-
-	err := VerifyNoFilterDuplicates(includeFilters, ranges)
-	if err != nil {
-		return nil, fmt.Errorf("checking for duplicate: %w", err)
-	}
-
-	err = VerifyNoFilterDuplicates(excludeFilters, ranges)
-	if err != nil {
-		return nil, fmt.Errorf("checking for duplicate: %w", err)
 	}
 
 	for key, value := range ranges {

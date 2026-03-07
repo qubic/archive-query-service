@@ -15,17 +15,19 @@ import (
 )
 
 type EventsServiceStub struct {
-	events         []*api.Event
-	hits           *entities.Hits
-	err            error
-	ReceivedRanges map[string][]*entities.Range
+	events          []*api.Event
+	hits            *entities.Hits
+	err             error
+	ReceivedFilters entities.Filters
 }
 
+const validId1 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+const validId2 = "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
 const validTransactionHash1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
 const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
 
-func (s *EventsServiceStub) GetEvents(_ context.Context, _ entities.Filters, ranges map[string][]*entities.Range, _, _ uint32) (*entities.EventsResult, error) {
-	s.ReceivedRanges = ranges
+func (s *EventsServiceStub) GetEvents(_ context.Context, queryFilters entities.Filters, _, _ uint32) (*entities.EventsResult, error) {
+	s.ReceivedFilters = queryFilters
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -132,7 +134,8 @@ func TestArchiveQueryService_GetEvents_GivenInvalidExcludeFilter_ThenError(t *te
 	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
 		Exclude: map[string]string{"tickNumber": "123"},
 	})
-	require.ErrorContains(t, err, "invalid exclude filter")
+	require.ErrorContains(t, err, "creating exclude filter")
+	require.ErrorContains(t, err, "unsupported filter")
 }
 
 func TestArchiveQueryService_GetEvents_WithRanges(t *testing.T) {
@@ -156,9 +159,40 @@ func TestArchiveQueryService_GetEvents_WithRanges(t *testing.T) {
 	assert.Len(t, response.Events, 1)
 	assert.Equal(t, uint32(1), response.Hits.Total)
 
-	assert.Len(t, evService.ReceivedRanges, 1)
-	assert.Len(t, evService.ReceivedRanges["amount"], 2)
-	assert.Contains(t, evService.ReceivedRanges["amount"], &entities.Range{Operation: "gte", Value: "1000"})
-	assert.Contains(t, evService.ReceivedRanges["amount"], &entities.Range{Operation: "lte", Value: "2000"})
+	ranges := evService.ReceivedFilters.Ranges
+	assert.Len(t, ranges, 1)
+	assert.Len(t, ranges["amount"], 2)
+	assert.Contains(t, ranges["amount"], entities.Range{Operation: "gte", Value: "1000"})
+	assert.Contains(t, ranges["amount"], entities.Range{Operation: "lte", Value: "2000"})
+}
 
+func TestArchiveQueryService_GetEvents_WithShouldFilters(t *testing.T) {
+	evService := &EventsServiceStub{
+		events: []*api.Event{{}}, // single dummy event
+		hits:   &entities.Hits{Total: 1, Relation: "eq"},
+	}
+	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
+
+	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Should: []*api.ShouldFilter{
+			{Terms: map[string]string{"destination": validId1 + " , " + validId2, "source": validId1}},
+			{Ranges: map[string]*api.Range{
+				"amount":         {LowerBound: &api.Range_Gte{Gte: "1000000"}, UpperBound: &api.Range_Lte{Lte: "2000000"}},
+				"numberOfShares": {LowerBound: &api.Range_Gt{Gt: "0"}, UpperBound: &api.Range_Lt{Lt: "100"}},
+			}},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	assert.Len(t, response.Events, 1)
+	assert.Equal(t, uint32(1), response.Hits.Total)
+
+	should := evService.ReceivedFilters.Should
+	assert.Len(t, should, 2)
+	assert.Len(t, should[0].Terms, 2)
+	assert.Len(t, should[1].Ranges, 2)
+	assert.Contains(t, should[0].Terms["destination"], validId1, validId2)
+	assert.Contains(t, should[0].Terms["source"], validId1)
+	assert.Contains(t, should[1].Ranges["amount"], entities.Range{Operation: "gte", Value: "1000000"}, entities.Range{Operation: "lte", Value: "2000000"})
+	assert.Contains(t, should[1].Ranges["numberOfShares"], entities.Range{Operation: "gt", Value: "0"}, entities.Range{Operation: "lt", Value: "10"})
 }

@@ -17,7 +17,6 @@ type TransactionServiceStub struct {
 	identity     string
 	filters      map[string][]string
 	newFilters   entities.Filters
-	ranges       map[string][]*entities.Range
 	transactions []*api.Transaction
 	hits         *entities.Hits
 }
@@ -31,7 +30,7 @@ func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash st
 	return nil, nil
 }
 
-func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, _ map[string][]string, _ map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, _ map[string][]string, _ map[string][]entities.Range) ([]*api.Transaction, error) {
 	transactions := make([]*api.Transaction, 0)
 	for _, tx := range t.transactions {
 		if tx.TickNumber == tickNumber {
@@ -45,13 +44,11 @@ func (t *TransactionServiceStub) GetTransactionsForIdentity(
 	ctx context.Context,
 	identity string,
 	filters entities.Filters,
-	ranges map[string][]*entities.Range,
 	_, _ uint32,
 ) (*entities.TransactionsResult, error) {
 	t.ctx = ctx
 	t.identity = identity
 	t.newFilters = filters // this is not 100% correct as it doesn't use the exclude filters
-	t.ranges = ranges
 	return &entities.TransactionsResult{LastProcessedTick: 42, Hits: t.hits, Transactions: t.transactions}, nil
 }
 
@@ -142,10 +139,10 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 	assert.Equal(t, ctx, txService.ctx)
 	assert.Equal(t, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB", txService.identity)
 	assert.Equal(t, map[string][]string{"inputType": {"1"}}, txService.newFilters.Include)
-	assert.Equal(t, map[string][]*entities.Range{"amount": {
-		&entities.Range{Operation: "gte", Value: "1"},
-		&entities.Range{Operation: "lt", Value: "10000"},
-	}}, txService.ranges)
+	assert.Equal(t, map[string][]entities.Range{"amount": {
+		entities.Range{Operation: "gte", Value: "1"},
+		entities.Range{Operation: "lt", Value: "10000"},
+	}}, txService.newFilters.Ranges)
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity_WithDeprecatedExcludeFilter(t *testing.T) {

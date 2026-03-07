@@ -239,7 +239,7 @@ func Test_validateTickTransactionQueryRanges_givenDuplicateFilter_thenError(t *t
 	filters := map[string][]string{TickFilterAmount: {"100"}}
 	ranges := map[string]*api.Range{TickFilterAmount: nil}
 	_, err := ValidateTickTransactionQueryRanges(filters, ranges)
-	require.ErrorContains(t, err, "is already declared")
+	require.ErrorContains(t, err, "duplicate [amount] filter")
 }
 
 func Test_validateTickTransactionQueryRanges_givenTooManyRanges_thenError(t *testing.T) {

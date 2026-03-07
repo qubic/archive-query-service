@@ -72,8 +72,8 @@ func validateTickTransactionQueryFilters(filterMap map[string][]string) error {
 
 const allowedNumberOfTickQueryRanges = 2
 
-func ValidateTickTransactionQueryRanges(filterMap map[string][]string, ranges map[string]*api.Range) (map[string][]*entities.Range, error) {
-	convertedRanges := map[string][]*entities.Range{}
+func ValidateTickTransactionQueryRanges(filterMap map[string][]string, ranges map[string]*api.Range) (map[string][]entities.Range, error) {
+	convertedRanges := map[string][]entities.Range{}
 	if len(ranges) == 0 {
 		return nil, nil
 	}
@@ -81,9 +81,10 @@ func ValidateTickTransactionQueryRanges(filterMap map[string][]string, ranges ma
 		return nil, fmt.Errorf("too many ranges (%d)", len(ranges))
 	}
 
-	err := VerifyNoFilterDuplicates(filterMap, ranges)
-	if err != nil {
-		return nil, fmt.Errorf("checking for duplicate: %w", err)
+	for k := range ranges {
+		if _, found := filterMap[k]; found {
+			return nil, fmt.Errorf("duplicate [%s] filter", k)
+		}
 	}
 
 	for key, value := range ranges {

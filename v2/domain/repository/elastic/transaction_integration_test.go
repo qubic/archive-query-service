@@ -233,14 +233,11 @@ func (t *transactionsSuite) Test_GetTransactionByHash() {
 
 func (t *transactionsSuite) Test_GetIdentityTransactions() {
 	filters := entities.Filters{
-		Include: map[string][]string{"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}},
+		Include: map[string][]string{"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}}, // excludes tx 3
+		Ranges:  map[string][]entities.Range{"tickNumber": {{Operation: "lt", Value: "100"}}},                         // does not match tx 4
 	}
-	txs, hits, err := t.repo.GetTransactionsForIdentity(t.ctx,
-		"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
-		200,
-		filters, // excludes tx 3
-		map[string][]*entities.Range{"tickNumber": {{Operation: "lt", Value: "100"}}}, // does not match tx 4
-		0, 10,
+	txs, hits, err := t.repo.GetTransactionsForIdentity(t.ctx, "KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
+		200, filters, 0, 10,
 	)
 	require.NoError(t.T(), err, "getting transactions for identity")
 	require.Len(t.T(), txs, 2)
@@ -271,7 +268,6 @@ func (t *transactionsSuite) Test_GetIdentityTransactions_GivenExcludeFilters() {
 		"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA",
 		200,
 		filters,
-		map[string][]*entities.Range{},
 		0, 10,
 	)
 	require.NoError(t.T(), err, "getting transactions for identity with exclude filters")

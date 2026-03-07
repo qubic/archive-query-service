@@ -58,9 +58,9 @@ func (mr *MockTransactionRepositoryMockRecorder) GetTransactionByHash(ctx, hash 
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters, ranges map[string][]*entities.Range, from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
+func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters, from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, maxTick, filters, ranges, from, size)
+	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, maxTick, filters, from, size)
 	ret0, _ := ret[0].([]*api.Transaction)
 	ret1, _ := ret[1].(*entities.Hits)
 	ret2, _ := ret[2].(error)
@@ -68,13 +68,13 @@ func (m *MockTransactionRepository) GetTransactionsForIdentity(ctx context.Conte
 }
 
 // GetTransactionsForIdentity indicates an expected call of GetTransactionsForIdentity.
-func (mr *MockTransactionRepositoryMockRecorder) GetTransactionsForIdentity(ctx, identity, maxTick, filters, ranges, from, size any) *gomock.Call {
+func (mr *MockTransactionRepositoryMockRecorder) GetTransactionsForIdentity(ctx, identity, maxTick, filters, from, size any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionRepository)(nil).GetTransactionsForIdentity), ctx, identity, maxTick, filters, ranges, from, size)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionRepository)(nil).GetTransactionsForIdentity), ctx, identity, maxTick, filters, from, size)
 }
 
 // GetTransactionsForTickNumber mocks base method.
-func (m *MockTransactionRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (m *MockTransactionRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionsForTickNumber", ctx, tickNumber, filters, ranges)
 	ret0, _ := ret[0].([]*api.Transaction)

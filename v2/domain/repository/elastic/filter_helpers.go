@@ -27,7 +27,7 @@ func getFilterStrings(filters map[string][]string) []string {
 	return filterStrings
 }
 
-func getRangeFilterStrings(ranges map[string][]*entities.Range) ([]string, error) {
+func getRangeFilterStrings(ranges map[string][]entities.Range) ([]string, error) {
 	filterStrings := make([]string, 0, len(ranges))
 	keys := getSortedKeys(ranges) // sort for a deterministic filter order
 	for _, k := range keys {
@@ -45,7 +45,32 @@ func getRangeFilterStrings(ranges map[string][]*entities.Range) ([]string, error
 	return filterStrings, nil
 }
 
-func createRangeFilter(property string, r []*entities.Range) (string, error) {
+func getShouldFilterStrings(shouldFilters []entities.ShouldFilter) ([]string, error) {
+	filterStrings := make([]string, 0, len(shouldFilters)*2)
+
+	for _, should := range shouldFilters {
+
+		termFilters := getFilterStrings(should.Terms)
+		rangeFilters, err := getRangeFilterStrings(should.Ranges)
+		if err != nil {
+			return nil, fmt.Errorf("getting range filters: %w", err)
+		}
+
+		if len(termFilters) > 0 || len(rangeFilters) > 0 {
+			/*
+				{ "bool": { "should": [ ... terms and ranges ... ], "minimum_should_match": 1 } },
+			*/
+			filterStrings = append(filterStrings,
+				fmt.Sprintf(`{"bool":{"should":[%s], "minimum_should_match": 1}}`,
+					strings.Join(append(termFilters, rangeFilters...), ",")))
+		}
+
+	}
+
+	return filterStrings, nil
+}
+
+func createRangeFilter(property string, r []entities.Range) (string, error) {
 	var rangeStrings []string
 	for _, v := range r {
 		rangeStrings = append(rangeStrings, fmt.Sprintf(`"%s":"%s"`, v.Operation, v.Value))

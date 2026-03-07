@@ -69,16 +69,7 @@ paths:
         \ range (assets). |\n | tickNumber | string | Numeric                    \
         \              | Only find logs in the tick range.       |\n | timestamp \
         \ | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in\
-        \ the time range.       |\n\n #### Range definition\n\n | Name      | Type\
-        \   | Necessity | Description                               |\n |-----------|--------|-----------|-------------------------------------------|\n\
-        \ | field     | string | required  | Name of the property you wish to search\
-        \ for. |\n | gt        | string | optional  | Greater than.              \
-        \               |\n | gte       | string | optional  | Greater than or equal\
-        \ to.                 |\n | lt        | string | optional  | Less than.  \
-        \                              |\n | lte       | string | optional  | Less\
-        \ than or equal to.                    |\n\n Only one lower bound and one\
-        \ upper bound can be specified. One bound is needed. A range with size of\
-        \ 0 or 1 is not allowed.\n\n #### Examples\nt\n ```\n \"amount\": { \"gt\"\
+        \ the time range.       |\n\n #### Examples\nt\n ```\n \"amount\": { \"gt\"\
         : \"1000000\" }\n \"tickNumber\": { \"gte\": \"25563000\", \"lte\": \"28300000\"\
         \ }\n ```\n\n ### Pagination\n\n | Name   | Type   | Necessity | Description\
         \                                                                        \
@@ -229,18 +220,9 @@ paths:
         \       |\n | inputType  | string | Numeric                              \
         \    | Only find transactions in input type range. |\n | timestamp  | string\
         \ | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time\
-        \ range.       |\n\n #### Range definition\n\n A range with size of 0 or 1\
-        \ is not allowed.\n\n | Name      | Type   | Necessity | Description     \
-        \                          |\n |-----------|--------|-----------|-------------------------------------------|\n\
-        \ | field | string | required  | Name of the field you wish to search for.\
-        \ |\n | gt        | string | optional  | Greater than.                   \
-        \          |\n | gte       | string | optional  | Greater than or equal to.\
-        \                 |\n | lt        | string | optional  | Less than.      \
-        \                          |\n | lte       | string | optional  | Less than\
-        \ or equal to.                    |\n\n Only one lower bound and one upper\
-        \ bound can be specified.\n\n #### Examples\n\n ```\n \"amount\": { \"gt\"\
-        : \"1000000\" }\n \"tickNumber\": { \"gte\": \"25563000\", \"lte\": \"28300000\"\
-        \ }\n \"inputType\": { \"gt\": \"0\" }\n \"timestamp\": { \"lt\": \"1757376000000\"\
+        \ range.       |\n\n #### Examples\n\n ```\n \"amount\": { \"gt\": \"1000000\"\
+        \ }\n \"tickNumber\": { \"gte\": \"25563000\", \"lte\": \"28300000\" }\n \"\
+        inputType\": { \"gt\": \"0\" }\n \"timestamp\": { \"lt\": \"1757376000000\"\
         \ }\n ```\n\n ### Pagination\n\n | Name   | Type   | Necessity | Description\
         \                                                                        \
         \                 |\n |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|\n\
@@ -488,13 +470,17 @@ components:
           type: object
           additionalProperties:
             type: string
-          description: 'Include filters: the value must appear in the matching results.'
+          description: 'Include filters: all the values must match.'
         exclude:
           type: object
           additionalProperties:
             type: string
-          description: 'Exclude filters: the value must not appear in the matching
-            results.'
+          description: 'Exclude filters: all the values must must not match.'
+        should:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShouldFilter'
+          description: 'Should filters: one or more of the values must match.'
         ranges:
           type: object
           additionalProperties:
@@ -734,7 +720,32 @@ components:
         lte:
           type: string
           description: Less than or equal.
-      description: Range
+      description: "Range filter\n\n | Name      | Type   | Necessity | Description\
+        \                               |\n |-----------|--------|-----------|-------------------------------------------|\n\
+        \ | field     | string | required  | Name of the property you wish to search\
+        \ for. |\n | gt        | string | optional  | Greater than.              \
+        \               |\n | gte       | string | optional  | Greater than or equal\
+        \ to.                 |\n | lt        | string | optional  | Less than.  \
+        \                              |\n | lte       | string | optional  | Less\
+        \ than or equal to.                    |\n\n Only one lower bound and one\
+        \ upper bound can be specified. One bound is needed. A range with size of\
+        \ 0 or 1 is not allowed."
+    ShouldFilter:
+      type: object
+      properties:
+        terms:
+          type: object
+          additionalProperties:
+            type: string
+          description: 'Or filters: One or more of the values must match.'
+        ranges:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Range'
+          description: Ranges restrict the results by a maximum and/or minimum value.
+      description: "Should Filters\n\n One should filter can contain multiple terms\
+        \ and ranges. At least one of them has to match by default. See other\n documentation\
+        \ how to specify term and range filters."
     SmartContractMessageData:
       type: object
       properties:

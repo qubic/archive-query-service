@@ -76,7 +76,7 @@ func (r *ArchiveRepository) GetTransactionByHash(_ context.Context, hash string)
 	return transactionToAPITransaction(result.Source), nil
 }
 
-func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error) {
 	query, err := createTickTransactionsQuery(tickNumber, filters, ranges)
 	if err != nil {
 		return nil, fmt.Errorf("creating transactions for tick query: %w", err)
@@ -90,7 +90,7 @@ func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, ti
 	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
 
-func createTickTransactionsQuery(tick uint32, filters map[string][]string, ranges map[string][]*entities.Range) (bytes.Buffer, error) {
+func createTickTransactionsQuery(tick uint32, filters map[string][]string, ranges map[string][]entities.Range) (bytes.Buffer, error) {
 	// Always include tick number as the first filter
 	filterStrings := []string{fmt.Sprintf(`{"term":{"tickNumber":%d}}`, tick)}
 
@@ -123,10 +123,10 @@ func createTickTransactionsQuery(tick uint32, filters map[string][]string, range
 	return buf, nil
 }
 
-func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters, ranges map[string][]*entities.Range,
+func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters,
 	from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
 
-	query, err := createIdentitiesQuery(identity, filters, ranges, from, size, maxTick)
+	query, err := createIdentitiesQuery(identity, filters, from, size, maxTick)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating transactions for identity query: %w", err)
 	}
@@ -145,17 +145,17 @@ func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, iden
 	return transactionHitsToAPITransactions(result.Hits.Hits), hits, nil
 }
 
-func createIdentitiesQuery(identity string, filters entities.Filters, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+func createIdentitiesQuery(identity string, filters entities.Filters, from, size, maxTick uint32) (string, error) {
 
 	var query string
 
 	// Check if there's an upper bound tickNumber range filter (lt/lte) and adjust if needed
-	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(filters.Ranges, maxTick)
 	if err != nil {
 		return "", err
 	}
 
-	filterStrings := make([]string, 0, len(filters.Include)+len(ranges)+1)
+	filterStrings := make([]string, 0, len(filters.Include)+len(filters.Ranges)+1)
 	// restrict to max tick only if no upper bound tickNumber filter is present
 	if !hasUpperBoundTickFilter {
 		filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
@@ -163,7 +163,7 @@ func createIdentitiesQuery(identity string, filters entities.Filters, ranges map
 	// normal filters
 	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
 	// append range filters
-	rangeFilterStrings, err := getRangeFilterStrings(ranges)
+	rangeFilterStrings, err := getRangeFilterStrings(filters.Ranges)
 	if err != nil {
 		return "", err
 	}
@@ -205,10 +205,10 @@ func createIdentitiesQuery(identity string, filters entities.Filters, ranges map
 	return query, nil
 }
 
-func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.Range, maxTick uint32) (bool, error) {
+func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]entities.Range, maxTick uint32) (bool, error) {
 	hasUpperBoundTickFilter := false
 	if tickRanges, ok := ranges["tickNumber"]; ok {
-		for _, r := range tickRanges {
+		for k, r := range tickRanges {
 			if r.Operation == "lt" || r.Operation == "lte" {
 				hasUpperBoundTickFilter = true
 				// Parse the value and compare with maxTick
@@ -217,8 +217,11 @@ func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.R
 					return false, fmt.Errorf("parsing tickNumber range value: %w", err)
 				}
 				maxTickValue := If(r.Operation == "lte", maxTick, maxTick+1)
-				if uint32(tickValue) > maxTickValue {
-					r.Value = fmt.Sprintf("%d", maxTickValue)
+				if uint32(tickValue) > maxTickValue { // replace
+					tickRanges[k] = entities.Range{
+						Operation: r.Operation,
+						Value:     fmt.Sprintf("%d", maxTickValue),
+					}
 				}
 			}
 		}
@@ -226,9 +229,9 @@ func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.R
 	return hasUpperBoundTickFilter, nil
 }
 
-func If[T any](cond bool, vtrue, vfalse T) T {
+func If[T any](cond bool, vTrue, vFalse T) T {
 	if cond {
-		return vtrue
+		return vTrue
 	}
-	return vfalse
+	return vFalse
 }
