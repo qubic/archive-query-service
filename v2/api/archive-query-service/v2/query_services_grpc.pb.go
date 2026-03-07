@@ -104,7 +104,7 @@ type ArchiveQueryServiceClient interface {
 	//
 	// ### Filters
 	//
-	// Including and excluding filters for the same property are mutually exclusive.
+	// A filter property must only be used in one filter. See below for allowed properties.
 	//
 	// #### Include filter properties
 	//
@@ -116,27 +116,16 @@ type ArchiveQueryServiceClient interface {
 	// | inputType   | string | Numeric                | Only find transactions with the specified input type.              |
 	// | tickNumber  | string | Numeric                | Only find transactions with the specified tick number.             |
 	//
-	// ### Exclude filter properties
+	// #### Exclude filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions with another destination.   |
 	//
-	// #### Examples
+	// #### Range filter properties
 	//
-	// ```
-	// "source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
-	// "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
-	// "amount": "1000000"
-	// "inputType": "0"
-	// ```
-	//
-	// ### Ranges
-	//
-	// Ranges restrict the results by a range of values. On range per property is supported.
-	//
-	// #### Allowed properties
+	// Ranges restrict the results by a range of values. One range per property is supported.
 	//
 	// | Name       | Type   | Format                                   | Description                                 |
 	// |------------|--------|------------------------------------------|---------------------------------------------|
@@ -144,15 +133,6 @@ type ArchiveQueryServiceClient interface {
 	// | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
 	// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
-	//
-	// #### Examples
-	//
-	// ```
-	// "amount": { "gt": "1000000" }
-	// "tickNumber": { "gte": "25563000", "lte": "28300000" }
-	// "inputType": { "gt": "0" }
-	// "timestamp": { "lt": "1757376000000" }
-	// ```
 	//
 	// ### Pagination
 	//
@@ -188,11 +168,13 @@ type ArchiveQueryServiceClient interface {
 	// |------------|--------------------|-----------|----------------------------------------------------------------|
 	// | filters    | map<string,string> | optional  | The filter value must appear in the matching documents.        |
 	// | exclude    | map<string,string> | optional  | The filter value must not appear in the matching documents.    |
+	// | should     | repeated ShouldFilter | optional  | At least one of the filter values must match. Needs multiple terms/ranges. |
+	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.                |
 	// | pagination | Pagination         | optional  | Allows to specify the first record and number of records.      |
 	//
 	// ### Filters
 	//
-	// Including and excluding filters for the same property are mutually exclusive.
+	// A filter property must only be used in one filter. See below for allowed properties.
 	//
 	// #### Include filter properties
 	//
@@ -204,18 +186,23 @@ type ArchiveQueryServiceClient interface {
 	// | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
 	// | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
 	//
-	// ### Exclude filters
+	// #### Exclude filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with another destination.   |
 	//
-	// ### Ranges
+	// #### Should filter properties
+	//
+	// | Name            |  Type   | Format   | Description                                             |
+	// |-----------------|---------|----------|---------------------------------------------------------|
+	// | source      | string | 60 character identity, up to 5, comma separated. | Find logs with this source. |
+	// | destination | string | 60 character identity, up to 5, comma separated.  | Find logs with this source.  |
+	//
+	// #### Range filter properties
 	//
 	// Ranges restrict the results to a range of values by defining a maximum and/or minimum value.
-	//
-	// #### Range properties
 	//
 	// | Name       | Type   | Format                                   | Description                                 |
 	// |------------|--------|------------------------------------------|---------------------------------------------|
@@ -223,13 +210,6 @@ type ArchiveQueryServiceClient interface {
 	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
 	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
-	//
-	// #### Examples
-	// t
-	// ```
-	// "amount": { "gt": "1000000" }
-	// "tickNumber": { "gte": "25563000", "lte": "28300000" }
-	// ```
 	//
 	// ### Pagination
 	//
@@ -412,7 +392,7 @@ type ArchiveQueryServiceServer interface {
 	//
 	// ### Filters
 	//
-	// Including and excluding filters for the same property are mutually exclusive.
+	// A filter property must only be used in one filter. See below for allowed properties.
 	//
 	// #### Include filter properties
 	//
@@ -424,27 +404,16 @@ type ArchiveQueryServiceServer interface {
 	// | inputType   | string | Numeric                | Only find transactions with the specified input type.              |
 	// | tickNumber  | string | Numeric                | Only find transactions with the specified tick number.             |
 	//
-	// ### Exclude filter properties
+	// #### Exclude filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find transactions with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find transactions with another destination.   |
 	//
-	// #### Examples
+	// #### Range filter properties
 	//
-	// ```
-	// "source": "IIJHZSNPDRYYXCQBWNGKBSWYYDCARTYPOBXGOXZEVEZMMWYHPBVXZLJARRCB",
-	// "destination": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
-	// "amount": "1000000"
-	// "inputType": "0"
-	// ```
-	//
-	// ### Ranges
-	//
-	// Ranges restrict the results by a range of values. On range per property is supported.
-	//
-	// #### Allowed properties
+	// Ranges restrict the results by a range of values. One range per property is supported.
 	//
 	// | Name       | Type   | Format                                   | Description                                 |
 	// |------------|--------|------------------------------------------|---------------------------------------------|
@@ -452,15 +421,6 @@ type ArchiveQueryServiceServer interface {
 	// | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
 	// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
-	//
-	// #### Examples
-	//
-	// ```
-	// "amount": { "gt": "1000000" }
-	// "tickNumber": { "gte": "25563000", "lte": "28300000" }
-	// "inputType": { "gt": "0" }
-	// "timestamp": { "lt": "1757376000000" }
-	// ```
 	//
 	// ### Pagination
 	//
@@ -496,11 +456,13 @@ type ArchiveQueryServiceServer interface {
 	// |------------|--------------------|-----------|----------------------------------------------------------------|
 	// | filters    | map<string,string> | optional  | The filter value must appear in the matching documents.        |
 	// | exclude    | map<string,string> | optional  | The filter value must not appear in the matching documents.    |
+	// | should     | repeated ShouldFilter | optional  | At least one of the filter values must match. Needs multiple terms/ranges. |
+	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range.                |
 	// | pagination | Pagination         | optional  | Allows to specify the first record and number of records.      |
 	//
 	// ### Filters
 	//
-	// Including and excluding filters for the same property are mutually exclusive.
+	// A filter property must only be used in one filter. See below for allowed properties.
 	//
 	// #### Include filter properties
 	//
@@ -512,18 +474,23 @@ type ArchiveQueryServiceServer interface {
 	// | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
 	// | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
 	//
-	// ### Exclude filters
+	// #### Exclude filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
 	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with another source. |
 	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with another destination.   |
 	//
-	// ### Ranges
+	// #### Should filter properties
+	//
+	// | Name            |  Type   | Format   | Description                                             |
+	// |-----------------|---------|----------|---------------------------------------------------------|
+	// | source      | string | 60 character identity, up to 5, comma separated. | Find logs with this source. |
+	// | destination | string | 60 character identity, up to 5, comma separated.  | Find logs with this source.  |
+	//
+	// #### Range filter properties
 	//
 	// Ranges restrict the results to a range of values by defining a maximum and/or minimum value.
-	//
-	// #### Range properties
 	//
 	// | Name       | Type   | Format                                   | Description                                 |
 	// |------------|--------|------------------------------------------|---------------------------------------------|
@@ -531,13 +498,6 @@ type ArchiveQueryServiceServer interface {
 	// | numberOfShares | string | Numeric                              | Only find logs withing the number of shares range (assets). |
 	// | tickNumber | string | Numeric                                  | Only find logs in the tick range.       |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find logs in the time range.       |
-	//
-	// #### Examples
-	// t
-	// ```
-	// "amount": { "gt": "1000000" }
-	// "tickNumber": { "gte": "25563000", "lte": "28300000" }
-	// ```
 	//
 	// ### Pagination
 	//

@@ -659,13 +659,19 @@ func (x *GetTransactionsForTickResponse) GetTransactions() []*Transaction {
 //
 // | Name      | Type   | Necessity | Description                               |
 // |-----------|--------|-----------|-------------------------------------------|
-// | field     | string | required  | Name of the property you wish to search for. |
 // | gt        | string | optional  | Greater than.                             |
 // | gte       | string | optional  | Greater than or equal to.                 |
 // | lt        | string | optional  | Less than.                                |
 // | lte       | string | optional  | Less than or equal to.                    |
 //
-// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+// One lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+//
+// # Examples
+//
+// ```
+// "amount": { "gt": "1000000" }
+// "tickNumber": { "gte": "25563000", "lte": "28300000" }
+// ```
 type Range struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to LowerBound:
@@ -796,8 +802,21 @@ func (*Range_Lte) isRange_UpperBound() {}
 
 // Should Filters
 //
-// One should filter can contain multiple terms and ranges. At least one of them has to match by default. See other
-// documentation how to specify term and range filters.
+// One should filter can contain multiple terms and ranges. It needs at least two query clauses.
+// At least one of them has to match by default. See term and range filter documentation for examples.
+//
+// # Example
+//
+// ```
+//
+//	"should": {
+//	   "terms": {
+//	       "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+//	       "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+//	   }
+//	}
+//
+// ```
 type ShouldFilter struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Terms         map[string]string      `protobuf:"bytes,1,rep,name=terms,proto3" json:"terms,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`

@@ -88,13 +88,19 @@ message GetTransactionsForTickResponse {
 //
 // | Name      | Type   | Necessity | Description                               |
 // |-----------|--------|-----------|-------------------------------------------|
-// | field     | string | required  | Name of the property you wish to search for. |
 // | gt        | string | optional  | Greater than.                             |
 // | gte       | string | optional  | Greater than or equal to.                 |
 // | lt        | string | optional  | Less than.                                |
 // | lte       | string | optional  | Less than or equal to.                    |
 //
-// Only one lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+// One lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+//
+// Examples
+//
+// ```
+// "amount": { "gt": "1000000" }
+// "tickNumber": { "gte": "25563000", "lte": "28300000" }
+// ```
 message Range {
   oneof lower_bound {
     string gt = 1 [(openapi.v3.property) = {description:"Greater than."}];
@@ -108,8 +114,19 @@ message Range {
 
 // Should Filters
 //
-// One should filter can contain multiple terms and ranges. At least one of them has to match by default. See other
-// documentation how to specify term and range filters.
+// One should filter can contain multiple terms and ranges. It needs at least two query clauses.
+// At least one of them has to match by default. See term and range filter documentation for examples.
+//
+// Example
+//
+// ```
+// "should": {
+//    "terms": {
+//        "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+//        "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+//    }
+// }
+// ```
 message ShouldFilter {
   map<string, string> terms = 1 [(openapi.v3.property) = {description:"Or filters: One or more of the values must match."}];
   map<string, Range> ranges = 2 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and/or minimum value."}];
