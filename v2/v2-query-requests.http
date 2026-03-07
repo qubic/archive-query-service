@@ -1,3 +1,8 @@
+### Get processed tick intervals
+
+GET {{host}}/getProcessedTickIntervals
+Accept: application/json
+
 ### Get transactions for one identity
 
 POST {{host}}/getTransactionsForIdentity
@@ -49,14 +54,22 @@ Accept: application/json
 
 {
     "filters": {
-        "logType": "6"
+        "logType": "0"
     },
     "exclude": {
-        "source": "BDSEQVHDWENCDACLLMEPWHTDJPGDSDGTODHPYNMRPDHKTOAXFKSPRYGEXEOF"
+        "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
     },
+    "should": [
+        {
+            "terms": {
+                "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+                "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+            }
+        }
+    ],
     "ranges": {
-        "numberOfShares": {
-            "gt": "10000"
+        "amount": {
+            "gt": "10000000000"
         }
     },
     "pagination": {
