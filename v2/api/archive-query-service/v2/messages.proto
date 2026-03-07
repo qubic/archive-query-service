@@ -120,12 +120,14 @@ message Range {
 // Example
 //
 // ```
-// "should": {
-//    "terms": {
-//        "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
-//        "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
-//    }
-// }
+// "should": [
+//   {
+//     "terms": {
+//       "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+//       "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+//     }
+//   }
+// ]
 // ```
 message ShouldFilter {
   map<string, string> terms = 1 [(openapi.v3.property) = {description:"Or filters: One or more of the values must match."}];

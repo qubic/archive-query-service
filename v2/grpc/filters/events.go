@@ -181,3 +181,30 @@ func CreateEventRanges(ranges map[string]*api.Range, allowedKeys map[string]bool
 
 	return convertedRanges, nil
 }
+
+const maxNumberOfShouldFilters = 2
+
+func CreateShouldFilters(should []*api.ShouldFilter, allowedFilters, allowedRanges map[string]bool) ([]entities.ShouldFilter, error) {
+	if len(should) > maxNumberOfShouldFilters {
+		return nil, fmt.Errorf("too many should filters (%d)", len(should))
+	}
+	var shouldFilters = make([]entities.ShouldFilter, 0, len(should))
+	for _, shouldFilter := range should {
+		shouldFilterTerms, err := CreateEventFilters(shouldFilter.GetTerms(), allowedFilters)
+		if err != nil {
+			return nil, fmt.Errorf("creating filters: %v", err)
+		}
+		shouldFilterRanges, err := CreateEventRanges(shouldFilter.GetRanges(), allowedRanges)
+		if err != nil {
+			return nil, fmt.Errorf("creating ranges: %v", err)
+		}
+		if len(shouldFilterTerms)+len(shouldFilterRanges) < 2 {
+			return nil, fmt.Errorf("needs at least two filters")
+		}
+		shouldFilters = append(shouldFilters, entities.ShouldFilter{
+			Terms:  shouldFilterTerms,
+			Ranges: shouldFilterRanges,
+		})
+	}
+	return shouldFilters, nil
+}

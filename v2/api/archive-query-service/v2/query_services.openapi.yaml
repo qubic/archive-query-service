@@ -747,10 +747,10 @@ components:
       description: "Should Filters\n\n One should filter can contain multiple terms\
         \ and ranges. It needs at least two query clauses.\n At least one of them\
         \ has to match by default. See term and range filter documentation for examples.\n\
-        \n Example\n\n ```\n \"should\": {\n    \"terms\": {\n        \"source\":\
-        \ \"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID\",\n    \
-        \    \"destination\": \"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID\"\
-        \n    }\n }\n ```"
+        \n Example\n\n ```\n \"should\": [\n   {\n     \"terms\": {\n       \"source\"\
+        : \"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID\",\n    \
+        \   \"destination\": \"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID\"\
+        \n     }\n   }\n ]\n ```"
     SmartContractMessageData:
       type: object
       properties:

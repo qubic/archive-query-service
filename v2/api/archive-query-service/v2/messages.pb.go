@@ -808,14 +808,16 @@ func (*Range_Lte) isRange_UpperBound() {}
 // # Example
 //
 // ```
+// "should": [
 //
-//	"should": {
-//	   "terms": {
-//	       "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
-//	       "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
-//	   }
+//	{
+//	  "terms": {
+//	    "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+//	    "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+//	  }
 //	}
 //
+// ]
 // ```
 type ShouldFilter struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`

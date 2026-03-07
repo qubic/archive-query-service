@@ -239,23 +239,9 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		return nil, status.Errorf(codes.InvalidArgument, "creating range filters: %v", err)
 	}
 
-	var shouldFilters = make([]entities.ShouldFilter, 0, len(req.GetShould()))
-	for _, shouldFilter := range req.GetShould() {
-		shouldFilterTerms, err := filters.CreateEventFilters(shouldFilter.GetTerms(), filters.AllowedEventShouldFilters)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "creating should filters: %v", err)
-		}
-		shouldFilterRanges, err := filters.CreateEventRanges(shouldFilter.GetRanges(), filters.AllowedEventShouldRanges)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "creating should ranges: %v", err)
-		}
-		if len(shouldFilterTerms)+len(shouldFilterRanges) < 2 {
-			return nil, status.Errorf(codes.InvalidArgument, "should needs at least two filters")
-		}
-		shouldFilters = append(shouldFilters, entities.ShouldFilter{
-			Terms:  shouldFilterTerms,
-			Ranges: shouldFilterRanges,
-		})
+	shouldFilters, err := filters.CreateShouldFilters(req.GetShould(), filters.AllowedEventShouldFilters, filters.AllowedEventShouldRanges)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "creating should filters: %v", err)
 	}
 
 	queryFilters := entities.Filters{Include: includeFilters, Exclude: excludeFilters, Ranges: queryRanges, Should: shouldFilters}

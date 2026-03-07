@@ -44,24 +44,29 @@ func validateDigest(values []string, maxValues int, lowercase bool) error {
 }
 
 func VerifyNoConflictingFilters(queryFilters entities.Filters) error {
-	valid, err := checkForConflictingFilters(make(map[string]bool, 10), queryFilters.Include)
+	keys := make(map[string]bool, 10)
+	err := checkForConflictingKeys(keys, queryFilters.Include, true)
 	if err != nil {
 		return err
 	}
-	valid, err = checkForConflictingFilters(valid, queryFilters.Exclude)
+	err = checkForConflictingKeys(keys, queryFilters.Ranges, true)
 	if err != nil {
 		return err
 	}
-	valid, err = checkForConflictingFilters(valid, queryFilters.Ranges)
+
+	// we do not check the exclude filters against the should filters
+	// allow excluding values that are returned by applying the should filters
+	err = checkForConflictingKeys(keys, queryFilters.Exclude, false) // do not modify
 	if err != nil {
 		return err
 	}
+
 	for _, should := range queryFilters.Should {
-		valid, err = checkForConflictingFilters(valid, should.Terms)
+		err = checkForConflictingKeys(keys, should.Ranges, true)
 		if err != nil {
 			return err
 		}
-		valid, err = checkForConflictingFilters(valid, should.Ranges)
+		err = checkForConflictingKeys(keys, should.Terms, true)
 		if err != nil {
 			return err
 		}
@@ -69,14 +74,16 @@ func VerifyNoConflictingFilters(queryFilters entities.Filters) error {
 	return nil
 }
 
-func checkForConflictingFilters[F any](known map[string]bool, checked map[string]F) (map[string]bool, error) {
+func checkForConflictingKeys[F any](known map[string]bool, checked map[string]F, add bool) error {
 	for k := range checked {
 		if _, found := known[k]; found {
-			return nil, fmt.Errorf("duplicate [%s] filter", k)
+			return fmt.Errorf("duplicate [%s] filter", k)
 		}
-		known[k] = true
+		if add {
+			known[k] = true
+		}
 	}
-	return known, nil
+	return nil
 }
 
 func checkQuantity(values []string, maxValues int) error {

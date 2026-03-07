@@ -142,7 +142,7 @@ func TestVerifyNoConflictingFilters(t *testing.T) {
 			errMessage: "duplicate [field1] filter",
 		},
 		{
-			name: "conflict - same field in exclude and should ranges",
+			name: "allowed - same field in exclude and should ranges",
 			filters: entities.Filters{
 				Include: map[string][]string{},
 				Exclude: map[string][]string{
@@ -158,8 +158,7 @@ func TestVerifyNoConflictingFilters(t *testing.T) {
 					},
 				},
 			},
-			wantErr:    true,
-			errMessage: "duplicate [field1] filter",
+			wantErr: false,
 		},
 		{
 			name: "conflict - same field in ranges and should terms",
