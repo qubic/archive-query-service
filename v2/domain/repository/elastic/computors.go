@@ -37,7 +37,7 @@ func (r *ArchiveRepository) GetComputorsListsForEpoch(ctx context.Context, epoch
 	}
 
 	var result computorsListSearchResponse
-	err = r.performElasticSearch(ctx, r.clIndex, &query, &result)
+	err = performElasticSearch(ctx, r.esClient, r.clIndex, &query, &result)
 	if err != nil {
 		return nil, fmt.Errorf("performing elasting search: %w", err)
 	}

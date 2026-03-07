@@ -655,7 +655,23 @@ func (x *GetTransactionsForTickResponse) GetTransactions() []*Transaction {
 	return nil
 }
 
-// Range
+// Range filter
+//
+// | Name      | Type   | Necessity | Description                               |
+// |-----------|--------|-----------|-------------------------------------------|
+// | gt        | string | optional  | Greater than.                             |
+// | gte       | string | optional  | Greater than or equal to.                 |
+// | lt        | string | optional  | Less than.                                |
+// | lte       | string | optional  | Less than or equal to.                    |
+//
+// One lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+//
+// # Examples
+//
+// ```
+// "amount": { "gt": "1000000" }
+// "tickNumber": { "gte": "25563000", "lte": "28300000" }
+// ```
 type Range struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to LowerBound:
@@ -784,20 +800,92 @@ func (*Range_Lt) isRange_UpperBound() {}
 
 func (*Range_Lte) isRange_UpperBound() {}
 
+// Should Filters
+//
+// One should filter can contain multiple terms and ranges. It needs at least two query clauses.
+// At least one of them has to match by default. See term and range filter documentation for examples.
+//
+// # Example
+//
+// ```
+// "should": [
+//
+//	{
+//	  "terms": {
+//	    "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+//	    "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+//	  }
+//	}
+//
+// ]
+// ```
+type ShouldFilter struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Terms         map[string]string      `protobuf:"bytes,1,rep,name=terms,proto3" json:"terms,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Ranges        map[string]*Range      `protobuf:"bytes,2,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShouldFilter) Reset() {
+	*x = ShouldFilter{}
+	mi := &file_messages_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShouldFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShouldFilter) ProtoMessage() {}
+
+func (x *ShouldFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShouldFilter.ProtoReflect.Descriptor instead.
+func (*ShouldFilter) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ShouldFilter) GetTerms() map[string]string {
+	if x != nil {
+		return x.Terms
+	}
+	return nil
+}
+
+func (x *ShouldFilter) GetRanges() map[string]*Range {
+	if x != nil {
+		return x.Ranges
+	}
+	return nil
+}
+
 // GetTransactionsForIdentityRequest
 type GetTransactionsForIdentityRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Identity      string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
 	Filters       map[string]string      `protobuf:"bytes,2,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Ranges        map[string]*Range      `protobuf:"bytes,3,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Exclude       map[string]string      `protobuf:"bytes,3,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Ranges        map[string]*Range      `protobuf:"bytes,6,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination            `protobuf:"bytes,9,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetTransactionsForIdentityRequest) Reset() {
 	*x = GetTransactionsForIdentityRequest{}
-	mi := &file_messages_proto_msgTypes[11]
+	mi := &file_messages_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -809,7 +897,7 @@ func (x *GetTransactionsForIdentityRequest) String() string {
 func (*GetTransactionsForIdentityRequest) ProtoMessage() {}
 
 func (x *GetTransactionsForIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[11]
+	mi := &file_messages_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -822,7 +910,7 @@ func (x *GetTransactionsForIdentityRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetTransactionsForIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionsForIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{11}
+	return file_messages_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetTransactionsForIdentityRequest) GetIdentity() string {
@@ -835,6 +923,13 @@ func (x *GetTransactionsForIdentityRequest) GetIdentity() string {
 func (x *GetTransactionsForIdentityRequest) GetFilters() map[string]string {
 	if x != nil {
 		return x.Filters
+	}
+	return nil
+}
+
+func (x *GetTransactionsForIdentityRequest) GetExclude() map[string]string {
+	if x != nil {
+		return x.Exclude
 	}
 	return nil
 }
@@ -865,7 +960,7 @@ type Hits struct {
 
 func (x *Hits) Reset() {
 	*x = Hits{}
-	mi := &file_messages_proto_msgTypes[12]
+	mi := &file_messages_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +972,7 @@ func (x *Hits) String() string {
 func (*Hits) ProtoMessage() {}
 
 func (x *Hits) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[12]
+	mi := &file_messages_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -890,7 +985,7 @@ func (x *Hits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hits.ProtoReflect.Descriptor instead.
 func (*Hits) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{12}
+	return file_messages_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Hits) GetTotal() uint32 {
@@ -926,7 +1021,7 @@ type GetTransactionsForIdentityResponse struct {
 
 func (x *GetTransactionsForIdentityResponse) Reset() {
 	*x = GetTransactionsForIdentityResponse{}
-	mi := &file_messages_proto_msgTypes[13]
+	mi := &file_messages_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -938,7 +1033,7 @@ func (x *GetTransactionsForIdentityResponse) String() string {
 func (*GetTransactionsForIdentityResponse) ProtoMessage() {}
 
 func (x *GetTransactionsForIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[13]
+	mi := &file_messages_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -951,7 +1046,7 @@ func (x *GetTransactionsForIdentityResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetTransactionsForIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionsForIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{13}
+	return file_messages_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetTransactionsForIdentityResponse) GetValidForTick() uint32 {
@@ -985,7 +1080,7 @@ type GetTickDataRequest struct {
 
 func (x *GetTickDataRequest) Reset() {
 	*x = GetTickDataRequest{}
-	mi := &file_messages_proto_msgTypes[14]
+	mi := &file_messages_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -997,7 +1092,7 @@ func (x *GetTickDataRequest) String() string {
 func (*GetTickDataRequest) ProtoMessage() {}
 
 func (x *GetTickDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[14]
+	mi := &file_messages_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1010,7 +1105,7 @@ func (x *GetTickDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTickDataRequest.ProtoReflect.Descriptor instead.
 func (*GetTickDataRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{14}
+	return file_messages_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetTickDataRequest) GetTickNumber() uint32 {
@@ -1030,7 +1125,7 @@ type GetTickDataResponse struct {
 
 func (x *GetTickDataResponse) Reset() {
 	*x = GetTickDataResponse{}
-	mi := &file_messages_proto_msgTypes[15]
+	mi := &file_messages_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1042,7 +1137,7 @@ func (x *GetTickDataResponse) String() string {
 func (*GetTickDataResponse) ProtoMessage() {}
 
 func (x *GetTickDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[15]
+	mi := &file_messages_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1150,7 @@ func (x *GetTickDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTickDataResponse.ProtoReflect.Descriptor instead.
 func (*GetTickDataResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{15}
+	return file_messages_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetTickDataResponse) GetTickData() *TickData {
@@ -1075,7 +1170,7 @@ type GetProcessedTickIntervalsResponse struct {
 
 func (x *GetProcessedTickIntervalsResponse) Reset() {
 	*x = GetProcessedTickIntervalsResponse{}
-	mi := &file_messages_proto_msgTypes[16]
+	mi := &file_messages_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1087,7 +1182,7 @@ func (x *GetProcessedTickIntervalsResponse) String() string {
 func (*GetProcessedTickIntervalsResponse) ProtoMessage() {}
 
 func (x *GetProcessedTickIntervalsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[16]
+	mi := &file_messages_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1100,7 +1195,7 @@ func (x *GetProcessedTickIntervalsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetProcessedTickIntervalsResponse.ProtoReflect.Descriptor instead.
 func (*GetProcessedTickIntervalsResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{16}
+	return file_messages_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetProcessedTickIntervalsResponse) GetProcessedTickIntervals() []*ProcessedTickInterval {
@@ -1122,7 +1217,7 @@ type GetLastProcessedTickResponse struct {
 
 func (x *GetLastProcessedTickResponse) Reset() {
 	*x = GetLastProcessedTickResponse{}
-	mi := &file_messages_proto_msgTypes[17]
+	mi := &file_messages_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1134,7 +1229,7 @@ func (x *GetLastProcessedTickResponse) String() string {
 func (*GetLastProcessedTickResponse) ProtoMessage() {}
 
 func (x *GetLastProcessedTickResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[17]
+	mi := &file_messages_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1147,7 +1242,7 @@ func (x *GetLastProcessedTickResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLastProcessedTickResponse.ProtoReflect.Descriptor instead.
 func (*GetLastProcessedTickResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{17}
+	return file_messages_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetLastProcessedTickResponse) GetTickNumber() uint32 {
@@ -1181,7 +1276,7 @@ type GetComputorListsForEpochRequest struct {
 
 func (x *GetComputorListsForEpochRequest) Reset() {
 	*x = GetComputorListsForEpochRequest{}
-	mi := &file_messages_proto_msgTypes[18]
+	mi := &file_messages_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1193,7 +1288,7 @@ func (x *GetComputorListsForEpochRequest) String() string {
 func (*GetComputorListsForEpochRequest) ProtoMessage() {}
 
 func (x *GetComputorListsForEpochRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[18]
+	mi := &file_messages_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1206,7 +1301,7 @@ func (x *GetComputorListsForEpochRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetComputorListsForEpochRequest.ProtoReflect.Descriptor instead.
 func (*GetComputorListsForEpochRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{18}
+	return file_messages_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetComputorListsForEpochRequest) GetEpoch() uint32 {
@@ -1229,7 +1324,7 @@ type ComputorList struct {
 
 func (x *ComputorList) Reset() {
 	*x = ComputorList{}
-	mi := &file_messages_proto_msgTypes[19]
+	mi := &file_messages_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1241,7 +1336,7 @@ func (x *ComputorList) String() string {
 func (*ComputorList) ProtoMessage() {}
 
 func (x *ComputorList) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[19]
+	mi := &file_messages_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1254,7 +1349,7 @@ func (x *ComputorList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputorList.ProtoReflect.Descriptor instead.
 func (*ComputorList) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{19}
+	return file_messages_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ComputorList) GetEpoch() uint32 {
@@ -1295,7 +1390,7 @@ type GetComputorListsForEpochResponse struct {
 
 func (x *GetComputorListsForEpochResponse) Reset() {
 	*x = GetComputorListsForEpochResponse{}
-	mi := &file_messages_proto_msgTypes[20]
+	mi := &file_messages_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1307,7 +1402,7 @@ func (x *GetComputorListsForEpochResponse) String() string {
 func (*GetComputorListsForEpochResponse) ProtoMessage() {}
 
 func (x *GetComputorListsForEpochResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[20]
+	mi := &file_messages_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1320,7 +1415,7 @@ func (x *GetComputorListsForEpochResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetComputorListsForEpochResponse.ProtoReflect.Descriptor instead.
 func (*GetComputorListsForEpochResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{20}
+	return file_messages_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetComputorListsForEpochResponse) GetComputorsLists() []*ComputorList {
@@ -1340,7 +1435,7 @@ type HealthResponse struct {
 
 func (x *HealthResponse) Reset() {
 	*x = HealthResponse{}
-	mi := &file_messages_proto_msgTypes[21]
+	mi := &file_messages_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1352,7 +1447,7 @@ func (x *HealthResponse) String() string {
 func (*HealthResponse) ProtoMessage() {}
 
 func (x *HealthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[21]
+	mi := &file_messages_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1365,7 +1460,7 @@ func (x *HealthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthResponse.ProtoReflect.Descriptor instead.
 func (*HealthResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{21}
+	return file_messages_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *HealthResponse) GetStatus() string {
@@ -1387,7 +1482,7 @@ type QuTransferData struct {
 
 func (x *QuTransferData) Reset() {
 	*x = QuTransferData{}
-	mi := &file_messages_proto_msgTypes[22]
+	mi := &file_messages_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1399,7 +1494,7 @@ func (x *QuTransferData) String() string {
 func (*QuTransferData) ProtoMessage() {}
 
 func (x *QuTransferData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[22]
+	mi := &file_messages_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1412,7 +1507,7 @@ func (x *QuTransferData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuTransferData.ProtoReflect.Descriptor instead.
 func (*QuTransferData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{22}
+	return file_messages_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *QuTransferData) GetSource() string {
@@ -1451,7 +1546,7 @@ type AssetIssuanceData struct {
 
 func (x *AssetIssuanceData) Reset() {
 	*x = AssetIssuanceData{}
-	mi := &file_messages_proto_msgTypes[23]
+	mi := &file_messages_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1463,7 +1558,7 @@ func (x *AssetIssuanceData) String() string {
 func (*AssetIssuanceData) ProtoMessage() {}
 
 func (x *AssetIssuanceData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[23]
+	mi := &file_messages_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1476,7 +1571,7 @@ func (x *AssetIssuanceData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetIssuanceData.ProtoReflect.Descriptor instead.
 func (*AssetIssuanceData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{23}
+	return file_messages_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AssetIssuanceData) GetAssetIssuer() string {
@@ -1535,7 +1630,7 @@ type AssetOwnershipChangeData struct {
 
 func (x *AssetOwnershipChangeData) Reset() {
 	*x = AssetOwnershipChangeData{}
-	mi := &file_messages_proto_msgTypes[24]
+	mi := &file_messages_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1547,7 +1642,7 @@ func (x *AssetOwnershipChangeData) String() string {
 func (*AssetOwnershipChangeData) ProtoMessage() {}
 
 func (x *AssetOwnershipChangeData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[24]
+	mi := &file_messages_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1560,7 +1655,7 @@ func (x *AssetOwnershipChangeData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetOwnershipChangeData.ProtoReflect.Descriptor instead.
 func (*AssetOwnershipChangeData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{24}
+	return file_messages_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AssetOwnershipChangeData) GetSource() string {
@@ -1612,7 +1707,7 @@ type AssetPossessionChangeData struct {
 
 func (x *AssetPossessionChangeData) Reset() {
 	*x = AssetPossessionChangeData{}
-	mi := &file_messages_proto_msgTypes[25]
+	mi := &file_messages_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1624,7 +1719,7 @@ func (x *AssetPossessionChangeData) String() string {
 func (*AssetPossessionChangeData) ProtoMessage() {}
 
 func (x *AssetPossessionChangeData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[25]
+	mi := &file_messages_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1637,7 +1732,7 @@ func (x *AssetPossessionChangeData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetPossessionChangeData.ProtoReflect.Descriptor instead.
 func (*AssetPossessionChangeData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{25}
+	return file_messages_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AssetPossessionChangeData) GetSource() string {
@@ -1687,7 +1782,7 @@ type BurningData struct {
 
 func (x *BurningData) Reset() {
 	*x = BurningData{}
-	mi := &file_messages_proto_msgTypes[26]
+	mi := &file_messages_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1699,7 +1794,7 @@ func (x *BurningData) String() string {
 func (*BurningData) ProtoMessage() {}
 
 func (x *BurningData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[26]
+	mi := &file_messages_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1712,7 +1807,7 @@ func (x *BurningData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BurningData.ProtoReflect.Descriptor instead.
 func (*BurningData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{26}
+	return file_messages_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *BurningData) GetSource() string {
@@ -1748,7 +1843,7 @@ type ContractReserveDeductionData struct {
 
 func (x *ContractReserveDeductionData) Reset() {
 	*x = ContractReserveDeductionData{}
-	mi := &file_messages_proto_msgTypes[27]
+	mi := &file_messages_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1760,7 +1855,7 @@ func (x *ContractReserveDeductionData) String() string {
 func (*ContractReserveDeductionData) ProtoMessage() {}
 
 func (x *ContractReserveDeductionData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[27]
+	mi := &file_messages_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1773,7 +1868,7 @@ func (x *ContractReserveDeductionData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractReserveDeductionData.ProtoReflect.Descriptor instead.
 func (*ContractReserveDeductionData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{27}
+	return file_messages_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ContractReserveDeductionData) GetDeductedAmount() uint64 {
@@ -1807,7 +1902,7 @@ type SmartContractMessageData struct {
 
 func (x *SmartContractMessageData) Reset() {
 	*x = SmartContractMessageData{}
-	mi := &file_messages_proto_msgTypes[28]
+	mi := &file_messages_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1819,7 +1914,7 @@ func (x *SmartContractMessageData) String() string {
 func (*SmartContractMessageData) ProtoMessage() {}
 
 func (x *SmartContractMessageData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[28]
+	mi := &file_messages_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1832,7 +1927,7 @@ func (x *SmartContractMessageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SmartContractMessageData.ProtoReflect.Descriptor instead.
 func (*SmartContractMessageData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{28}
+	return file_messages_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SmartContractMessageData) GetEmittingContractIndex() uint64 {
@@ -1858,7 +1953,7 @@ type CustomMessageData struct {
 
 func (x *CustomMessageData) Reset() {
 	*x = CustomMessageData{}
-	mi := &file_messages_proto_msgTypes[29]
+	mi := &file_messages_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1870,7 +1965,7 @@ func (x *CustomMessageData) String() string {
 func (*CustomMessageData) ProtoMessage() {}
 
 func (x *CustomMessageData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[29]
+	mi := &file_messages_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +1978,7 @@ func (x *CustomMessageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomMessageData.ProtoReflect.Descriptor instead.
 func (*CustomMessageData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{29}
+	return file_messages_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CustomMessageData) GetValue() uint64 {
@@ -1922,7 +2017,7 @@ type Event struct {
 
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_messages_proto_msgTypes[30]
+	mi := &file_messages_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1934,7 +2029,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[30]
+	mi := &file_messages_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1947,7 +2042,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{30}
+	return file_messages_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Event) GetEpoch() uint32 {
@@ -2148,14 +2243,17 @@ func (*Event_CustomMessage) isEvent_EventData() {}
 type GetEventsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filters       map[string]string      `protobuf:"bytes,1,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Pagination    *Pagination            `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Exclude       map[string]string      `protobuf:"bytes,2,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Should        []*ShouldFilter        `protobuf:"bytes,3,rep,name=should,proto3" json:"should,omitempty"`
+	Ranges        map[string]*Range      `protobuf:"bytes,5,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination            `protobuf:"bytes,9,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetEventsRequest) Reset() {
 	*x = GetEventsRequest{}
-	mi := &file_messages_proto_msgTypes[31]
+	mi := &file_messages_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2167,7 +2265,7 @@ func (x *GetEventsRequest) String() string {
 func (*GetEventsRequest) ProtoMessage() {}
 
 func (x *GetEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[31]
+	mi := &file_messages_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2180,12 +2278,33 @@ func (x *GetEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEventsRequest.ProtoReflect.Descriptor instead.
 func (*GetEventsRequest) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{31}
+	return file_messages_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetEventsRequest) GetFilters() map[string]string {
 	if x != nil {
 		return x.Filters
+	}
+	return nil
+}
+
+func (x *GetEventsRequest) GetExclude() map[string]string {
+	if x != nil {
+		return x.Exclude
+	}
+	return nil
+}
+
+func (x *GetEventsRequest) GetShould() []*ShouldFilter {
+	if x != nil {
+		return x.Should
+	}
+	return nil
+}
+
+func (x *GetEventsRequest) GetRanges() map[string]*Range {
+	if x != nil {
+		return x.Ranges
 	}
 	return nil
 }
@@ -2208,7 +2327,7 @@ type GetEventsResponse struct {
 
 func (x *GetEventsResponse) Reset() {
 	*x = GetEventsResponse{}
-	mi := &file_messages_proto_msgTypes[32]
+	mi := &file_messages_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2220,7 +2339,7 @@ func (x *GetEventsResponse) String() string {
 func (*GetEventsResponse) ProtoMessage() {}
 
 func (x *GetEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[32]
+	mi := &file_messages_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2233,7 +2352,7 @@ func (x *GetEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEventsResponse.ProtoReflect.Descriptor instead.
 func (*GetEventsResponse) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{32}
+	return file_messages_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetEventsResponse) GetHits() *Hits {
@@ -2302,11 +2421,11 @@ const file_messages_proto_rawDesc = "" +
 	"\x1bGetTransactionByHashRequest\x126\n" +
 	"\x04hash\x18\x01 \x01(\tB\"\xbaG\x1f\x92\x02\x1cThe hash of the transaction.R\x04hash\"\x91\x01\n" +
 	"\x1cGetTransactionByHashResponse\x12q\n" +
-	"\vtransaction\x18\x01 \x01(\v2 .qubic.v2.archive.pb.TransactionB-\xbaG*\x92\x02'The transaction for the requested hash.R\vtransaction\"\x95\x06\n" +
+	"\vtransaction\x18\x01 \x01(\v2 .qubic.v2.archive.pb.TransactionB-\xbaG*\x92\x02'The transaction for the requested hash.R\vtransaction\"\xa8\x06\n" +
 	"\x1dGetTransactionsForTickRequest\x12S\n" +
 	"\vtick_number\x18\x01 \x01(\rB2\xbaG/\x92\x02,The tick number to get the transactions for.R\n" +
-	"tickNumber\x12\xbf\x01\n" +
-	"\afilters\x18\x02 \x03(\v2?.qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntryBd\xbaGa\x92\x02^Filters restrict the results by single values. Allowed: source, destination, amount, inputTypeR\afilters\x12\xb4\x01\n" +
+	"tickNumber\x12\xd2\x01\n" +
+	"\afilters\x18\x02 \x03(\v2?.qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntryBw\xbaGt\x92\x02qInclude filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputTypeR\afilters\x12\xb4\x01\n" +
 	"\x06ranges\x18\x03 \x03(\v2>.qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntryB\\\xbaGY\x92\x02VRanges restrict the results by a maximum and minimum value. Allowed: amount, inputTypeR\x06ranges\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -2328,15 +2447,29 @@ const file_messages_proto_rawDesc = "" +
 	"Less than.H\x01R\x02lt\x12-\n" +
 	"\x03lte\x18\x04 \x01(\tB\x19\xbaG\x16\x92\x02\x13Less than or equal.H\x01R\x03lteB\r\n" +
 	"\vlower_boundB\r\n" +
-	"\vupper_bound\"\xdf\a\n" +
-	"!GetTransactionsForIdentityRequest\x12\x86\x01\n" +
-	"\bidentity\x18\x01 \x01(\tBj\xbaGg\x92\x02dThe identity to get the transactions for. Incoming and outgoing transactions are queried by default.R\bidentity\x12\x93\x01\n" +
-	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryB4\xbaG1\x92\x02.Filters restrict the results by single values.R\afilters\x12\x9d\x01\n" +
-	"\x06ranges\x18\x03 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryBA\xbaG>\x92\x02;Ranges restrict the results by a maximum and minimum value.R\x06ranges\x12d\n" +
+	"\vupper_bound\"\xaa\x03\n" +
+	"\fShouldFilter\x12{\n" +
+	"\x05terms\x18\x01 \x03(\v2,.qubic.v2.archive.pb.ShouldFilter.TermsEntryB7\xbaG4\x92\x021Or filters: One or more of the values must match.R\x05terms\x12\x8b\x01\n" +
+	"\x06ranges\x18\x02 \x03(\v2-.qubic.v2.archive.pb.ShouldFilter.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x1a8\n" +
 	"\n" +
-	"pagination\x18\x04 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB#\xbaG \x92\x02\x1dOptional paging information .R\n" +
+	"TermsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
+	"\vRangesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01\"\xde\t\n" +
+	"!GetTransactionsForIdentityRequest\x12\x86\x01\n" +
+	"\bidentity\x18\x01 \x01(\tBj\xbaGg\x92\x02dThe identity to get the transactions for. Incoming and outgoing transactions are queried by default.R\bidentity\x12\xa6\x01\n" +
+	"\afilters\x18\x02 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntryBG\xbaGD\x92\x02AInclude filters: the value must appear in the matching documents.R\afilters\x12\xaa\x01\n" +
+	"\aexclude\x18\x03 \x03(\v2C.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntryBK\xbaGH\x92\x02EExclude filters: the value must not appear in the matching documents.R\aexclude\x12\xa0\x01\n" +
+	"\x06ranges\x18\x06 \x03(\v2B.qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x12d\n" +
+	"\n" +
+	"pagination\x18\t \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB#\xbaG \x92\x02\x1dOptional paging information .R\n" +
 	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a:\n" +
+	"\fExcludeEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
 	"\vRangesEntry\x12\x10\n" +
@@ -2452,15 +2585,24 @@ const file_messages_proto_rawDesc = "" +
 	"\n" +
 	"event_dataB\x13\n" +
 	"\x11_transaction_hashB\x0e\n" +
-	"\f_raw_payload\"\xed\x03\n" +
-	"\x10GetEventsRequest\x12\xb2\x01\n" +
-	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryBd\xbaGa\x92\x02^Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventTypeR\afilters\x12c\n" +
+	"\f_raw_payload\"\xe1\a\n" +
+	"\x10GetEventsRequest\x12\x7f\n" +
+	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryB1\xbaG.\x92\x02+Include filters: all the values must match.R\afilters\x12\x88\x01\n" +
+	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryB:\xbaG7\x92\x024Exclude filters: all the values must must not match.R\aexclude\x12v\n" +
+	"\x06should\x18\x03 \x03(\v2!.qubic.v2.archive.pb.ShouldFilterB;\xbaG8\x92\x025Should filters: one or more of the values must match.R\x06should\x12\x8f\x01\n" +
+	"\x06ranges\x18\x05 \x03(\v21.qubic.v2.archive.pb.GetEventsRequest.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x12c\n" +
 	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
+	"pagination\x18\t \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
 	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:\x82\x01\xbaG\x7f:}\x12{filters:\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a:\n" +
+	"\fExcludeEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
+	"\vRangesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01:\x82\x01\xbaG\x7f:}\x12{filters:\n" +
 	"  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\n" +
 	"pagination:\n" +
 	"  offset: 0\n" +
@@ -2481,7 +2623,7 @@ func file_messages_proto_rawDescGZIP() []byte {
 	return file_messages_proto_rawDescData
 }
 
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_messages_proto_goTypes = []any{
 	(*LastProcessedTick)(nil),                  // 0: qubic.v2.archive.pb.LastProcessedTick
 	(*NextAvailableTick)(nil),                  // 1: qubic.v2.archive.pb.NextAvailableTick
@@ -2494,66 +2636,80 @@ var file_messages_proto_goTypes = []any{
 	(*GetTransactionsForTickRequest)(nil),      // 8: qubic.v2.archive.pb.GetTransactionsForTickRequest
 	(*GetTransactionsForTickResponse)(nil),     // 9: qubic.v2.archive.pb.GetTransactionsForTickResponse
 	(*Range)(nil),                              // 10: qubic.v2.archive.pb.Range
-	(*GetTransactionsForIdentityRequest)(nil),  // 11: qubic.v2.archive.pb.GetTransactionsForIdentityRequest
-	(*Hits)(nil),                               // 12: qubic.v2.archive.pb.Hits
-	(*GetTransactionsForIdentityResponse)(nil), // 13: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
-	(*GetTickDataRequest)(nil),                 // 14: qubic.v2.archive.pb.GetTickDataRequest
-	(*GetTickDataResponse)(nil),                // 15: qubic.v2.archive.pb.GetTickDataResponse
-	(*GetProcessedTickIntervalsResponse)(nil),  // 16: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse
-	(*GetLastProcessedTickResponse)(nil),       // 17: qubic.v2.archive.pb.GetLastProcessedTickResponse
-	(*GetComputorListsForEpochRequest)(nil),    // 18: qubic.v2.archive.pb.GetComputorListsForEpochRequest
-	(*ComputorList)(nil),                       // 19: qubic.v2.archive.pb.ComputorList
-	(*GetComputorListsForEpochResponse)(nil),   // 20: qubic.v2.archive.pb.GetComputorListsForEpochResponse
-	(*HealthResponse)(nil),                     // 21: qubic.v2.archive.pb.HealthResponse
-	(*QuTransferData)(nil),                     // 22: qubic.v2.archive.pb.QuTransferData
-	(*AssetIssuanceData)(nil),                  // 23: qubic.v2.archive.pb.AssetIssuanceData
-	(*AssetOwnershipChangeData)(nil),           // 24: qubic.v2.archive.pb.AssetOwnershipChangeData
-	(*AssetPossessionChangeData)(nil),          // 25: qubic.v2.archive.pb.AssetPossessionChangeData
-	(*BurningData)(nil),                        // 26: qubic.v2.archive.pb.BurningData
-	(*ContractReserveDeductionData)(nil),       // 27: qubic.v2.archive.pb.ContractReserveDeductionData
-	(*SmartContractMessageData)(nil),           // 28: qubic.v2.archive.pb.SmartContractMessageData
-	(*CustomMessageData)(nil),                  // 29: qubic.v2.archive.pb.CustomMessageData
-	(*Event)(nil),                              // 30: qubic.v2.archive.pb.Event
-	(*GetEventsRequest)(nil),                   // 31: qubic.v2.archive.pb.GetEventsRequest
-	(*GetEventsResponse)(nil),                  // 32: qubic.v2.archive.pb.GetEventsResponse
-	nil,                                        // 33: qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
-	nil,                                        // 34: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
-	nil,                                        // 35: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	nil,                                        // 36: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	nil,                                        // 37: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	(*ShouldFilter)(nil),                       // 11: qubic.v2.archive.pb.ShouldFilter
+	(*GetTransactionsForIdentityRequest)(nil),  // 12: qubic.v2.archive.pb.GetTransactionsForIdentityRequest
+	(*Hits)(nil),                               // 13: qubic.v2.archive.pb.Hits
+	(*GetTransactionsForIdentityResponse)(nil), // 14: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
+	(*GetTickDataRequest)(nil),                 // 15: qubic.v2.archive.pb.GetTickDataRequest
+	(*GetTickDataResponse)(nil),                // 16: qubic.v2.archive.pb.GetTickDataResponse
+	(*GetProcessedTickIntervalsResponse)(nil),  // 17: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse
+	(*GetLastProcessedTickResponse)(nil),       // 18: qubic.v2.archive.pb.GetLastProcessedTickResponse
+	(*GetComputorListsForEpochRequest)(nil),    // 19: qubic.v2.archive.pb.GetComputorListsForEpochRequest
+	(*ComputorList)(nil),                       // 20: qubic.v2.archive.pb.ComputorList
+	(*GetComputorListsForEpochResponse)(nil),   // 21: qubic.v2.archive.pb.GetComputorListsForEpochResponse
+	(*HealthResponse)(nil),                     // 22: qubic.v2.archive.pb.HealthResponse
+	(*QuTransferData)(nil),                     // 23: qubic.v2.archive.pb.QuTransferData
+	(*AssetIssuanceData)(nil),                  // 24: qubic.v2.archive.pb.AssetIssuanceData
+	(*AssetOwnershipChangeData)(nil),           // 25: qubic.v2.archive.pb.AssetOwnershipChangeData
+	(*AssetPossessionChangeData)(nil),          // 26: qubic.v2.archive.pb.AssetPossessionChangeData
+	(*BurningData)(nil),                        // 27: qubic.v2.archive.pb.BurningData
+	(*ContractReserveDeductionData)(nil),       // 28: qubic.v2.archive.pb.ContractReserveDeductionData
+	(*SmartContractMessageData)(nil),           // 29: qubic.v2.archive.pb.SmartContractMessageData
+	(*CustomMessageData)(nil),                  // 30: qubic.v2.archive.pb.CustomMessageData
+	(*Event)(nil),                              // 31: qubic.v2.archive.pb.Event
+	(*GetEventsRequest)(nil),                   // 32: qubic.v2.archive.pb.GetEventsRequest
+	(*GetEventsResponse)(nil),                  // 33: qubic.v2.archive.pb.GetEventsResponse
+	nil,                                        // 34: qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
+	nil,                                        // 35: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
+	nil,                                        // 36: qubic.v2.archive.pb.ShouldFilter.TermsEntry
+	nil,                                        // 37: qubic.v2.archive.pb.ShouldFilter.RangesEntry
+	nil,                                        // 38: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	nil,                                        // 39: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
+	nil,                                        // 40: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	nil,                                        // 41: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	nil,                                        // 42: qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
+	nil,                                        // 43: qubic.v2.archive.pb.GetEventsRequest.RangesEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
-	33, // 1: qubic.v2.archive.pb.GetTransactionsForTickRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
-	34, // 2: qubic.v2.archive.pb.GetTransactionsForTickRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
+	34, // 1: qubic.v2.archive.pb.GetTransactionsForTickRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
+	35, // 2: qubic.v2.archive.pb.GetTransactionsForTickRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
 	2,  // 3: qubic.v2.archive.pb.GetTransactionsForTickResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	35, // 4: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	36, // 5: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	5,  // 6: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 7: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	2,  // 8: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	3,  // 9: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
-	4,  // 10: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
-	19, // 11: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
-	22, // 12: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
-	23, // 13: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
-	24, // 14: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
-	25, // 15: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
-	26, // 16: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
-	27, // 17: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
-	28, // 18: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
-	29, // 19: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
-	37, // 20: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	5,  // 21: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	12, // 22: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	30, // 23: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
-	10, // 24: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 25: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	36, // 4: qubic.v2.archive.pb.ShouldFilter.terms:type_name -> qubic.v2.archive.pb.ShouldFilter.TermsEntry
+	37, // 5: qubic.v2.archive.pb.ShouldFilter.ranges:type_name -> qubic.v2.archive.pb.ShouldFilter.RangesEntry
+	38, // 6: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	39, // 7: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.exclude:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
+	40, // 8: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	5,  // 9: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	13, // 10: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	2,  // 11: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
+	3,  // 12: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
+	4,  // 13: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
+	20, // 14: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
+	23, // 15: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
+	24, // 16: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
+	25, // 17: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
+	26, // 18: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
+	27, // 19: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
+	28, // 20: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
+	29, // 21: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
+	30, // 22: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
+	41, // 23: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
+	42, // 24: qubic.v2.archive.pb.GetEventsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
+	11, // 25: qubic.v2.archive.pb.GetEventsRequest.should:type_name -> qubic.v2.archive.pb.ShouldFilter
+	43, // 26: qubic.v2.archive.pb.GetEventsRequest.ranges:type_name -> qubic.v2.archive.pb.GetEventsRequest.RangesEntry
+	5,  // 27: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	13, // 28: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	31, // 29: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
+	10, // 30: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 31: qubic.v2.archive.pb.ShouldFilter.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 32: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 33: qubic.v2.archive.pb.GetEventsRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	34, // [34:34] is the sub-list for method output_type
+	34, // [34:34] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }
@@ -2567,7 +2723,7 @@ func file_messages_proto_init() {
 		(*Range_Lt)(nil),
 		(*Range_Lte)(nil),
 	}
-	file_messages_proto_msgTypes[30].OneofWrappers = []any{
+	file_messages_proto_msgTypes[31].OneofWrappers = []any{
 		(*Event_QuTransfer)(nil),
 		(*Event_AssetIssuance)(nil),
 		(*Event_AssetOwnershipChange)(nil),
@@ -2583,7 +2739,7 @@ func file_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messages_proto_rawDesc), len(file_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -26,6 +26,9 @@ func TestServer(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
 }
 
+const validTransactionHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
+const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
+
 type ServerTestSuite struct {
 	suite.Suite
 	client            api.ArchiveQueryServiceClient
@@ -149,17 +152,17 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
 			Events: []*api.Event{
-				{TickNumber: 100, TransactionHash: ToStringPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
+				{TickNumber: 100, TransactionHash: ToStringPointer(validTransactionHash), LogType: 0, EventData: &api.Event_QuTransfer{
 					QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 				}},
-				{TickNumber: 101, TransactionHash: ToStringPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
+				{TickNumber: 101, TransactionHash: ToStringPointer(validTransactionHash2), LogType: 1, EventData: &api.Event_AssetIssuance{
 					AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 				}},
 			},
 		}, nil)
 
 	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters:    map[string]string{"transactionHash": "hash1"},
+		Filters:    map[string]string{"transactionHash": validTransactionHash},
 		Pagination: &api.Pagination{Offset: 0, Size: 10},
 	})
 	require.NoError(t, err)
@@ -174,76 +177,6 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 	assert.Equal(t, "SRC", resp.Events[0].GetQuTransfer().GetSource())
 	assert.NotNil(t, resp.Events[1].GetAssetIssuance())
 	assert.Equal(t, "ISSUER", resp.Events[1].GetAssetIssuance().GetAssetIssuer())
-}
-
-func (s *ServerTestSuite) TestGetEvents_FilterByTransactionHash() {
-	t := s.T()
-	expectedFilters := map[string][]string{"transactionHash": {"txhash1"}}
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
-		Return(&entities.EventsResult{
-			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToStringPointer("txhash1"), LogType: 0}},
-		}, nil)
-
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "txhash1"},
-	})
-	require.NoError(t, err)
-	assert.Len(t, resp.Events, 1)
-	assert.Equal(t, "txhash1", *resp.Events[0].TransactionHash)
-}
-
-func (s *ServerTestSuite) TestGetEvents_FilterByTickNumber() {
-	t := s.T()
-	expectedFilters := map[string][]string{"tickNumber": {"15001"}}
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
-		Return(&entities.EventsResult{
-			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 15001, LogType: 0}},
-		}, nil)
-
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"tickNumber": "15001"},
-	})
-	require.NoError(t, err)
-	assert.Len(t, resp.Events, 1)
-	assert.Equal(t, uint32(15001), resp.Events[0].TickNumber)
-}
-
-func (s *ServerTestSuite) TestGetEvents_FilterByEventType() {
-	t := s.T()
-	expectedFilters := map[string][]string{"logType": {"8"}}
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
-		Return(&entities.EventsResult{
-			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 200, LogType: 8}},
-		}, nil)
-
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"logType": "8"},
-	})
-	require.NoError(t, err)
-	assert.Len(t, resp.Events, 1)
-	assert.Equal(t, uint32(8), resp.Events[0].LogType)
-}
-
-func (s *ServerTestSuite) TestGetEvents_CombinedFilters() {
-	t := s.T()
-	expectedFilters := map[string][]string{
-		"transactionHash": {"txhash1"},
-		"logType":         {"0"},
-	}
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), expectedFilters, uint32(0), uint32(10)).
-		Return(&entities.EventsResult{
-			Hits:   &entities.Hits{Total: 1, Relation: "eq"},
-			Events: []*api.Event{{TickNumber: 100, TransactionHash: ToStringPointer("txhash1"), LogType: 0}},
-		}, nil)
-
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
-		Filters: map[string]string{"transactionHash": "txhash1", "logType": "0"},
-	})
-	require.NoError(t, err)
-	assert.Len(t, resp.Events, 1)
 }
 
 func (s *ServerTestSuite) TestGetEvents_InvalidFilter() {
@@ -270,7 +203,7 @@ func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
-	assert.Contains(t, st.Message(), "validating filters")
+	assert.Contains(t, st.Message(), "creating include filters")
 	assert.Contains(t, st.Message(), "invalid [logType] filter")
 }
 

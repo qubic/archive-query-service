@@ -59,22 +59,22 @@ func (mr *MockTransactionsServiceMockRecorder) GetTransactionByHash(ctx, hash an
 }
 
 // GetTransactionsForIdentity mocks base method.
-func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, filters map[string][]string, ranges map[string][]*entities.Range, from, size uint32) (*entities.TransactionsResult, error) {
+func (m *MockTransactionsService) GetTransactionsForIdentity(ctx context.Context, identity string, queryFilters entities.Filters, from, size uint32) (*entities.TransactionsResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, filters, ranges, from, size)
+	ret := m.ctrl.Call(m, "GetTransactionsForIdentity", ctx, identity, queryFilters, from, size)
 	ret0, _ := ret[0].(*entities.TransactionsResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTransactionsForIdentity indicates an expected call of GetTransactionsForIdentity.
-func (mr *MockTransactionsServiceMockRecorder) GetTransactionsForIdentity(ctx, identity, filters, ranges, from, size any) *gomock.Call {
+func (mr *MockTransactionsServiceMockRecorder) GetTransactionsForIdentity(ctx, identity, queryFilters, from, size any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionsService)(nil).GetTransactionsForIdentity), ctx, identity, filters, ranges, from, size)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionsForIdentity", reflect.TypeOf((*MockTransactionsService)(nil).GetTransactionsForIdentity), ctx, identity, queryFilters, from, size)
 }
 
 // GetTransactionsForTickNumber mocks base method.
-func (m *MockTransactionsService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (m *MockTransactionsService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionsForTickNumber", ctx, tickNumber, filters, ranges)
 	ret0, _ := ret[0].([]*api.Transaction)
@@ -245,16 +245,16 @@ func (m *MockEventsService) EXPECT() *MockEventsServiceMockRecorder {
 }
 
 // GetEvents mocks base method.
-func (m *MockEventsService) GetEvents(ctx context.Context, filters map[string][]string, from, size uint32) (*entities.EventsResult, error) {
+func (m *MockEventsService) GetEvents(ctx context.Context, queryFilters entities.Filters, from, size uint32) (*entities.EventsResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvents", ctx, filters, from, size)
+	ret := m.ctrl.Call(m, "GetEvents", ctx, queryFilters, from, size)
 	ret0, _ := ret[0].(*entities.EventsResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEvents indicates an expected call of GetEvents.
-func (mr *MockEventsServiceMockRecorder) GetEvents(ctx, filters, from, size any) *gomock.Call {
+func (mr *MockEventsServiceMockRecorder) GetEvents(ctx, queryFilters, from, size any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsService)(nil).GetEvents), ctx, filters, from, size)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsService)(nil).GetEvents), ctx, queryFilters, from, size)
 }

@@ -30,7 +30,9 @@ func TestEventsService_GetEvents_Success(t *testing.T) {
 	}
 	expectedHits := &entities.Hits{Total: 2, Relation: "eq"}
 
-	filters := map[string][]string{"transactionHash": {"hash1"}}
+	filters := entities.Filters{
+		Include: map[string][]string{"transactionHash": {"hash1"}},
+	}
 	mockRepo.EXPECT().GetEvents(gomock.Any(), filters, uint32(0), uint32(10)).
 		Return(expectedEvents, expectedHits, nil)
 
@@ -49,7 +51,7 @@ func TestEventsService_GetEvents_RepoError(t *testing.T) {
 	mockRepo.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil, nil, fmt.Errorf("connection refused"))
 
-	result, err := service.GetEvents(context.Background(), nil, 0, 10)
+	result, err := service.GetEvents(context.Background(), entities.Filters{}, 0, 10)
 	require.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "connection refused")
@@ -64,7 +66,7 @@ func TestEventsService_GetEvents_EmptyResult(t *testing.T) {
 	mockRepo.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]*api.Event{}, &entities.Hits{Total: 0, Relation: "eq"}, nil)
 
-	result, err := service.GetEvents(context.Background(), nil, 0, 10)
+	result, err := service.GetEvents(context.Background(), entities.Filters{}, 0, 10)
 	require.NoError(t, err)
 	assert.Empty(t, result.Events)
 	assert.Equal(t, 0, result.Hits.Total)
