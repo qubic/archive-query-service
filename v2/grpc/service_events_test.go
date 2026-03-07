@@ -196,3 +196,15 @@ func TestArchiveQueryService_GetEvents_WithShouldFilters(t *testing.T) {
 	assert.Contains(t, should[1].Ranges["amount"], entities.Range{Operation: "gte", Value: "1000000"}, entities.Range{Operation: "lte", Value: "2000000"})
 	assert.Contains(t, should[1].Ranges["numberOfShares"], entities.Range{Operation: "gt", Value: "0"}, entities.Range{Operation: "lt", Value: "10"})
 }
+
+func TestArchiveQueryService_GetEvents_WithShouldFilterWithOnlyOneValue_ThenError(t *testing.T) {
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+
+	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Should: []*api.ShouldFilter{
+			{Terms: map[string]string{"destination": validId1 + " , " + validId2}},
+		},
+	})
+	require.ErrorContains(t, err, "at least two")
+
+}

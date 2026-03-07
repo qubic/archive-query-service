@@ -249,6 +249,9 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "creating should ranges: %v", err)
 		}
+		if len(shouldFilterTerms)+len(shouldFilterRanges) < 2 {
+			return nil, status.Errorf(codes.InvalidArgument, "should needs at least two filters")
+		}
 		shouldFilters = append(shouldFilters, entities.ShouldFilter{
 			Terms:  shouldFilterTerms,
 			Ranges: shouldFilterRanges,
