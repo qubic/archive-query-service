@@ -192,11 +192,11 @@ func CreateShouldFilters(should []*api.ShouldFilter, allowedFilters, allowedRang
 	for _, shouldFilter := range should {
 		shouldFilterTerms, err := CreateEventFilters(shouldFilter.GetTerms(), allowedFilters)
 		if err != nil {
-			return nil, fmt.Errorf("creating filters: %v", err)
+			return nil, fmt.Errorf("creating filters: %w", err)
 		}
 		shouldFilterRanges, err := CreateEventRanges(shouldFilter.GetRanges(), allowedRanges)
 		if err != nil {
-			return nil, fmt.Errorf("creating ranges: %v", err)
+			return nil, fmt.Errorf("creating ranges: %w", err)
 		}
 		if len(shouldFilterTerms)+len(shouldFilterRanges) < 2 {
 			return nil, fmt.Errorf("needs at least two filters")
