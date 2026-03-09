@@ -46,11 +46,13 @@ func (s *ArchiveQueryService) Start(cfg StartConfig, errCh chan error, intercept
 			mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 				MarshalOptions: protojson.MarshalOptions{EmitDefaultValues: true, EmitUnpopulated: true},
 			}))
+			// Configuration for the http gateway grpc client (http request -> http gateway (grpc client) -> grpc server)
+			// The send and recv values are reversed on purpose as the client's send is the server's receive and vice versa.
 			opts := []grpc.DialOption{
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithDefaultCallOptions(
-					grpc.MaxCallRecvMsgSize(cfg.MaxRecvMsgSize),
-					grpc.MaxCallSendMsgSize(cfg.MaxSendMsgSize),
+					grpc.MaxCallRecvMsgSize(cfg.MaxSendMsgSize),
+					grpc.MaxCallSendMsgSize(cfg.MaxRecvMsgSize),
 				),
 			}
 
