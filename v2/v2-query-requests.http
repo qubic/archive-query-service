@@ -53,28 +53,16 @@ POST {{host}}/getEvents
 Accept: application/json
 
 {
-    "filters": {
-        "logType": "0"
-    },
-    "exclude": {
-        "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
-    },
-    "should": [
-        {
-            "terms": {
-                "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
-                "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
-            }
+    "filters": { "logType": "0" },
+    "exclude": { "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID" },
+    "should": [{
+        "terms": {
+            "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+            "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
         }
-    ],
-    "ranges": {
-        "amount": {
-            "gt": "10000000000"
-        }
-    },
-    "pagination": {
-      "size": 1
-    }
+    }],
+    "ranges": { "timestamp":{"gte":"1772975950000"}, "amount": { "gt": "1" } },
+    "pagination": { "size": 10 }
 }
 
 ###
