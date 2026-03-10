@@ -1,9 +1,7 @@
 package elastic
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -70,26 +68,16 @@ type eventsSearchResponse struct {
 	} `json:"hits"`
 }
 
-func (r *EventsRepository) GetEvents(ctx context.Context, filters map[string][]string, from, size uint32) ([]*api.Event, *entities.Hits, error) {
-	query := createEventsQuery(filters, from, size)
-
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.eventIndex),
-		r.esClient.Search.WithBody(strings.NewReader(query)),
-	)
+func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
+	query, err := createEventsQuery(filters, from, size)
 	if err != nil {
-		return nil, nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, nil, fmt.Errorf("error response from data store: %s", res.String())
+		return nil, nil, fmt.Errorf("creating events query: %w", err)
 	}
 
 	var result eventsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, nil, fmt.Errorf("decoding response: %w", err)
+	err = performElasticSearch(ctx, r.esClient, r.eventIndex, strings.NewReader(query), &result)
+	if err != nil {
+		return nil, nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 
 	hits := &entities.Hits{
@@ -100,37 +88,55 @@ func (r *EventsRepository) GetEvents(ctx context.Context, filters map[string][]s
 	return eventHitsToAPIEvents(result.Hits.Hits), hits, nil
 }
 
-func createEventsQuery(filters map[string][]string, from, size uint32) string {
-	filterStrings := make([]string, 0, len(filters))
+func createEventsQuery(filters entities.Filters, from, size uint32) (string, error) {
+	filterStrings := make([]string, 0, len(filters.Include))
 
-	keys := getSortedKeys(filters)
-	for _, k := range keys {
-		esField := k
-		if k == "logType" {
-			esField = "type"
-		}
-		if len(filters[k]) == 1 {
-			filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, esField, filters[k][0]))
-		}
+	// append include filters to filter section
+	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
+
+	// append range filters to filter section
+	rangeFilterStrings, err := getRangeFilterStrings(filters.Ranges)
+	if err != nil {
+		return "", err
+	}
+	filterStrings = append(filterStrings, rangeFilterStrings...)
+
+	// append should filters to filter section
+	shouldFilterStrings, err := getShouldFilterStrings(filters.Should)
+	if err != nil {
+		return "", fmt.Errorf("creating should filters: %w", err)
+	}
+	filterStrings = append(filterStrings, shouldFilterStrings...)
+
+	// exclude filters
+	excludeFilterStrings := getFilterStrings(filters.Exclude)
+
+	// empty bool query clause
+	boolClause := make([]string, 0, 2)
+
+	// append include filters if not empty
+	filterClause := strings.Join(filterStrings, ",")
+	if len(filterClause) > 0 {
+		filterClause = fmt.Sprintf(`"filter": [%s]`, filterClause)
+		boolClause = append(boolClause, filterClause)
 	}
 
-	filterClause := ""
-	if len(filterStrings) > 0 {
-		filterClause = strings.Join(filterStrings, ",")
+	// append exclude filters if not empty
+	mustNotClause := strings.Join(excludeFilterStrings, ",")
+	if len(mustNotClause) > 0 {
+		mustNotClause = fmt.Sprintf(`"must_not": [%s]`, mustNotClause)
+		boolClause = append(boolClause, mustNotClause)
 	}
 
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf(`{
+	query := fmt.Sprintf(`{
 		"query": {
-			"bool": {
-				"filter": [%s]
-			}
+			"bool": {%s}
 		},
 		"sort": [{"tickNumber":{"order":"desc"}},{"logId":{"order":"asc"}}],
 		"from": %d,
 		"size": %d,
 		"track_total_hits": %d
-	}`, filterClause, from, size, maxTrackTotalHits))
-
-	return buf.String()
+	}`, strings.Join(boolClause, ","), from, size, maxTrackTotalHits)
+	// log.Printf("[DEBUG] %s", query)
+	return query, nil
 }

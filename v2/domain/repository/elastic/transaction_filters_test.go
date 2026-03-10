@@ -7,71 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_splitFilters(t *testing.T) {
-	tests := []struct {
-		name        string
-		filters     map[string][]string
-		wantInclude map[string][]string
-		wantExclude map[string][]string
-	}{
-		{
-			name:        "empty filters",
-			filters:     map[string][]string{},
-			wantInclude: map[string][]string{},
-			wantExclude: map[string][]string{},
-		},
-		{
-			name: "only include filters",
-			filters: map[string][]string{
-				"source":      {"identity1"},
-				"destination": {"identity2", "identity3"},
-			},
-			wantInclude: map[string][]string{
-				"source":      {"identity1"},
-				"destination": {"identity2", "identity3"},
-			},
-			wantExclude: map[string][]string{},
-		},
-		{
-			name: "only exclude filters",
-			filters: map[string][]string{
-				"source-exclude":      {"identity1"},
-				"destination-exclude": {"identity2", "identity3"},
-			},
-			wantInclude: map[string][]string{},
-			wantExclude: map[string][]string{
-				"source":      {"identity1"},
-				"destination": {"identity2", "identity3"},
-			},
-		},
-		{
-			name: "mixed filters",
-			filters: map[string][]string{
-				"source":            {"identity1"},
-				"source-exclude":    {"identity2"},
-				"amount":            {"100"},
-				"inputType-exclude": {"1"},
-			},
-			wantInclude: map[string][]string{
-				"source": {"identity1"},
-				"amount": {"100"},
-			},
-			wantExclude: map[string][]string{
-				"source":    {"identity2"},
-				"inputType": {"1"},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotInclude, gotExclude := splitFilters(tt.filters)
-			require.Equal(t, tt.wantInclude, gotInclude)
-			require.Equal(t, tt.wantExclude, gotExclude)
-		})
-	}
-}
-
 func Test_getFilterStrings(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -132,18 +67,18 @@ func Test_getFilterStrings(t *testing.T) {
 func Test_getRangeFilterStrings(t *testing.T) {
 	tests := []struct {
 		name    string
-		ranges  map[string][]*entities.Range
+		ranges  map[string][]entities.Range
 		want    []string
 		wantErr bool
 	}{
 		{
 			name:   "empty ranges",
-			ranges: map[string][]*entities.Range{},
+			ranges: map[string][]entities.Range{},
 			want:   []string{},
 		},
 		{
 			name: "single range with single operation",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"amount": {
 					{Operation: "gte", Value: "1000"},
 				},
@@ -154,7 +89,7 @@ func Test_getRangeFilterStrings(t *testing.T) {
 		},
 		{
 			name: "single range with multiple operations",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"tickNumber": {
 					{Operation: "gte", Value: "100"},
 					{Operation: "lte", Value: "200"},
@@ -166,7 +101,7 @@ func Test_getRangeFilterStrings(t *testing.T) {
 		},
 		{
 			name: "multiple ranges",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"amount": {
 					{Operation: "gt", Value: "0"},
 				},
@@ -181,7 +116,7 @@ func Test_getRangeFilterStrings(t *testing.T) {
 		},
 		{
 			name: "empty range slice returns error",
-			ranges: map[string][]*entities.Range{
+			ranges: map[string][]entities.Range{
 				"amount": {},
 			},
 			wantErr: true,

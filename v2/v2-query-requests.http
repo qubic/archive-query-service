@@ -1,3 +1,8 @@
+### Get processed tick intervals
+
+GET {{host}}/getProcessedTickIntervals
+Accept: application/json
+
 ### Get transactions for one identity
 
 POST {{host}}/getTransactionsForIdentity
@@ -6,8 +11,10 @@ Accept: application/json
 {
     "identity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
     "filters": {
-           "inputType": "0",
-           "source-exclude": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ, HOPUKLUXCKGDDEBSYRRPJTSFYEKBTDYCJSVZJLEIZEBJCDLAVOCMKMTBTDLB"
+           "inputType": "0"
+    },
+    "exclude": {
+        "source": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ, HOPUKLUXCKGDDEBSYRRPJTSFYEKBTDYCJSVZJLEIZEBJCDLAVOCMKMTBTDLB"
     },
     "ranges": {
         "amount": {
@@ -38,6 +45,24 @@ Accept: application/json
 
 {
     "hash": "wnkujtaavborugjhgudeimborfpgyudnuekalkbsjeaxiejvvdgahdrerajo"
+}
+
+### Get event logs
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "logType": "0" },
+    "exclude": { "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID" },
+    "should": [{
+        "terms": {
+            "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+            "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+        }
+    }],
+    "ranges": { "timestamp":{"gte":"1772975950000"}, "amount": { "gt": "1" } },
+    "pagination": { "size": 10 }
 }
 
 ###

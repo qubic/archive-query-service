@@ -11,13 +11,13 @@ func Test_createRangeFilter(t *testing.T) {
 	tests := []struct {
 		name     string
 		property string
-		ranges   []*entities.Range
+		ranges   []entities.Range
 		want     string
 	}{
 		{
 			name:     "valid single range",
 			property: "tick",
-			ranges: []*entities.Range{
+			ranges: []entities.Range{
 				{Operation: "gte", Value: "100"},
 			},
 			want: `{"range":{"tick":{"gte":"100"}}}`,
@@ -25,7 +25,7 @@ func Test_createRangeFilter(t *testing.T) {
 		{
 			name:     "valid dual range",
 			property: "tick",
-			ranges: []*entities.Range{
+			ranges: []entities.Range{
 				{Operation: "gte", Value: "100"},
 				{Operation: "lte", Value: "200"},
 			},

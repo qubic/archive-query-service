@@ -43,7 +43,7 @@ func (m *MockEventsRepository) EXPECT() *MockEventsRepositoryMockRecorder {
 }
 
 // GetEvents mocks base method.
-func (m *MockEventsRepository) GetEvents(ctx context.Context, filters map[string][]string, from, size uint32) ([]*api.Event, *entities.Hits, error) {
+func (m *MockEventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEvents", ctx, filters, from, size)
 	ret0, _ := ret[0].([]*api.Event)

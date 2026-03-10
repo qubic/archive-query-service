@@ -15,12 +15,19 @@ import (
 )
 
 type EventsServiceStub struct {
-	events []*api.Event
-	hits   *entities.Hits
-	err    error
+	events          []*api.Event
+	hits            *entities.Hits
+	err             error
+	ReceivedFilters entities.Filters
 }
 
-func (s *EventsServiceStub) GetEvents(_ context.Context, _ map[string][]string, _, _ uint32) (*entities.EventsResult, error) {
+const validId1 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+const validId2 = "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+const validTransactionHash1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
+const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
+
+func (s *EventsServiceStub) GetEvents(_ context.Context, queryFilters entities.Filters, _, _ uint32) (*entities.EventsResult, error) {
+	s.ReceivedFilters = queryFilters
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -30,10 +37,10 @@ func (s *EventsServiceStub) GetEvents(_ context.Context, _ map[string][]string, 
 func TestArchiveQueryService_GetEvents_Success(t *testing.T) {
 	evService := &EventsServiceStub{
 		events: []*api.Event{
-			{TickNumber: 100, TransactionHash: test.ToStringPointer("hash1"), LogType: 0, EventData: &api.Event_QuTransfer{
+			{TickNumber: 100, TransactionHash: test.ToStringPointer(validTransactionHash1), LogType: 0, EventData: &api.Event_QuTransfer{
 				QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 			}},
-			{TickNumber: 101, TransactionHash: test.ToStringPointer("hash2"), LogType: 1, EventData: &api.Event_AssetIssuance{
+			{TickNumber: 101, TransactionHash: test.ToStringPointer(validTransactionHash2), LogType: 1, EventData: &api.Event_AssetIssuance{
 				AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 			}},
 		},
@@ -42,7 +49,7 @@ func TestArchiveQueryService_GetEvents_Success(t *testing.T) {
 	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
 
 	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
-		Filters:    map[string]string{"transactionHash": "hash1"},
+		Filters:    map[string]string{"transactionHash": validTransactionHash1},
 		Pagination: &api.Pagination{Offset: 0, Size: 10},
 	})
 	require.NoError(t, err)
@@ -120,4 +127,84 @@ func TestArchiveQueryService_GetEvents_EmptyResult(t *testing.T) {
 	require.NotNil(t, response)
 	assert.Empty(t, response.Events)
 	assert.Equal(t, uint32(0), response.Hits.Total)
+}
+
+func TestArchiveQueryService_GetEvents_GivenInvalidExcludeFilter_ThenError(t *testing.T) {
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Exclude: map[string]string{"tickNumber": "123"},
+	})
+	require.ErrorContains(t, err, "creating exclude filter")
+	require.ErrorContains(t, err, "unsupported filter")
+}
+
+func TestArchiveQueryService_GetEvents_WithRanges(t *testing.T) {
+	evService := &EventsServiceStub{
+		events: []*api.Event{{}}, // single dummy event
+		hits:   &entities.Hits{Total: 1, Relation: "eq"},
+	}
+	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
+
+	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Ranges: map[string]*api.Range{
+			"amount": {
+				LowerBound: &api.Range_Gte{Gte: "1000"},
+				UpperBound: &api.Range_Lte{Lte: "2000"},
+			},
+		},
+		Pagination: &api.Pagination{Offset: 0, Size: 10},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	assert.Len(t, response.Events, 1)
+	assert.Equal(t, uint32(1), response.Hits.Total)
+
+	ranges := evService.ReceivedFilters.Ranges
+	assert.Len(t, ranges, 1)
+	assert.Len(t, ranges["amount"], 2)
+	assert.Contains(t, ranges["amount"], entities.Range{Operation: "gte", Value: "1000"})
+	assert.Contains(t, ranges["amount"], entities.Range{Operation: "lte", Value: "2000"})
+}
+
+func TestArchiveQueryService_GetEvents_WithShouldFilters(t *testing.T) {
+	evService := &EventsServiceStub{
+		events: []*api.Event{{}}, // single dummy event
+		hits:   &entities.Hits{Total: 1, Relation: "eq"},
+	}
+	service := NewArchiveQueryService(nil, nil, nil, nil, evService, NewPageSizeLimits(1000, 10))
+
+	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Should: []*api.ShouldFilter{
+			{Terms: map[string]string{"destination": validId1 + " , " + validId2, "source": validId1}},
+			{Ranges: map[string]*api.Range{
+				"amount":         {LowerBound: &api.Range_Gte{Gte: "1000000"}, UpperBound: &api.Range_Lte{Lte: "2000000"}},
+				"numberOfShares": {LowerBound: &api.Range_Gt{Gt: "0"}, UpperBound: &api.Range_Lt{Lt: "100"}},
+			}},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	assert.Len(t, response.Events, 1)
+	assert.Equal(t, uint32(1), response.Hits.Total)
+
+	should := evService.ReceivedFilters.Should
+	assert.Len(t, should, 2)
+	assert.Len(t, should[0].Terms, 2)
+	assert.Len(t, should[1].Ranges, 2)
+	assert.Contains(t, should[0].Terms["destination"], validId1, validId2)
+	assert.Contains(t, should[0].Terms["source"], validId1)
+	assert.Contains(t, should[1].Ranges["amount"], entities.Range{Operation: "gte", Value: "1000000"}, entities.Range{Operation: "lte", Value: "2000000"})
+	assert.Contains(t, should[1].Ranges["numberOfShares"], entities.Range{Operation: "gt", Value: "0"}, entities.Range{Operation: "lt", Value: "10"})
+}
+
+func TestArchiveQueryService_GetEvents_WithShouldFilterWithOnlyOneValue_ThenError(t *testing.T) {
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+
+	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+		Should: []*api.ShouldFilter{
+			{Terms: map[string]string{"destination": validId1 + " , " + validId2}},
+		},
+	})
+	require.ErrorContains(t, err, "at least two")
+
 }

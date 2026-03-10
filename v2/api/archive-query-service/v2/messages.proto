@@ -75,7 +75,7 @@ message GetTransactionsForTickRequest {
   };
   // the tick number to get the transactions for.
   uint32 tick_number = 1 [(openapi.v3.property) = {description:"The tick number to get the transactions for."}];
-  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: source, destination, amount, inputType"}];
+  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputType"}];
   map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType"}];
 }
 
@@ -84,7 +84,23 @@ message GetTransactionsForTickResponse {
   repeated Transaction transactions = 1 [(openapi.v3.property) = {description:"The transactions for the requested tick number."}];
 }
 
-// Range
+// Range filter
+//
+// | Name      | Type   | Necessity | Description                               |
+// |-----------|--------|-----------|-------------------------------------------|
+// | gt        | string | optional  | Greater than.                             |
+// | gte       | string | optional  | Greater than or equal to.                 |
+// | lt        | string | optional  | Less than.                                |
+// | lte       | string | optional  | Less than or equal to.                    |
+//
+// One lower bound and one upper bound can be specified. One bound is needed. A range with size of 0 or 1 is not allowed.
+//
+// Examples
+//
+// ```
+// "amount": { "gt": "1000000" }
+// "tickNumber": { "gte": "25563000", "lte": "28300000" }
+// ```
 message Range {
   oneof lower_bound {
     string gt = 1 [(openapi.v3.property) = {description:"Greater than."}];
@@ -96,6 +112,28 @@ message Range {
   }
 }
 
+// Should Filters
+//
+// One should filter can contain multiple terms and ranges. It needs at least two query clauses.
+// At least one of them has to match by default. See term and range filter documentation for examples.
+//
+// Example
+//
+// ```
+// "should": [
+//   {
+//     "terms": {
+//       "source": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+//       "destination": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
+//     }
+//   }
+// ]
+// ```
+message ShouldFilter {
+  map<string, string> terms = 1 [(openapi.v3.property) = {description:"Or filters: One or more of the values must match."}];
+  map<string, Range> ranges = 2 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and/or minimum value."}];
+}
+
 // GetTransactionsForIdentityRequest
 message GetTransactionsForIdentityRequest {
   option (openapi.v3.schema) = {
@@ -105,9 +143,10 @@ message GetTransactionsForIdentityRequest {
   };
 
   string identity = 1 [(openapi.v3.property) = {description:"The identity to get the transactions for. Incoming and outgoing transactions are queried by default."}];
-  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Filters restrict the results by single values."}];
-  map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value."}];
-  Pagination pagination = 4 [(openapi.v3.property) = {description:"Optional paging information ."}];
+  map<string, string> filters = 2 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents."}];
+  map<string, string> exclude = 3 [(openapi.v3.property) = {description:"Exclude filters: the value must not appear in the matching documents."}];
+  map<string, Range> ranges = 6 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and/or minimum value."}];
+  Pagination pagination = 9 [(openapi.v3.property) = {description:"Optional paging information ."}];
 }
 
 // Hits
@@ -262,8 +301,11 @@ message GetEventsRequest {
       yaml: "filters:\n  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\npagination:\n  offset: 0\n  size: 10"
     };
   };
-  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Filters restrict the results by single values. Allowed: transactionHash, tickNumber, eventType"}];
-  Pagination pagination = 2 [(openapi.v3.property) = {description:"Optional paging information."}];
+  map<string, string> filters = 1 [(openapi.v3.property) = {description:"Include filters: all the values must match."}];
+  map<string, string> exclude = 2 [(openapi.v3.property) = {description:"Exclude filters: all the values must must not match."}];
+  repeated ShouldFilter should = 3 [(openapi.v3.property) = {description:"Should filters: one or more of the values must match."}];
+  map<string, Range> ranges = 5 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and/or minimum value."}];
+  Pagination pagination = 9 [(openapi.v3.property) = {description:"Optional paging information."}];
 }
 
 // GetEventsResponse

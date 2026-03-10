@@ -58,7 +58,7 @@ func Test_createTickTransactionsQuery_withFilters(t *testing.T) {
 }
 
 func Test_createTickTransactionsQuery_withRanges(t *testing.T) {
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"amount": {
 			{Operation: "gte", Value: "1000"},
 			{Operation: "lte", Value: "10000"},
@@ -87,7 +87,7 @@ func Test_createTickTransactionsQuery_withFiltersAndRanges(t *testing.T) {
 	filters := map[string][]string{
 		"destination": {"SOMEDESTIDENTITY123456789012345678901234567890123456"},
 	}
-	ranges := map[string][]*entities.Range{
+	ranges := map[string][]entities.Range{
 		"amount": {
 			{Operation: "gte", Value: "100"},
 		},

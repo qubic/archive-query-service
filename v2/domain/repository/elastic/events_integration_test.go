@@ -10,6 +10,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
+	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/qubic/archive-query-service/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ var testEvent1 = event{
 	LogDigest:       "digest1",
 	Type:            0,
 	Source:          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
-	Destination:     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+	Destination:     "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
 	Amount:          1000,
 }
 
@@ -68,6 +69,9 @@ var testEvent4 = event{
 	LogID:           4,
 	LogDigest:       "digest4",
 	Type:            3,
+	Source:          "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
+	Destination:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
+	NumberOfShares:  666,
 }
 
 var testEvent5 = event{
@@ -202,14 +206,16 @@ func (s *eventsSuite) indexEvent(esClient *elasticsearch.Client, ev event, docID
 }
 
 func (s *eventsSuite) Test_GetEvents_NoFilters() {
-	events, hits, err := s.repo.GetEvents(s.ctx, nil, 0, 10)
+	events, hits, err := s.repo.GetEvents(s.ctx, entities.Filters{}, 0, 10)
 	require.NoError(s.T(), err, "getting events without filters")
 	assert.Len(s.T(), events, 6)
 	assert.Equal(s.T(), 6, hits.Total)
 }
 
 func (s *eventsSuite) Test_GetEvents_FilterByTransactionHash() {
-	filters := map[string][]string{"transactionHash": {"txhash1"}}
+	filters := entities.Filters{
+		Include: map[string][]string{"transactionHash": {"txhash1"}},
+	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events by transaction hash")
 	assert.Len(s.T(), events, 2)
@@ -221,7 +227,9 @@ func (s *eventsSuite) Test_GetEvents_FilterByTransactionHash() {
 }
 
 func (s *eventsSuite) Test_GetEvents_FilterByTickNumber() {
-	filters := map[string][]string{"tickNumber": {"15001"}}
+	filters := entities.Filters{
+		Include: map[string][]string{"tickNumber": {"15001"}},
+	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events by tick number")
 	require.Len(s.T(), events, 1)
@@ -233,7 +241,9 @@ func (s *eventsSuite) Test_GetEvents_FilterByTickNumber() {
 }
 
 func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
-	filters := map[string][]string{"logType": {"8"}}
+	filters := entities.Filters{
+		Include: map[string][]string{"logType": {"8"}},
+	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events by event type")
 	require.Len(s.T(), events, 1)
@@ -242,9 +252,11 @@ func (s *eventsSuite) Test_GetEvents_FilterByEventType() {
 }
 
 func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
-	filters := map[string][]string{
-		"transactionHash": {"txhash1"},
-		"logType":         {"0"},
+	filters := entities.Filters{
+		Include: map[string][]string{
+			"transactionHash": {"txhash1"},
+			"logType":         {"0"},
+		},
 	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events with combined filters")
@@ -256,13 +268,13 @@ func (s *eventsSuite) Test_GetEvents_CombinedFilters() {
 
 func (s *eventsSuite) Test_GetEvents_Pagination() {
 	// Get first page of 2
-	events1, hits1, err := s.repo.GetEvents(s.ctx, nil, 0, 2)
+	events1, hits1, err := s.repo.GetEvents(s.ctx, entities.Filters{}, 0, 2)
 	require.NoError(s.T(), err, "getting first page")
 	assert.Len(s.T(), events1, 2)
 	assert.Equal(s.T(), 6, hits1.Total)
 
 	// Get second page of 2
-	events2, hits2, err := s.repo.GetEvents(s.ctx, nil, 2, 2)
+	events2, hits2, err := s.repo.GetEvents(s.ctx, entities.Filters{}, 2, 2)
 	require.NoError(s.T(), err, "getting second page")
 	assert.Len(s.T(), events2, 2)
 	assert.Equal(s.T(), 6, hits2.Total)
@@ -272,9 +284,44 @@ func (s *eventsSuite) Test_GetEvents_Pagination() {
 }
 
 func (s *eventsSuite) Test_GetEvents_NoResults() {
-	filters := map[string][]string{"transactionHash": {"nonexistent"}}
+	filters := entities.Filters{
+		Include: map[string][]string{"transactionHash": {"nonexistent"}},
+	}
 	events, hits, err := s.repo.GetEvents(s.ctx, filters, 0, 10)
 	require.NoError(s.T(), err, "getting events with no results")
 	assert.Len(s.T(), events, 0)
 	assert.Equal(s.T(), 0, hits.Total)
+}
+
+func (s *eventsSuite) Test_GetEvents_WithRangeFilter() {
+	ranges := map[string][]entities.Range{
+		"amount": {
+			{Operation: "gte", Value: "900"},
+			{Operation: "lte", Value: "1100"},
+		},
+	}
+	events, hits, err := s.repo.GetEvents(s.ctx, entities.Filters{Ranges: ranges}, 0, 10)
+	require.NoError(s.T(), err, "getting events with range filter")
+	require.Len(s.T(), events, 1)
+	require.Equal(s.T(), 1, hits.Total)
+	assert.Equal(s.T(), 1000, int(events[0].GetQuTransfer().GetAmount()))
+}
+
+func (s *eventsSuite) Test_GetEvents_WithShouldFilter() {
+	should := []entities.ShouldFilter{
+		{Terms: map[string][]string{
+			"source":      {"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+			"destination": {"BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"},
+		}},
+		{Ranges: map[string][]entities.Range{
+			"numberOfShares": {{Operation: "gte", Value: "1"}, {Operation: "lte", Value: "100000"}},
+			"amount":         {{Operation: "gt", Value: "1"}, {Operation: "lt", Value: "160000"}},
+		}},
+	}
+	events, hits, err := s.repo.GetEvents(s.ctx, entities.Filters{Should: should}, 0, 10)
+	require.NoError(s.T(), err, "getting events with should filter")
+	require.Len(s.T(), events, 2)
+	require.Equal(s.T(), 2, hits.Total)
+	assert.Equal(s.T(), 1, int(events[1].GetLogId()))
+	assert.Equal(s.T(), 4, int(events[0].GetLogId()))
 }

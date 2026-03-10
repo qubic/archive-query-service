@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -78,21 +76,21 @@ func (r *ArchiveRepository) GetTransactionByHash(_ context.Context, hash string)
 	return transactionToAPITransaction(result.Source), nil
 }
 
-func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]*entities.Range) ([]*api.Transaction, error) {
+func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error) {
 	query, err := createTickTransactionsQuery(tickNumber, filters, ranges)
 	if err != nil {
-		return nil, fmt.Errorf("creating query: %w", err)
+		return nil, fmt.Errorf("creating transactions for tick query: %w", err)
 	}
 
 	var result transactionsSearchResponse
-	err = r.performElasticSearch(ctx, r.txIndex, &query, &result)
+	err = performElasticSearch(ctx, r.esClient, r.txIndex, &query, &result)
 	if err != nil {
 		return nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 	return transactionHitsToAPITransactions(result.Hits.Hits), nil
 }
 
-func createTickTransactionsQuery(tick uint32, filters map[string][]string, ranges map[string][]*entities.Range) (bytes.Buffer, error) {
+func createTickTransactionsQuery(tick uint32, filters map[string][]string, ranges map[string][]entities.Range) (bytes.Buffer, error) {
 	// Always include tick number as the first filter
 	filterStrings := []string{fmt.Sprintf(`{"term":{"tickNumber":%d}}`, tick)}
 
@@ -125,32 +123,18 @@ func createTickTransactionsQuery(tick uint32, filters map[string][]string, range
 	return buf, nil
 }
 
-func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters map[string][]string, ranges map[string][]*entities.Range,
+func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters,
 	from, size uint32) ([]*api.Transaction, *entities.Hits, error) {
 
-	query, err := createIdentitiesQuery(identity, filters, ranges, from, size, maxTick)
+	query, err := createIdentitiesQuery(identity, filters, from, size, maxTick)
 	if err != nil {
-		return nil, nil, fmt.Errorf("creating query: %w", err)
-	}
-
-	res, err := r.esClient.Search(
-		r.esClient.Search.WithContext(ctx),
-		r.esClient.Search.WithIndex(r.txIndex),
-		r.esClient.Search.WithBody(strings.NewReader(query)),
-	)
-	if err != nil {
-		log.Printf("calling es client search with query: %v", query)
-		return nil, nil, fmt.Errorf("performing search: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		return nil, nil, fmt.Errorf("error response from data store: %s", res.String())
+		return nil, nil, fmt.Errorf("creating transactions for identity query: %w", err)
 	}
 
 	var result transactionsSearchResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, nil, fmt.Errorf("decoding response: %w", err)
+	err = performElasticSearch(ctx, r.esClient, r.txIndex, strings.NewReader(query), &result)
+	if err != nil {
+		return nil, nil, fmt.Errorf("performing elastic search: %w", err)
 	}
 
 	hits := &entities.Hits{
@@ -161,34 +145,32 @@ func (r *ArchiveRepository) GetTransactionsForIdentity(ctx context.Context, iden
 	return transactionHitsToAPITransactions(result.Hits.Hits), hits, nil
 }
 
-func createIdentitiesQuery(identity string, filters map[string][]string, ranges map[string][]*entities.Range, from, size, maxTick uint32) (string, error) {
+func createIdentitiesQuery(identity string, filters entities.Filters, from, size, maxTick uint32) (string, error) {
 
 	var query string
 
-	includeFilters, excludeFilters := splitFilters(filters)
-
 	// Check if there's an upper bound tickNumber range filter (lt/lte) and adjust if needed
-	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(ranges, maxTick)
+	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(filters.Ranges, maxTick)
 	if err != nil {
 		return "", err
 	}
 
-	filterStrings := make([]string, 0, len(includeFilters)+len(ranges)+1)
+	filterStrings := make([]string, 0, len(filters.Include)+len(filters.Ranges)+1)
 	// restrict to max tick only if no upper bound tickNumber filter is present
 	if !hasUpperBoundTickFilter {
 		filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
 	}
 	// normal filters
-	filterStrings = append(filterStrings, getFilterStrings(includeFilters)...)
+	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)
 	// append range filters
-	rangeFilterStrings, err := getRangeFilterStrings(ranges)
+	rangeFilterStrings, err := getRangeFilterStrings(filters.Ranges)
 	if err != nil {
 		return "", err
 	}
 	filterStrings = append(filterStrings, rangeFilterStrings...)
 
 	// filters for excluding results
-	excludeFilterStrings := getFilterStrings(excludeFilters)
+	excludeFilterStrings := getFilterStrings(filters.Exclude)
 
 	// filters are always present because we need to restrict to max tick
 	filterQueryString := strings.Join(filterStrings, ",")
@@ -223,10 +205,10 @@ func createIdentitiesQuery(identity string, filters map[string][]string, ranges 
 	return query, nil
 }
 
-func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.Range, maxTick uint32) (bool, error) {
+func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]entities.Range, maxTick uint32) (bool, error) {
 	hasUpperBoundTickFilter := false
 	if tickRanges, ok := ranges["tickNumber"]; ok {
-		for _, r := range tickRanges {
+		for k, r := range tickRanges {
 			if r.Operation == "lt" || r.Operation == "lte" {
 				hasUpperBoundTickFilter = true
 				// Parse the value and compare with maxTick
@@ -235,8 +217,11 @@ func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.R
 					return false, fmt.Errorf("parsing tickNumber range value: %w", err)
 				}
 				maxTickValue := If(r.Operation == "lte", maxTick, maxTick+1)
-				if uint32(tickValue) > maxTickValue {
-					r.Value = fmt.Sprintf("%d", maxTickValue)
+				if uint32(tickValue) > maxTickValue { // replace
+					tickRanges[k] = entities.Range{
+						Operation: r.Operation,
+						Value:     fmt.Sprintf("%d", maxTickValue),
+					}
 				}
 			}
 		}
@@ -244,73 +229,9 @@ func modifyUpperBoundTickNumberFilterIfNecessary(ranges map[string][]*entities.R
 	return hasUpperBoundTickFilter, nil
 }
 
-func If[T any](cond bool, vtrue, vfalse T) T {
+func If[T any](cond bool, vTrue, vFalse T) T {
 	if cond {
-		return vtrue
+		return vTrue
 	}
-	return vfalse
-}
-
-const excludeSuffix = "-exclude"
-
-func splitFilters(filters map[string][]string) (map[string][]string, map[string][]string) {
-	includeFilters := make(map[string][]string)
-	excludeFilters := make(map[string][]string)
-	for k, v := range filters {
-		if strings.HasSuffix(k, excludeSuffix) {
-			excludeFilters[strings.TrimSuffix(k, excludeSuffix)] = v
-		} else {
-			includeFilters[k] = v
-		}
-	}
-	return includeFilters, excludeFilters
-}
-
-func getFilterStrings(filters map[string][]string) []string {
-	keys := getSortedKeys(filters) // sort for a deterministic filter order
-
-	filterStrings := make([]string, 0, len(filters))
-	for _, k := range keys {
-		if len(filters[k]) > 1 {
-			filterStrings = append(filterStrings, fmt.Sprintf(`{"terms":{"%s":["%s"]}}`, k, strings.Join(filters[k], `","`)))
-		} else if len(filters[k]) == 1 {
-			filterStrings = append(filterStrings, fmt.Sprintf(`{"term":{"%s":"%s"}}`, k, filters[k][0]))
-		}
-	}
-	return filterStrings
-}
-
-func getRangeFilterStrings(ranges map[string][]*entities.Range) ([]string, error) {
-	keys := getSortedKeys(ranges) // sort for a deterministic filter order
-	filterStrings := make([]string, 0, len(ranges))
-	for _, k := range keys {
-		rangeString, err := createRangeFilter(k, ranges[k])
-		if err != nil {
-			log.Printf("error computing range filter [%s]: %v", k, ranges[k])
-			return nil, fmt.Errorf("creating range filter: %w", err)
-		}
-		filterStrings = append(filterStrings, rangeString)
-	}
-	return filterStrings, nil
-}
-
-func createRangeFilter(property string, r []*entities.Range) (string, error) {
-	var rangeStrings []string
-	for _, v := range r {
-		rangeStrings = append(rangeStrings, fmt.Sprintf(`"%s":"%s"`, v.Operation, v.Value))
-	}
-	if len(rangeStrings) > 0 {
-		return fmt.Sprintf(`{"range":{"%s":{%s}}}`, property, strings.Join(rangeStrings, ",")), nil
-	}
-
-	return "", fmt.Errorf("computing range for [%s]", property)
-}
-
-func getSortedKeys[T any](m map[string]T) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
+	return vFalse
 }
