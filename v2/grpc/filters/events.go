@@ -21,7 +21,7 @@ const (
 )
 
 const maxValuesPerEventFilter = 5
-const maxValueLengthPerEventFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
+const maxValueLengthPerEventIdentityFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
 
 var AllowedEventIncludeFilters = map[string]bool{
 	EventFilterSource:          true,
@@ -64,10 +64,13 @@ func CreateEventFilters(filterMap map[string]string, allowedKeys map[string]bool
 	res := make(map[string][]string)
 	for k, v := range filterMap {
 
-		shouldSplit := k == EventFilterSource || k == EventFilterDestination
+		shouldSplit := k == EventFilterSource || k == EventFilterDestination || k == EventFilterLogType
 
 		maxValues := utils.If(shouldSplit, maxValuesPerEventFilter, 1)
-		maxLength := utils.If(shouldSplit, maxValueLengthPerEventFilter, 60)
+		maxLength := utils.If(k == EventFilterTransactionHash, 60, 15)
+		if k == EventFilterSource || k == EventFilterDestination {
+			maxLength = maxValueLengthPerEventIdentityFilter
+		}
 
 		vs, err := CreateFilters(v, maxValues, maxLength)
 		if err != nil {
@@ -130,7 +133,7 @@ func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string
 
 		case EventFilterLogType:
 
-			err := ValidateUnsignedNumericFilterValues(values, 8, 1) // up to 255
+			err := ValidateUnsignedNumericFilterValues(values, 8, maxValuesPerEventFilter) // uint8 <= 255
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}

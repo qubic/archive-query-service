@@ -69,9 +69,18 @@ func TestValidateEventsFilters_ValidTickNumber(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestValidateEventsFilters_ValidEventType(t *testing.T) {
+func TestCreateEventsFilters_SupportMultipleLogTypes(t *testing.T) {
+	inputLogTypes := "1,2,3,4,5"
+	filters, err := CreateEventFilters(map[string]string{"logType": inputLogTypes}, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+	assert.Len(t, filters["logType"], 5)
+	assert.Contains(t, filters["logType"], "1", "2", "3", "4", "5")
+
+}
+
+func TestValidateEventsFilters_ValidLogType(t *testing.T) {
 	for _, et := range []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "255"} {
-		t.Run("eventType_"+et, func(t *testing.T) {
+		t.Run("logType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"logType": {et}}
 			err := validateEventsFilters(filters, AllowedEventIncludeFilters)
 			require.NoError(t, err)
@@ -79,9 +88,9 @@ func TestValidateEventsFilters_ValidEventType(t *testing.T) {
 	}
 }
 
-func TestValidateEventsFilters_InvalidEventType(t *testing.T) {
+func TestValidateEventsFilters_InvalidLogType(t *testing.T) {
 	for _, et := range []string{"-1", "256", "abc"} {
-		t.Run("eventType_"+et, func(t *testing.T) {
+		t.Run("logType_"+et, func(t *testing.T) {
 			filters := map[string][]string{"logType": {et}}
 			err := validateEventsFilters(filters, AllowedEventIncludeFilters)
 			require.Error(t, err)
