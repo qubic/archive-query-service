@@ -19,6 +19,7 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"transactionHash": validTransactionHash,
 		"tickNumber":      "42",
 		"logType":         "1",
+		"categories":      "4",
 	}
 	result, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
 	require.NoError(t, err)
@@ -26,6 +27,7 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"transactionHash": {validTransactionHash},
 		"tickNumber":      {"42"},
 		"logType":         {"1"},
+		"categories":      {"4"},
 	}, result)
 }
 
@@ -75,7 +77,14 @@ func TestCreateEventsFilters_SupportMultipleLogTypes(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, filters["logType"], 5)
 	assert.Contains(t, filters["logType"], "1", "2", "3", "4", "5")
+}
 
+func TestCreateEventsFilters_SupportMultipleCategories(t *testing.T) {
+	categories := "1,2,3,4,5"
+	filters, err := CreateEventFilters(map[string]string{"categories": categories}, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+	assert.Len(t, filters["categories"], 5)
+	assert.Contains(t, filters["categories"], "1", "2", "3", "4", "5")
 }
 
 func TestValidateEventsFilters_ValidLogType(t *testing.T) {

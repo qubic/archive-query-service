@@ -18,6 +18,7 @@ const (
 	EventFilterAmount          = "amount"
 	EventFilterNumberOfShares  = "numberOfShares"
 	EventRangeTimestamp        = "timestamp"
+	EventFilterCategories      = "categories"
 )
 
 const maxValuesPerEventFilter = 5
@@ -32,6 +33,7 @@ var AllowedEventIncludeFilters = map[string]bool{
 	EventFilterAmount:          true,
 	EventFilterNumberOfShares:  true,
 	EventFilterLogType:         true,
+	EventFilterCategories:      true,
 }
 
 var AllowedEventExcludeFilters = map[string]bool{
@@ -64,7 +66,7 @@ func CreateEventFilters(filterMap map[string]string, allowedKeys map[string]bool
 	res := make(map[string][]string)
 	for k, v := range filterMap {
 
-		shouldSplit := k == EventFilterSource || k == EventFilterDestination || k == EventFilterLogType
+		shouldSplit := k == EventFilterSource || k == EventFilterDestination || k == EventFilterLogType || k == EventFilterCategories
 
 		maxValues := utils.If(shouldSplit, maxValuesPerEventFilter, 1)
 		maxLength := utils.If(k == EventFilterTransactionHash, 60, 15)
@@ -131,7 +133,7 @@ func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 
-		case EventFilterLogType:
+		case EventFilterLogType, EventFilterCategories:
 
 			err := ValidateUnsignedNumericFilterValues(values, 8, maxValuesPerEventFilter) // uint8 <= 255
 			if err != nil {
