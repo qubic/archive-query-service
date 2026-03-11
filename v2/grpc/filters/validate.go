@@ -37,7 +37,7 @@ func validateDigest(values []string, maxValues int, lowercase bool) error {
 	for _, val := range values {
 		err := utils.ValidateDigest(val, lowercase)
 		if err != nil {
-			return fmt.Errorf("invalid transaction hash: %w", err)
+			return fmt.Errorf("invalid digest [%s]: %w", val, err)
 		}
 	}
 	return nil

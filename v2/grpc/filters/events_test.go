@@ -19,6 +19,7 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"transactionHash": validTransactionHash,
 		"tickNumber":      "42",
 		"logType":         "1",
+		"logId":           "2",
 		"categories":      "4",
 	}
 	result, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
@@ -27,6 +28,7 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"transactionHash": {validTransactionHash},
 		"tickNumber":      {"42"},
 		"logType":         {"1"},
+		"logId":           {"2"},
 		"categories":      {"4"},
 	}, result)
 }
