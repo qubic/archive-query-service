@@ -37,7 +37,7 @@ func validateDigest(values []string, maxValues int, lowercase bool) error {
 	for _, val := range values {
 		err := utils.ValidateDigest(val, lowercase)
 		if err != nil {
-			return fmt.Errorf("invalid transaction hash: %w", err)
+			return fmt.Errorf("invalid digest [%s]: %w", val, err)
 		}
 	}
 	return nil
@@ -88,7 +88,7 @@ func checkForConflictingKeys[F any](known map[string]bool, checked map[string]F,
 
 func checkQuantity(values []string, maxValues int) error {
 	if len(values) == 0 || len(values) > maxValues {
-		return fmt.Errorf("invalid number of values: [%d]", maxValues)
+		return fmt.Errorf("invalid number of values (%d>%d)", len(values), maxValues)
 	}
 	return nil
 }

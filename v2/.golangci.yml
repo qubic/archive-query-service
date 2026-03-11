@@ -37,6 +37,13 @@ linters:
       excludes:
         - G115
         - G114
+    revive:
+      rules:
+        - name: var-naming
+          arguments:
+            - []
+            - []
+            - - skip-initialism-name-checks: true
   exclusions:
     generated: disable
     presets:
