@@ -41,6 +41,8 @@ linters:
       rules:
         - name: var-naming
           arguments:
+            - []
+            - []
             - - skip-initialism-name-checks: true
   exclusions:
     generated: disable
