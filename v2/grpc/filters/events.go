@@ -216,7 +216,7 @@ func getMaxValuesForKey(k string) int {
 }
 
 func getMaxLengthForKey(k string) int {
-	maxLength := utils.If(k == EventFilterTransactionHash, 60, 15)
+	maxLength := utils.If(k == EventFilterTransactionHash, 60, 20)
 	if k == EventFilterSource || k == EventFilterDestination {
 		maxLength = maxValueLengthPerEventIdentityFilter
 	}
