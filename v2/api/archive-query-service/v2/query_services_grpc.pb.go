@@ -104,7 +104,7 @@ type ArchiveQueryServiceClient interface {
 	//
 	// ### Filters
 	//
-	// A filter property must only be used in one filter. See below for allowed properties.
+	// A property must only be used in one filter. See below for allowed properties.
 	//
 	// #### Include filter properties
 	//
@@ -160,7 +160,7 @@ type ArchiveQueryServiceClient interface {
 	GetProcessedTickIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTickIntervalsResponse, error)
 	// Query event logs with optional filters.
 	//
-	// ## Please note: Beta version – may be subject to incompatible changes.
+	// Please note: beta version – may be subject to incompatible changes.
 	//
 	// ###  Request structure
 	//
@@ -174,19 +174,37 @@ type ArchiveQueryServiceClient interface {
 	//
 	// ### Filters
 	//
-	// A filter property must only be used in one filter. See below for allowed properties.
+	// A filter property must only be used in one filter, if not explicitly stated otherwise.
+	// If multiple values are used they need to be comma separated. See below for allowed properties.
+	// Many fields are conditional per log type. Some fields are universal and present for all logs.
 	//
 	// #### Include filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
-	// |-----------------|---------|----------|---------------------------------------------------------|
-	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with this source. |
-	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with this destination.   |
-	// | transactionHash | string  | Hash     | Only find events for the specified transaction hash.    |
-	// | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
-	// | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
+	// |-----------------|--------|-----------|---------------------------------------------------------|
+	// | source          | string | 60 character identity, up to 5 | The source identity. (conditional) |
+	// | destination     | string | 60 character identity, up to 5 | The destination identity. (conditional) |
+	// | transactionHash | string | Hash     | Hash of the related transaction. (conditional)           |
+	// | tickNumber      | string | Numeric  | The tick the log belongs to. (universal)                 |
+	// | logId           | string | Numeric  | Index of the log within the tick. Should be unique per epoch. (universal) |
+	// | logType         | string | Numeric, up to 5 | The type of the log. (universal)                 |
+	// | categories      | string | Numeric, up to 5 | Log category. (conditional)                      |
+	//
+	// The following categories are theoretically supported at the moment. Not all are available in the archive.
+	// See log data consumer code for more details:
+	//
+	// | Name          | Category |
+	// |---------------|----------|
+	// | "SC_INITIALIZE_TX"   | 1 |
+	// | "SC_BEGIN_EPOCH_TX"  | 2 |
+	// | "SC_BEGIN_TICK_TX"   | 3 |
+	// | "SC_END_TICK_TX"     | 4 |
+	// | "SC_END_EPOCH_TX"    | 5 |
+	// | "SC_NOTIFICATION_TX" | 6 |
 	//
 	// #### Exclude filter properties
+	//
+	// It is allowed to use exclude filters together with should filters.
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|
@@ -401,7 +419,7 @@ type ArchiveQueryServiceServer interface {
 	//
 	// ### Filters
 	//
-	// A filter property must only be used in one filter. See below for allowed properties.
+	// A property must only be used in one filter. See below for allowed properties.
 	//
 	// #### Include filter properties
 	//
@@ -457,7 +475,7 @@ type ArchiveQueryServiceServer interface {
 	GetProcessedTickIntervals(context.Context, *emptypb.Empty) (*GetProcessedTickIntervalsResponse, error)
 	// Query event logs with optional filters.
 	//
-	// ## Please note: Beta version – may be subject to incompatible changes.
+	// Please note: beta version – may be subject to incompatible changes.
 	//
 	// ###  Request structure
 	//
@@ -471,19 +489,37 @@ type ArchiveQueryServiceServer interface {
 	//
 	// ### Filters
 	//
-	// A filter property must only be used in one filter. See below for allowed properties.
+	// A filter property must only be used in one filter, if not explicitly stated otherwise.
+	// If multiple values are used they need to be comma separated. See below for allowed properties.
+	// Many fields are conditional per log type. Some fields are universal and present for all logs.
 	//
 	// #### Include filter properties
 	//
 	// | Name            |  Type   | Format   | Description                                             |
-	// |-----------------|---------|----------|---------------------------------------------------------|
-	// | source      | string | 60 character identity, up to 5, comma separated. | Only find logs with this source. |
-	// | destination | string | 60 character identity, up to 5, comma separated.  | Only find logs with this destination.   |
-	// | transactionHash | string  | Hash     | Only find events for the specified transaction hash.    |
-	// | tickNumber      | string  | Numeric  | Only find events for the specified tick number.         |
-	// | logType         | string  | Numeric  | Only find events with the specified type (0,1,2,3,8,13).|
+	// |-----------------|--------|-----------|---------------------------------------------------------|
+	// | source          | string | 60 character identity, up to 5 | The source identity. (conditional) |
+	// | destination     | string | 60 character identity, up to 5 | The destination identity. (conditional) |
+	// | transactionHash | string | Hash     | Hash of the related transaction. (conditional)           |
+	// | tickNumber      | string | Numeric  | The tick the log belongs to. (universal)                 |
+	// | logId           | string | Numeric  | Index of the log within the tick. Should be unique per epoch. (universal) |
+	// | logType         | string | Numeric, up to 5 | The type of the log. (universal)                 |
+	// | categories      | string | Numeric, up to 5 | Log category. (conditional)                      |
+	//
+	// The following categories are theoretically supported at the moment. Not all are available in the archive.
+	// See log data consumer code for more details:
+	//
+	// | Name          | Category |
+	// |---------------|----------|
+	// | "SC_INITIALIZE_TX"   | 1 |
+	// | "SC_BEGIN_EPOCH_TX"  | 2 |
+	// | "SC_BEGIN_TICK_TX"   | 3 |
+	// | "SC_END_TICK_TX"     | 4 |
+	// | "SC_END_EPOCH_TX"    | 5 |
+	// | "SC_NOTIFICATION_TX" | 6 |
 	//
 	// #### Exclude filter properties
+	//
+	// It is allowed to use exclude filters together with should filters.
 	//
 	// | Name            |  Type   | Format   | Description                                             |
 	// |-----------------|---------|----------|---------------------------------------------------------|

@@ -18,6 +18,8 @@ const (
 	EventFilterAmount          = "amount"
 	EventFilterNumberOfShares  = "numberOfShares"
 	EventRangeTimestamp        = "timestamp"
+	EventFilterCategories      = "categories"
+	EventFilterLogId           = "logId"
 )
 
 const maxValuesPerEventFilter = 5
@@ -32,6 +34,8 @@ var AllowedEventIncludeFilters = map[string]bool{
 	EventFilterAmount:          true,
 	EventFilterNumberOfShares:  true,
 	EventFilterLogType:         true,
+	EventFilterCategories:      true,
+	EventFilterLogId:           true,
 }
 
 var AllowedEventExcludeFilters = map[string]bool{
@@ -64,13 +68,8 @@ func CreateEventFilters(filterMap map[string]string, allowedKeys map[string]bool
 	res := make(map[string][]string)
 	for k, v := range filterMap {
 
-		shouldSplit := k == EventFilterSource || k == EventFilterDestination || k == EventFilterLogType
-
-		maxValues := utils.If(shouldSplit, maxValuesPerEventFilter, 1)
-		maxLength := utils.If(k == EventFilterTransactionHash, 60, 15)
-		if k == EventFilterSource || k == EventFilterDestination {
-			maxLength = maxValueLengthPerEventIdentityFilter
-		}
+		maxValues := getMaxValuesForKey(k)
+		maxLength := getMaxLengthForKey(k)
 
 		vs, err := CreateFilters(v, maxValues, maxLength)
 		if err != nil {
@@ -124,14 +123,14 @@ func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 
-		case EventFilterAmount, EventFilterNumberOfShares:
+		case EventFilterAmount, EventFilterNumberOfShares, EventFilterLogId:
 
 			err := ValidateUnsignedNumericFilterValues(values, 64, 1)
 			if err != nil {
 				return fmt.Errorf("invalid [%s] filter: %w", key, err)
 			}
 
-		case EventFilterLogType:
+		case EventFilterLogType, EventFilterCategories:
 
 			err := ValidateUnsignedNumericFilterValues(values, 8, maxValuesPerEventFilter) // uint8 <= 255
 			if err != nil {
@@ -210,4 +209,22 @@ func CreateShouldFilters(should []*api.ShouldFilter, allowedFilters, allowedRang
 		})
 	}
 	return shouldFilters, nil
+}
+
+func getMaxValuesForKey(k string) int {
+	shouldSplit := checkIfMultivalueKey(k)
+	maxValues := utils.If(shouldSplit, maxValuesPerEventFilter, 1)
+	return maxValues
+}
+
+func getMaxLengthForKey(k string) int {
+	maxLength := utils.If(k == EventFilterTransactionHash, 60, 20)
+	if k == EventFilterSource || k == EventFilterDestination {
+		maxLength = maxValueLengthPerEventIdentityFilter
+	}
+	return maxLength
+}
+
+func checkIfMultivalueKey(k string) bool {
+	return k == EventFilterSource || k == EventFilterDestination || k == EventFilterLogType || k == EventFilterCategories
 }
