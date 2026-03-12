@@ -225,7 +225,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 				Epoch: 101, TickNumber: 16001, LogType: 8,
 				TransactionHash: ToStringPointer("txhash5"), LogId: 5, LogDigest: "digest5",
 				EventData: &api.Event_Burning{Burning: &api.BurningData{
-					Source: "BURNER", Amount: 9999, ContractIndexBurnedFor: 7,
+					Source: "BURNER", Amount: 9999, ContractIndex: 7,
 				}},
 			}},
 		}, nil)
@@ -243,7 +243,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 		"logId":           "5", "logDigest": "digest5", "logType": float64(8),
 		"categories": []any{},
 		"burning": map[string]interface{}{
-			"source": "BURNER", "amount": "9999", "contractIndexBurnedFor": "7",
+			"source": "BURNER", "amount": "9999", "contractIndex": "7",
 		},
 	}
 	if diff := cmp.Diff(expected, ev); diff != "" {
@@ -303,7 +303,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 					Epoch: 100, TickNumber: 15001, LogType: 8,
 					TransactionHash: ToStringPointer("tx2"), LogId: 2, LogDigest: "d2",
 					EventData: &api.Event_Burning{Burning: &api.BurningData{
-						Source: "C", Amount: 200, ContractIndexBurnedFor: 1,
+						Source: "C", Amount: 200, ContractIndex: 1,
 					}},
 				},
 				{
@@ -345,7 +345,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 		"logId":           "2", "logDigest": "d2", "logType": float64(8),
 		"categories": []any{},
 		"burning": map[string]interface{}{
-			"source": "C", "amount": "200", "contractIndexBurnedFor": "1",
+			"source": "C", "amount": "200", "contractIndex": "1",
 		},
 	}
 	if diff := cmp.Diff(expected1, ev1); diff != "" {

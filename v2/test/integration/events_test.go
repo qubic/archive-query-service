@@ -212,7 +212,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type8_FullData() {
 		TransactionHash: test.ToStringPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
 		LogId:           5, LogDigest: "digest8", LogType: 8,
 		EventData: &api.Event_Burning{Burning: &api.BurningData{
-			Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndexBurnedFor: 7,
+			Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndex: 7,
 		}},
 	}
 	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
@@ -392,7 +392,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type8_Burning_FullData() {
 		"categories":      []any{},
 		"logId":           "5", "logDigest": "digest8", "logType": float64(8),
 		"burning": map[string]interface{}{
-			"source": "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", "amount": "9999", "contractIndexBurnedFor": "7",
+			"source": "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", "amount": "9999", "contractIndex": "7",
 		},
 	}
 	if diff := cmp.Diff(expected, ev); diff != "" {

@@ -15,9 +15,6 @@ func getFilterStrings(filters map[string][]string) []string {
 	filterStrings := make([]string, 0, len(filters))
 	for _, k := range keys {
 		esField := k
-		if k == "logType" {
-			esField = "type"
-		}
 		if len(filters[k]) > 1 {
 			filterStrings = append(filterStrings, fmt.Sprintf(`{"terms":{"%s":["%s"]}}`, esField, strings.Join(filters[k], `","`)))
 		} else if len(filters[k]) == 1 {
@@ -32,9 +29,6 @@ func getRangeFilterStrings(ranges map[string][]entities.Range) ([]string, error)
 	keys := getSortedKeys(ranges) // sort for a deterministic filter order
 	for _, k := range keys {
 		esField := k
-		if k == "logType" {
-			esField = "type"
-		}
 		rangeString, err := createRangeFilter(esField, ranges[k])
 		if err != nil {
 			log.Printf("error computing range filter [%s]: %v", k, ranges[k])

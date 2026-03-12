@@ -87,7 +87,7 @@ func Test_createEventsQuery_withTickNumber(t *testing.T) {
 	assert.Equal(t, "42", termFilter["tickNumber"])
 }
 
-func Test_createEventsQuery_withEventType(t *testing.T) {
+func Test_createEventsQuery_withLogType(t *testing.T) {
 	filters := map[string][]string{
 		"logType": {"1"},
 	}
@@ -106,9 +106,8 @@ func Test_createEventsQuery_withEventType(t *testing.T) {
 	filterArr := boolQuery["filter"].([]any)
 	require.Len(t, filterArr, 1)
 
-	// eventType should map to ES field "type"
 	termFilter := filterArr[0].(map[string]any)["term"].(map[string]any)
-	assert.Equal(t, "1", termFilter["type"])
+	assert.Equal(t, "1", termFilter["logType"])
 }
 
 func Test_createEventsQuery_withMultipleFilters(t *testing.T) {

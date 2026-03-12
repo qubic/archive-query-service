@@ -69,10 +69,10 @@ func eventToAPIEvent(e event) *api.Event {
 		TransactionHash: e.TransactionHash,
 		LogId:           e.LogID,
 		LogDigest:       e.LogDigest,
-		LogType:         e.Type,
+		LogType:         e.LogType,
 		Categories:      e.Categories,
 	}
-	switch e.Type {
+	switch e.LogType {
 	case 0:
 		ev.EventData = &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 			Source: e.Source, Destination: e.Destination, Amount: e.Amount,
@@ -96,12 +96,12 @@ func eventToAPIEvent(e event) *api.Event {
 	case 4, 5, 6, 7:
 		ev.RawPayload = e.RawPayload
 		ev.EventData = &api.Event_SmartContractMessage{SmartContractMessage: &api.SmartContractMessageData{
-			EmittingContractIndex: e.EmittingContractIndex,
-			ContractMessageType:   e.ContractMessageType,
+			ContractIndex:       e.ContractIndex,
+			ContractMessageType: e.ContractMessageType,
 		}}
 	case 8:
 		ev.EventData = &api.Event_Burning{Burning: &api.BurningData{
-			Source: e.Source, Amount: e.Amount, ContractIndexBurnedFor: e.ContractIndexBurnedFor,
+			Source: e.Source, Amount: e.Amount, ContractIndex: e.ContractIndex,
 		}}
 	case 9, 10, 11, 12:
 		ev.RawPayload = e.RawPayload

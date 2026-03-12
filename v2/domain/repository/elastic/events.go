@@ -29,7 +29,7 @@ type event struct {
 	TransactionHash          *string `json:"transactionHash"` // not all events belong to a transaction
 	LogID                    uint64  `json:"logId"`
 	LogDigest                string  `json:"logDigest"`
-	Type                     uint32  `json:"type"`
+	LogType                  uint32  `json:"logType"`
 	Categories               []int32 `json:"categories"` // not all events have categories
 	Source                   string  `json:"source"`
 	Destination              string  `json:"destination"`
@@ -43,13 +43,11 @@ type event struct {
 	DeductedAmount           uint64  `json:"deductedAmount"`
 	RemainingAmount          int64   `json:"remainingAmount"`
 	ContractIndex            uint64  `json:"contractIndex"`
-	ContractIndexBurnedFor   uint64  `json:"contractIndexBurnedFor"`
 	Possessor                string  `json:"possessor"`
 	Owner                    string  `json:"owner"`
 	SourceContractIndex      uint64  `json:"sourceContractIndex"`
 	DestinationContractIndex uint64  `json:"destinationContractIndex"`
 	CustomMessage            uint64  `json:"customMessage"`
-	EmittingContractIndex    uint64  `json:"emittingContractIndex"`
 	ContractMessageType      uint64  `json:"contractMessageType"`
 	RawPayload               []byte  `json:"rawPayload"` // not all events have raw payload
 }

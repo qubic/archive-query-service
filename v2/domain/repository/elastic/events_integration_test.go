@@ -28,7 +28,7 @@ var testEvent1 = event{
 	TransactionHash: test.ToStringPointer("txhash1"),
 	LogID:           1,
 	LogDigest:       "digest1",
-	Type:            0,
+	LogType:         0,
 	Source:          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
 	Destination:     "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
 	Amount:          1000,
@@ -41,7 +41,7 @@ var testEvent2 = event{
 	TransactionHash: test.ToStringPointer("txhash2"),
 	LogID:           2,
 	LogDigest:       "digest2",
-	Type:            1,
+	LogType:         1,
 	Categories:      []int32{1},
 	Source:          "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
 	Destination:     "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
@@ -55,7 +55,7 @@ var testEvent3 = event{
 	TransactionHash: test.ToStringPointer("txhash1"),
 	LogID:           3,
 	LogDigest:       "digest3",
-	Type:            2,
+	LogType:         2,
 	AssetName:       "QX",
 	AssetIssuer:     "ISSUER",
 	NumberOfShares:  500,
@@ -68,7 +68,7 @@ var testEvent4 = event{
 	TransactionHash: test.ToStringPointer("txhash3"),
 	LogID:           4,
 	LogDigest:       "digest4",
-	Type:            3,
+	LogType:         3,
 	Source:          "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID",
 	Destination:     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",
 	NumberOfShares:  666,
@@ -80,7 +80,7 @@ var testEvent5 = event{
 	Timestamp:       1700000005,
 	TransactionHash: test.ToStringPointer("txhash4"),
 	LogID:           5,
-	Type:            8,
+	LogType:         8,
 }
 
 var testEvent6 = event{
@@ -89,7 +89,7 @@ var testEvent6 = event{
 	Timestamp:       1700000006,
 	TransactionHash: test.ToStringPointer("txhash5"),
 	LogID:           6,
-	Type:            13,
+	LogType:         13,
 }
 
 type eventsSuite struct {

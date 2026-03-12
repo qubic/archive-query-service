@@ -1772,12 +1772,12 @@ func (x *AssetPossessionChangeData) GetNumberOfShares() uint64 {
 
 // BurningData contains fields specific to burning events (type 8).
 type BurningData struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	Source                 string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
-	Amount                 uint64                 `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	ContractIndexBurnedFor uint64                 `protobuf:"varint,3,opt,name=contract_index_burned_for,json=contractIndexBurnedFor,proto3" json:"contract_index_burned_for,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Source        string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Amount        uint64                 `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	ContractIndex uint64                 `protobuf:"varint,3,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BurningData) Reset() {
@@ -1824,9 +1824,9 @@ func (x *BurningData) GetAmount() uint64 {
 	return 0
 }
 
-func (x *BurningData) GetContractIndexBurnedFor() uint64 {
+func (x *BurningData) GetContractIndex() uint64 {
 	if x != nil {
-		return x.ContractIndexBurnedFor
+		return x.ContractIndex
 	}
 	return 0
 }
@@ -1893,11 +1893,11 @@ func (x *ContractReserveDeductionData) GetContractIndex() uint64 {
 }
 
 type SmartContractMessageData struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	EmittingContractIndex uint64                 `protobuf:"varint,1,opt,name=emitting_contract_index,json=emittingContractIndex,proto3" json:"emitting_contract_index,omitempty"`
-	ContractMessageType   uint64                 `protobuf:"varint,2,opt,name=contract_message_type,json=contractMessageType,proto3" json:"contract_message_type,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	ContractIndex       uint64                 `protobuf:"varint,1,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
+	ContractMessageType uint64                 `protobuf:"varint,2,opt,name=contract_message_type,json=contractMessageType,proto3" json:"contract_message_type,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SmartContractMessageData) Reset() {
@@ -1930,9 +1930,9 @@ func (*SmartContractMessageData) Descriptor() ([]byte, []int) {
 	return file_messages_proto_rawDescGZIP(), []int{29}
 }
 
-func (x *SmartContractMessageData) GetEmittingContractIndex() uint64 {
+func (x *SmartContractMessageData) GetContractIndex() uint64 {
 	if x != nil {
-		return x.EmittingContractIndex
+		return x.ContractIndex
 	}
 	return 0
 }
@@ -2543,17 +2543,17 @@ const file_messages_proto_rawDesc = "" +
 	"\fasset_issuer\x18\x03 \x01(\tR\vassetIssuer\x12\x1d\n" +
 	"\n" +
 	"asset_name\x18\x04 \x01(\tR\tassetName\x12(\n" +
-	"\x10number_of_shares\x18\x05 \x01(\x04R\x0enumberOfShares\"x\n" +
+	"\x10number_of_shares\x18\x05 \x01(\x04R\x0enumberOfShares\"d\n" +
 	"\vBurningData\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\tR\x06source\x12\x16\n" +
-	"\x06amount\x18\x02 \x01(\x04R\x06amount\x129\n" +
-	"\x19contract_index_burned_for\x18\x03 \x01(\x04R\x16contractIndexBurnedFor\"\x99\x01\n" +
+	"\x06amount\x18\x02 \x01(\x04R\x06amount\x12%\n" +
+	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\x99\x01\n" +
 	"\x1cContractReserveDeductionData\x12'\n" +
 	"\x0fdeducted_amount\x18\x01 \x01(\x04R\x0edeductedAmount\x12)\n" +
 	"\x10remaining_amount\x18\x02 \x01(\x03R\x0fremainingAmount\x12%\n" +
-	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\x86\x01\n" +
-	"\x18SmartContractMessageData\x126\n" +
-	"\x17emitting_contract_index\x18\x01 \x01(\x04R\x15emittingContractIndex\x122\n" +
+	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"u\n" +
+	"\x18SmartContractMessageData\x12%\n" +
+	"\x0econtract_index\x18\x01 \x01(\x04R\rcontractIndex\x122\n" +
 	"\x15contract_message_type\x18\x02 \x01(\x04R\x13contractMessageType\")\n" +
 	"\x11CustomMessageData\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\x04R\x05value\"\xa9\b\n" +

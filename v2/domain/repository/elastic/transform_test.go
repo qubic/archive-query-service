@@ -16,7 +16,7 @@ func Test_eventToAPIEvent_BasicFields(t *testing.T) {
 		TransactionHash: &txHash,
 		LogID:           123,
 		LogDigest:       "digest",
-		Type:            0,
+		LogType:         0,
 		Categories:      []int32{},
 	}
 
@@ -28,7 +28,7 @@ func Test_eventToAPIEvent_BasicFields(t *testing.T) {
 	assert.Equal(t, *e.TransactionHash, apiEv.GetTransactionHash())
 	assert.Equal(t, e.LogID, apiEv.LogId)
 	assert.Equal(t, e.LogDigest, apiEv.LogDigest)
-	assert.Equal(t, e.Type, apiEv.LogType)
+	assert.Equal(t, e.LogType, apiEv.LogType)
 	assert.Equal(t, e.Categories, apiEv.Categories)
 }
 
@@ -47,21 +47,21 @@ func Test_eventToAPIEvent_SmartContractMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := event{
-				TransactionHash:       &txHash,
-				Type:                  tt.logType,
-				EmittingContractIndex: 10,
-				ContractMessageType:   20,
-				RawPayload:            []byte{0x01, 0x02, 0x03},
+				TransactionHash:     &txHash,
+				LogType:             tt.logType,
+				ContractIndex:       10,
+				ContractMessageType: 20,
+				RawPayload:          []byte{0x01, 0x02, 0x03},
 			}
 
 			apiEv := eventToAPIEvent(e)
 
 			assert.Equal(t, *e.TransactionHash, apiEv.GetTransactionHash())
-			assert.Equal(t, e.Type, apiEv.LogType)
+			assert.Equal(t, e.LogType, apiEv.LogType)
 
 			scMsg := apiEv.GetSmartContractMessage()
 			assert.NotNil(t, scMsg)
-			assert.Equal(t, e.EmittingContractIndex, scMsg.EmittingContractIndex)
+			assert.Equal(t, e.ContractIndex, scMsg.ContractIndex)
 			assert.Equal(t, e.ContractMessageType, scMsg.ContractMessageType)
 			assert.Equal(t, e.RawPayload, apiEv.RawPayload) // set for smart contract messages
 		})
@@ -70,13 +70,13 @@ func Test_eventToAPIEvent_SmartContractMessage(t *testing.T) {
 
 func Test_eventToAPIEvent_CustomMessage(t *testing.T) {
 	e := event{
-		Type:          255,
+		LogType:       255,
 		CustomMessage: 6217575821008262227,
 	}
 
 	apiEv := eventToAPIEvent(e)
 
-	assert.Equal(t, e.Type, apiEv.LogType)
+	assert.Equal(t, e.LogType, apiEv.LogType)
 
 	customMsg := apiEv.GetCustomMessage()
 	require.NotNil(t, customMsg)
@@ -97,13 +97,13 @@ func Test_eventToAPIEvent_RawTypes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := event{
-				Type:       tt.logType,
+				LogType:    tt.logType,
 				RawPayload: []byte{0x01, 0x02, 0x03, 0x04},
 			}
 
 			apiEv := eventToAPIEvent(e)
 
-			assert.Equal(t, e.Type, apiEv.LogType)
+			assert.Equal(t, e.LogType, apiEv.LogType)
 			assert.Equal(t, e.RawPayload, apiEv.RawPayload)
 			assert.Nil(t, apiEv.EventData) // no specific event data for these types
 		})

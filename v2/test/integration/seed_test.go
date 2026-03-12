@@ -18,7 +18,7 @@ const productionEventsMapping = `{
         "transactionHash": { "type": "keyword", "ignore_above": 60, "doc_values": false },
         "logId": { "type": "unsigned_long" },
         "logDigest": { "type": "keyword",  "doc_values": false  },
-        "type": {  "type": "short"  },
+        "logType": {  "type": "short"  },
         "categories": { "type": "byte" },
         "source": { "type": "keyword", "ignore_above": 60 },
         "destination": {  "type": "keyword", "ignore_above": 60 },
@@ -32,13 +32,11 @@ const productionEventsMapping = `{
         "deductedAmount": { "type": "unsigned_long" },
         "remainingAmount": {  "type": "long" },
         "contractIndex": { "type": "unsigned_long" },
-        "contractIndexBurnedFor": { "type": "unsigned_long" },
         "possessor": { "type": "keyword", "ignore_above": 60 },
         "owner": {  "type": "keyword", "ignore_above": 60 },
         "sourceContractIndex": { "type": "unsigned_long" },
         "destinationContractIndex": { "type": "unsigned_long" },
         "customMessage": { "type": "unsigned_long"  },
-        "emittingContractIndex": { "type": "unsigned_long"  },
         "contractMessageType": { "type": "unsigned_long" },
         "rawPayload": { "type": "binary" }
       }
@@ -53,7 +51,7 @@ type seedEvent struct {
 	TransactionHash          *string `json:"transactionHash"` // not all events belong to a transaction
 	LogID                    uint64  `json:"logId"`
 	LogDigest                string  `json:"logDigest"`
-	Type                     uint32  `json:"type"`
+	LogType                  uint32  `json:"logType"`
 	Categories               []int32 `json:"categories"` // not all events have categories
 	Source                   string  `json:"source"`
 	Destination              string  `json:"destination"`
@@ -67,13 +65,11 @@ type seedEvent struct {
 	DeductedAmount           uint64  `json:"deductedAmount"`
 	RemainingAmount          int64   `json:"remainingAmount"`
 	ContractIndex            uint64  `json:"contractIndex"`
-	ContractIndexBurnedFor   uint64  `json:"contractIndexBurnedFor"`
 	Possessor                string  `json:"possessor"`
 	Owner                    string  `json:"owner"`
 	SourceContractIndex      uint64  `json:"sourceContractIndex"`
 	DestinationContractIndex uint64  `json:"destinationContractIndex"`
 	CustomMessage            uint64  `json:"customMessage"`
-	EmittingContractIndex    uint64  `json:"emittingContractIndex"`
 	ContractMessageType      uint64  `json:"contractMessageType"`
 	RawPayload               []byte  `json:"rawPayload"` // not all events have raw payload
 }
@@ -81,28 +77,28 @@ type seedEvent struct {
 var seedType0WithCategory = seedEvent{
 	Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
 	TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
-	LogID:           1, LogDigest: "digest0", Type: 0, Categories: []int32{3},
+	LogID:           1, LogDigest: "digest0", LogType: 0, Categories: []int32{3},
 	Source: "QJRRSSKMJRDKUDTYVNYGAMQPULKAMILQQYOWBEXUDEUWQUMNGDHQYLOAJMEB", Destination: "BZBQFLLBNCXEMGQOUAPQYSWCBHRBJJFHFFLSENFLEVKEIYVHDSOFWKUUPGJD", Amount: 5000,
 }
 
 var seedType0Index3 = seedEvent{
 	Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
 	TransactionHash: test.ToStringPointer("qisveklretrdmewbgclhnikvannflsmghjcwcuiqyejuoamgitrzuqzbuwso"),
-	LogID:           3, LogDigest: "digest03", Type: 0,
+	LogID:           3, LogDigest: "digest03", LogType: 0,
 	Source: "PGMCSTMFMWZHWAVIEBHEWFBVPYJBZPJFIJRVMNWDZGPIJBWTHUDAPAFHIKTF", Destination: "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ", Amount: 5000,
 }
 
 var seedType0Index2 = seedEvent{
 	Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
 	TransactionHash: test.ToStringPointer("kuyenwapwbbhfbnvqsrlfwmokbvdgouodhapuoiajamfznpdhvczywyewyqc"),
-	LogID:           2, LogDigest: "digest02", Type: 0,
+	LogID:           2, LogDigest: "digest02", LogType: 0,
 	Source: "WUJYTCVTWOOEZBYSGYHCYCKXLBECJAPLOWGVXOMZOBLEONUSHGPDNWJCOXZC", Destination: "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ", Amount: 5000,
 }
 
 var seedType1 = seedEvent{
 	Epoch: 100, TickNumber: 15001, Timestamp: 1700000002000,
-	EmittingContractIndex: 1, TransactionHash: test.ToStringPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
-	LogID: 2, LogDigest: "digest1", Type: 1,
+	ContractIndex: 1, TransactionHash: test.ToStringPointer("atrpnwqfgkjlbchsdyeimxouvzatrpnwqfgkjlbchsdyeimxouvzatrpnwqf"),
+	LogID: 2, LogDigest: "digest1", LogType: 1,
 	AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", NumberOfShares: 1000000,
 	ManagingContractIndex: 5, AssetName: "QX",
 	NumberOfDecimalPlaces: 2, UnitOfMeasurement: "dW5pdHM=",
@@ -110,16 +106,16 @@ var seedType1 = seedEvent{
 
 var seedType2 = seedEvent{
 	Epoch: 100, TickNumber: 15002, Timestamp: 1700000003000,
-	EmittingContractIndex: 2, TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
-	LogID: 3, LogDigest: "digest2", Type: 2,
+	ContractIndex: 2, TransactionHash: test.ToStringPointer("zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"),
+	LogID: 3, LogDigest: "digest2", LogType: 2,
 	Source: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", Destination: "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
 	AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 500,
 }
 
 var seedType3 = seedEvent{
 	Epoch: 101, TickNumber: 16000, Timestamp: 1700000004000,
-	EmittingContractIndex: 3, TransactionHash: test.ToStringPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
-	LogID: 4, LogDigest: "digest3", Type: 3,
+	ContractIndex: 3, TransactionHash: test.ToStringPointer("bkuedoxghrlmcfitjwangpyqzbkuedoxghrlmcfitjwangpyqzbkuedoxghr"),
+	LogID: 4, LogDigest: "digest3", LogType: 3,
 	Source: "FQGOKLRHRCTNRMHEEKHIBRHOPHCSMGSUHIBIJKHZMSHDMNKIPDREIHHLPPPF", Destination: "GRHPLMSISDUPSNIFFLKJCSIPQIDTNHTVIJCJKLIANSKENLLJQESFJIIMQQRG",
 	AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 300,
 }
@@ -127,13 +123,13 @@ var seedType3 = seedEvent{
 var seedType8 = seedEvent{
 	Epoch: 101, TickNumber: 16001, Timestamp: 1700000005000,
 	TransactionHash: test.ToStringPointer("cmvfepyihksndgjtuxbohrqzacmvfepyihksndgjtuxbohrqzacmvfepyihks"),
-	LogID:           5, LogDigest: "digest8", Type: 8,
-	Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndexBurnedFor: 7,
+	LogID:           5, LogDigest: "digest8", LogType: 8,
+	Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndex: 7,
 }
 
 var seedType13 = seedEvent{
 	Epoch: 101, TickNumber: 16002, Timestamp: 1700000006000,
 	TransactionHash: test.ToStringPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),
-	LogID:           6, LogDigest: "digest13", Type: 13,
+	LogID:           6, LogDigest: "digest13", LogType: 13,
 	DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,
 }
