@@ -182,12 +182,11 @@ func (s *eventsSuite) SetupSuite() {
 				"epoch": { "type": "unsigned_long" },
 				"tickNumber": { "type": "unsigned_long" },
 				"timestamp": { "type": "unsigned_long" },
-				"emittingContractIndex": { "type": "unsigned_long" },
 				"transactionHash": { "type": "keyword" },
 				"logId": { "type": "unsigned_long" },
 				"logDigest": { "type": "keyword" },
-				"type": { "type": "unsigned_long" },
-				"category": { "type": "unsigned_long" },
+				"logType": { "type": "short" },
+				"categories": { "type": "byte" },
 				"source": { "type": "keyword" },
 				"destination": { "type": "keyword" },
 				"amount": { "type": "unsigned_long" },
@@ -195,16 +194,17 @@ func (s *eventsSuite) SetupSuite() {
 				"assetIssuer": { "type": "keyword" },
 				"numberOfShares": { "type": "unsigned_long" },
 				"managingContractIndex": { "type": "unsigned_long" },
-				"unitOfMeasurement": { "type": "keyword" },
+				"unitOfMeasurement": { "type": "binary" },
 				"numberOfDecimalPlaces": { "type": "unsigned_long" },
 				"deductedAmount": { "type": "unsigned_long" },
 				"remainingAmount": { "type": "long" },
 				"contractIndex": { "type": "unsigned_long" },
-				"contractIndexBurnedFor": { "type": "unsigned_long" },
 				"owner": { "type": "keyword" },
 				"possessor": { "type": "keyword" },
 				"sourceContractIndex": { "type": "unsigned_long" },
-				"destinationContractIndex": { "type": "unsigned_long" }
+				"destinationContractIndex": { "type": "unsigned_long" },
+				"customMessage": { "type": "unsigned_long" },
+				"rawPayload": { "type": "binary" }
 			}
 		}
 	}`
