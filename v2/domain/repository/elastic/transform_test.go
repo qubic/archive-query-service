@@ -90,8 +90,6 @@ func Test_eventToAPIEvent_RawTypes(t *testing.T) {
 	}{
 		{"Type 9 - dust burning", 9},
 		{"Type 10 - spectrum_stats", 10},
-		{"Type 11 - asset ownership managing contract change", 11},
-		{"Type 12 - asset possession managing contract change", 12},
 	}
 
 	for _, tt := range tests {
@@ -108,4 +106,39 @@ func Test_eventToAPIEvent_RawTypes(t *testing.T) {
 			assert.Nil(t, apiEv.EventData) // no specific event data for these types
 		})
 	}
+}
+
+func Test_eventToAPIEvent_Type11(t *testing.T) {
+	e := event{
+		LogType: 11, AssetName: "TOKEN", AssetIssuer: "ISSUER",
+		Owner: "OWNER", NumberOfShares: 750,
+		SourceContractIndex: 1, DestinationContractIndex: 2,
+	}
+	apiEv := eventToAPIEvent(e)
+	data := apiEv.GetAssetOwnershipManagingContractChange()
+	require.NotNil(t, data)
+	assert.Equal(t, "TOKEN", data.AssetName)
+	assert.Equal(t, "ISSUER", data.AssetIssuer)
+	assert.Equal(t, "OWNER", data.Owner)
+	assert.Equal(t, uint64(750), data.NumberOfShares)
+	assert.Equal(t, uint64(1), data.SourceContractIndex)
+	assert.Equal(t, uint64(2), data.DestinationContractIndex)
+}
+
+func Test_eventToAPIEvent_Type12(t *testing.T) {
+	e := event{
+		LogType: 12, AssetName: "TOKEN", AssetIssuer: "ISSUER",
+		Owner: "OWNER", Possessor: "POSSESSOR", NumberOfShares: 400,
+		SourceContractIndex: 3, DestinationContractIndex: 4,
+	}
+	apiEv := eventToAPIEvent(e)
+	data := apiEv.GetAssetPossessionManagingContractChange()
+	require.NotNil(t, data)
+	assert.Equal(t, "TOKEN", data.AssetName)
+	assert.Equal(t, "ISSUER", data.AssetIssuer)
+	assert.Equal(t, "OWNER", data.Owner)
+	assert.Equal(t, "POSSESSOR", data.Possessor)
+	assert.Equal(t, uint64(400), data.NumberOfShares)
+	assert.Equal(t, uint64(3), data.SourceContractIndex)
+	assert.Equal(t, uint64(4), data.DestinationContractIndex)
 }

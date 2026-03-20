@@ -103,8 +103,18 @@ func eventToAPIEvent(e event) *api.Event {
 		ev.EventData = &api.Event_Burning{Burning: &api.BurningData{
 			Source: e.Source, Amount: e.Amount, ContractIndex: e.ContractIndex,
 		}}
-	case 9, 10, 11, 12:
+	case 9, 10:
 		ev.RawPayload = e.RawPayload
+	case 11:
+		ev.EventData = &api.Event_AssetOwnershipManagingContractChange{AssetOwnershipManagingContractChange: &api.AssetOwnershipManagingContractChangeData{
+			AssetName: e.AssetName, AssetIssuer: e.AssetIssuer, Owner: e.Owner,
+			NumberOfShares: e.NumberOfShares, SourceContractIndex: e.SourceContractIndex, DestinationContractIndex: e.DestinationContractIndex,
+		}}
+	case 12:
+		ev.EventData = &api.Event_AssetPossessionManagingContractChange{AssetPossessionManagingContractChange: &api.AssetPossessionManagingContractChangeData{
+			AssetName: e.AssetName, AssetIssuer: e.AssetIssuer, Owner: e.Owner, Possessor: e.Possessor,
+			NumberOfShares: e.NumberOfShares, SourceContractIndex: e.SourceContractIndex, DestinationContractIndex: e.DestinationContractIndex,
+		}}
 	case 13:
 		ev.EventData = &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 			DeductedAmount: e.DeductedAmount, RemainingAmount: e.RemainingAmount, ContractIndex: e.ContractIndex,
