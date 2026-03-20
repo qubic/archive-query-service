@@ -148,6 +148,9 @@ func (s *ServerTestSuite) TestGetTickIntervals() {
 
 func (s *ServerTestSuite) TestGetEvents_Success() {
 	t := s.T()
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+		EventsLastProcessedTick: 999999,
+	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(0), uint32(10)).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
@@ -220,6 +223,9 @@ func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {
 
 func (s *ServerTestSuite) TestGetEvents_Pagination() {
 	t := s.T()
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+		EventsLastProcessedTick: 999999,
+	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(5), uint32(3)).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 20, Relation: "eq"},
@@ -237,6 +243,9 @@ func (s *ServerTestSuite) TestGetEvents_Pagination() {
 
 func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 	t := s.T()
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+		EventsLastProcessedTick: 999999,
+	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 0, Relation: "eq"},
@@ -247,4 +256,26 @@ func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 	require.NoError(t, err)
 	assert.Empty(t, resp.Events)
 	assert.Equal(t, uint32(0), resp.Hits.Total)
+}
+
+func (s *ServerTestSuite) TestGetEvents_TickExceedsProcessed() {
+	t := s.T()
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+		EventsLastProcessedTick: 50000,
+	}, nil)
+
+	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+		Filters: map[string]string{"tickNumber": "60000"},
+	})
+	require.Error(t, err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, codes.FailedPrecondition, st.Code())
+	assert.Contains(t, st.Message(), "greater than last processed tick")
+
+	details := st.Details()
+	require.Len(t, details, 1)
+	lpt, ok := details[0].(*api.LastProcessedTick)
+	require.True(t, ok)
+	assert.Equal(t, uint32(50000), lpt.TickNumber)
 }

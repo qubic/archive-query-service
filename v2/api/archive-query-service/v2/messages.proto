@@ -310,6 +310,7 @@ message GetEventsRequest {
 
 // GetEventsResponse
 message GetEventsResponse {
+  uint32 valid_for_tick = 3 [(openapi.v3.property) = {description:"The response is valid for this tick number."}];
   Hits hits = 1 [(openapi.v3.property) = {description:"Information about the returned results."}];
   repeated Event events = 2 [(openapi.v3.property) = {description:"List of events that matched the search criteria."}];
 }

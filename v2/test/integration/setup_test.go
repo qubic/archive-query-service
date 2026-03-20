@@ -17,6 +17,7 @@ import (
 	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/domain/repository/elastic"
 	rpc "github.com/qubic/archive-query-service/v2/grpc"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -26,6 +27,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+// --- Status Service Stub ---
+
+type statusServiceStub struct{}
+
+func (s *statusServiceStub) GetStatus(_ context.Context) (*statusPb.GetStatusResponse, error) {
+	return &statusPb.GetStatusResponse{EventsLastProcessedTick: 999999}, nil
+}
+
+func (s *statusServiceStub) GetProcessedTickIntervals(_ context.Context) ([]*api.ProcessedTickInterval, error) {
+	return nil, nil
+}
 
 // --- Suite ---
 
@@ -92,7 +105,7 @@ func (s *EventsE2ESuite) SetupSuite() {
 	// 4. Wire service stack: ES repo -> domain service -> gRPC server
 	eventsRepo := elastic.NewEventsRepository(e2eEventsIndex, esClient)
 	eventsService := domain.NewEventsService(eventsRepo)
-	rpcServer := rpc.NewArchiveQueryService(nil, nil, nil, nil, eventsService, rpc.NewPageSizeLimits(1000, 10))
+	rpcServer := rpc.NewArchiveQueryService(nil, nil, &statusServiceStub{}, nil, eventsService, rpc.NewPageSizeLimits(1000, 10))
 
 	// 5. Start gRPC server
 	srvErrorsChan := make(chan error, 1)
