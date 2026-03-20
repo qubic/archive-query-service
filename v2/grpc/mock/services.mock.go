@@ -245,16 +245,16 @@ func (m *MockEventsService) EXPECT() *MockEventsServiceMockRecorder {
 }
 
 // GetEvents mocks base method.
-func (m *MockEventsService) GetEvents(ctx context.Context, queryFilters entities.Filters, from, size uint32) (*entities.EventsResult, error) {
+func (m *MockEventsService) GetEvents(ctx context.Context, queryFilters entities.Filters, from, size, maxTick uint32) (*entities.EventsResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvents", ctx, queryFilters, from, size)
+	ret := m.ctrl.Call(m, "GetEvents", ctx, queryFilters, from, size, maxTick)
 	ret0, _ := ret[0].(*entities.EventsResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEvents indicates an expected call of GetEvents.
-func (mr *MockEventsServiceMockRecorder) GetEvents(ctx, queryFilters, from, size any) *gomock.Call {
+func (mr *MockEventsServiceMockRecorder) GetEvents(ctx, queryFilters, from, size, maxTick any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsService)(nil).GetEvents), ctx, queryFilters, from, size)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsService)(nil).GetEvents), ctx, queryFilters, from, size, maxTick)
 }

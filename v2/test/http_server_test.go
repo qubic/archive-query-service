@@ -15,6 +15,7 @@ import (
 	"github.com/qubic/archive-query-service/v2/entities"
 	rpc "github.com/qubic/archive-query-service/v2/grpc"
 	"github.com/qubic/archive-query-service/v2/grpc/mock"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -27,15 +28,17 @@ func TestHTTPServer(t *testing.T) {
 
 type HTTPServerTestSuite struct {
 	suite.Suite
-	server        *httptest.Server
-	mockEvService *mock.MockEventsService
-	mockCtrl      *gomock.Controller
+	server            *httptest.Server
+	mockEvService     *mock.MockEventsService
+	mockStatusService *mock.MockStatusService
+	mockCtrl          *gomock.Controller
 }
 
 func (s *HTTPServerTestSuite) SetupSuite() {
 	ctrl := gomock.NewController(s.T())
 	mockEvService := mock.NewMockEventsService(ctrl)
-	rpcServer := rpc.NewArchiveQueryService(nil, nil, nil, nil, mockEvService, rpc.NewPageSizeLimits(1000, 10))
+	mockStatusService := mock.NewMockStatusService(ctrl)
+	rpcServer := rpc.NewArchiveQueryService(nil, nil, mockStatusService, nil, mockEvService, rpc.NewPageSizeLimits(1000, 10))
 
 	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{EmitDefaultValues: true, EmitUnpopulated: true},
@@ -45,6 +48,7 @@ func (s *HTTPServerTestSuite) SetupSuite() {
 
 	s.server = httptest.NewServer(mux)
 	s.mockEvService = mockEvService
+	s.mockStatusService = mockStatusService
 	s.mockCtrl = ctrl
 }
 
@@ -72,7 +76,8 @@ func (s *HTTPServerTestSuite) postGetEvents(body string) (map[string]interface{}
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
@@ -107,7 +112,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
@@ -146,7 +152,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
@@ -182,7 +189,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
@@ -218,7 +226,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
@@ -253,7 +262,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
@@ -288,7 +298,8 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 
 func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 	t := s.T()
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 3, Relation: "eq"},
 			Events: []*api.Event{

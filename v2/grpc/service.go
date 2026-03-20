@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
@@ -46,7 +47,7 @@ type ComputorsListService interface {
 }
 
 type EventsService interface {
-	GetEvents(ctx context.Context, queryFilters entities.Filters, from, size uint32) (*entities.EventsResult, error)
+	GetEvents(ctx context.Context, queryFilters entities.Filters, from, size, maxTick uint32) (*entities.EventsResult, error)
 }
 
 type ArchiveQueryService struct {
@@ -193,9 +194,10 @@ func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *empty
 	}
 
 	return &api.GetLastProcessedTickResponse{
-		TickNumber:          cachedStatus.LastProcessedTick,
-		Epoch:               cachedStatus.ProcessingEpoch,
-		IntervalInitialTick: cachedStatus.IntervalInitialTick,
+		TickNumber:           cachedStatus.LastProcessedTick,
+		Epoch:                cachedStatus.ProcessingEpoch,
+		IntervalInitialTick:  cachedStatus.IntervalInitialTick,
+		LastProcessedLogTick: cachedStatus.LastProcessedLogTick,
 	}, nil
 }
 
@@ -255,7 +257,25 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 
-	result, err := s.evService.GetEvents(ctx, queryFilters, from, size)
+	cachedStatus, err := s.statusService.GetStatus(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get status: %v", err)
+	}
+	eventsLastProcessedTick := cachedStatus.GetLastProcessedLogTick()
+
+	if tickValues, ok := includeFilters[filters.EventFilterTickNumber]; ok && len(tickValues) > 0 {
+		tickNumber, convErr := strconv.ParseUint(tickValues[0], 10, 32)
+		if convErr == nil && uint32(tickNumber) > eventsLastProcessedTick {
+			st := status.Newf(codes.FailedPrecondition, "requested tick number %d is greater than last processed tick %d", tickNumber, eventsLastProcessedTick)
+			st, detailErr := st.WithDetails(&api.LastProcessedTick{TickNumber: eventsLastProcessedTick})
+			if detailErr != nil {
+				return nil, status.Errorf(codes.Internal, "creating custom status")
+			}
+			return nil, st.Err()
+		}
+	}
+
+	result, err := s.evService.GetEvents(ctx, queryFilters, from, size, eventsLastProcessedTick)
 	if err != nil {
 		return nil, createInternalError("failed to get events", err)
 	}
@@ -267,8 +287,9 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 	}
 
 	return &api.GetEventsResponse{
-		Hits:   apiHits,
-		Events: result.GetEvents(),
+		ValidForTick: eventsLastProcessedTick,
+		Hits:         apiHits,
+		Events:       result.GetEvents(),
 	}, nil
 }
 

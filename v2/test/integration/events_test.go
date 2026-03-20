@@ -531,6 +531,25 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_EmptyResult() {
 	require.Equal(t, float64(0), hits["total"])
 }
 
+func (s *EventsE2ESuite) TestGRPC_GetEvents_ValidForTick() {
+	t := s.T()
+	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{})
+	require.NoError(t, err)
+	assert.Equal(t, uint32(999999), resp.ValidForTick)
+}
+
+func (s *EventsE2ESuite) TestGRPC_GetEvents_TickNumberExceedsLastProcessed() {
+	t := s.T()
+	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+		Filters: map[string]string{"tickNumber": "1000000"},
+	})
+	require.Error(t, err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, codes.FailedPrecondition, st.Code())
+	require.Contains(t, st.Message(), "greater than last processed tick")
+}
+
 func (s *EventsE2ESuite) TestHTTP_GetEvents_Pagination() {
 	t := s.T()
 	result, statusCode := s.postGetEvents(`{"pagination":{"offset":0,"size":2}}`)
