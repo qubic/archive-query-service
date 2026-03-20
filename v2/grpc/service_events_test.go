@@ -30,7 +30,7 @@ func (s *StatusServiceStub) GetProcessedTickIntervals(_ context.Context) ([]*api
 
 func defaultStatusStub() *StatusServiceStub {
 	return &StatusServiceStub{
-		statusResponse: &statusPb.GetStatusResponse{EventsLastProcessedTick: 999999},
+		statusResponse: &statusPb.GetStatusResponse{LastProcessedLogTick: 999999},
 	}
 }
 
@@ -232,7 +232,7 @@ func TestArchiveQueryService_GetEvents_WithShouldFilterWithOnlyOneValue_ThenErro
 
 func TestArchiveQueryService_GetEvents_TickNumberExceedsLastProcessed(t *testing.T) {
 	statusStub := &StatusServiceStub{
-		statusResponse: &statusPb.GetStatusResponse{EventsLastProcessedTick: 50000},
+		statusResponse: &statusPb.GetStatusResponse{LastProcessedLogTick: 50000},
 	}
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, statusStub, nil, evService, NewPageSizeLimits(1000, 10))
@@ -255,7 +255,7 @@ func TestArchiveQueryService_GetEvents_TickNumberExceedsLastProcessed(t *testing
 
 func TestArchiveQueryService_GetEvents_TickNumberWithinRange(t *testing.T) {
 	statusStub := &StatusServiceStub{
-		statusResponse: &statusPb.GetStatusResponse{EventsLastProcessedTick: 50000},
+		statusResponse: &statusPb.GetStatusResponse{LastProcessedLogTick: 50000},
 	}
 	evService := &EventsServiceStub{
 		events: []*api.Event{{}},

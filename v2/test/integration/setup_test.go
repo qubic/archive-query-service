@@ -33,7 +33,7 @@ import (
 type statusServiceStub struct{}
 
 func (s *statusServiceStub) GetStatus(_ context.Context) (*statusPb.GetStatusResponse, error) {
-	return &statusPb.GetStatusResponse{EventsLastProcessedTick: 999999}, nil
+	return &statusPb.GetStatusResponse{LastProcessedLogTick: 999999}, nil
 }
 
 func (s *statusServiceStub) GetProcessedTickIntervals(_ context.Context) ([]*api.ProcessedTickInterval, error) {

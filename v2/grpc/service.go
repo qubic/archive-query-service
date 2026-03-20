@@ -197,7 +197,7 @@ func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *empty
 		TickNumber:           cachedStatus.LastProcessedTick,
 		Epoch:                cachedStatus.ProcessingEpoch,
 		IntervalInitialTick:  cachedStatus.IntervalInitialTick,
-		LogLastProcessedTick: cachedStatus.EventsLastProcessedTick,
+		LastProcessedLogTick: cachedStatus.LastProcessedLogTick,
 	}, nil
 }
 
@@ -261,7 +261,7 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get status: %v", err)
 	}
-	eventsLastProcessedTick := cachedStatus.GetEventsLastProcessedTick()
+	eventsLastProcessedTick := cachedStatus.GetLastProcessedLogTick()
 
 	if tickValues, ok := includeFilters[filters.EventFilterTickNumber]; ok && len(tickValues) > 0 {
 		tickNumber, convErr := strconv.ParseUint(tickValues[0], 10, 32)

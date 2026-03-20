@@ -48,4 +48,4 @@ test-cover:
 
 lint:
 	@echo "Running Go linter..."
-	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0 run --config .golangci.yml
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3 run --config .golangci.yml

@@ -95,10 +95,10 @@ func (s *ServerTestSuite) TearDownSuite() {
 func (s *ServerTestSuite) TestGetLastProcessedTick() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		LastProcessedTick:       125,
-		ProcessingEpoch:         100,
-		IntervalInitialTick:     10,
-		EventsLastProcessedTick: 500,
+		LastProcessedTick:    125,
+		ProcessingEpoch:      100,
+		IntervalInitialTick:  10,
+		LastProcessedLogTick: 500,
 	}, nil)
 	resp, err := s.client.GetLastProcessedTick(t.Context(), nil)
 	require.NoError(t, err, "getting last processed tick")
@@ -107,7 +107,7 @@ func (s *ServerTestSuite) TestGetLastProcessedTick() {
 		TickNumber:           125,
 		Epoch:                100,
 		IntervalInitialTick:  10,
-		LogLastProcessedTick: 500,
+		LastProcessedLogTick: 500,
 	}
 	diff := cmp.Diff(expected, resp, protocmp.Transform())
 	require.Empty(t, diff, "expected last processed tick to match")
@@ -151,7 +151,7 @@ func (s *ServerTestSuite) TestGetTickIntervals() {
 func (s *ServerTestSuite) TestGetEvents_Success() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		EventsLastProcessedTick: 999999,
+		LastProcessedLogTick: 999999,
 	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(0), uint32(10), gomock.Any()).
 		Return(&entities.EventsResult{
@@ -226,7 +226,7 @@ func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {
 func (s *ServerTestSuite) TestGetEvents_Pagination() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		EventsLastProcessedTick: 999999,
+		LastProcessedLogTick: 999999,
 	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(5), uint32(3), gomock.Any()).
 		Return(&entities.EventsResult{
@@ -246,7 +246,7 @@ func (s *ServerTestSuite) TestGetEvents_Pagination() {
 func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		EventsLastProcessedTick: 999999,
+		LastProcessedLogTick: 999999,
 	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
@@ -263,7 +263,7 @@ func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 func (s *ServerTestSuite) TestGetEvents_TickExceedsProcessed() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		EventsLastProcessedTick: 50000,
+		LastProcessedLogTick: 50000,
 	}, nil)
 
 	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -285,7 +285,7 @@ func (s *ServerTestSuite) TestGetEvents_TickExceedsProcessed() {
 func (s *ServerTestSuite) TestGetEvents_TickRangeExceedsProcessed() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		EventsLastProcessedTick: 50000,
+		LastProcessedLogTick: 50000,
 	}, nil)
 	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{

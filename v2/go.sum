@@ -176,6 +176,10 @@ github.com/qubic/go-data-publisher/status-service v1.3.3 h1:6amPGI+v+517GH3+o497
 github.com/qubic/go-data-publisher/status-service v1.3.3/go.mod h1:gpy6MD9ujVOxIjLUsjzj7Uupf6ZmNZo/aVDS4nsok28=
 github.com/qubic/go-data-publisher/status-service v1.3.4-0.20260319152520-ff1ac9967d67 h1:aAmuEbc8CRds+1xso+FcZ8qNH2uTzbjIbhPPa3cd0KU=
 github.com/qubic/go-data-publisher/status-service v1.3.4-0.20260319152520-ff1ac9967d67/go.mod h1:ac3CJ9nBUsCLbgEaPH0uhiIHbnlY4WNkPJI34Cl0Fek=
+github.com/qubic/go-data-publisher/status-service v1.3.4-0.20260320123058-1e94c1f85b0c h1:DN0zKGUB9RAShhw1AXwo5ifsBWGvpuZLcGs6yKTzZKw=
+github.com/qubic/go-data-publisher/status-service v1.3.4-0.20260320123058-1e94c1f85b0c/go.mod h1:ac3CJ9nBUsCLbgEaPH0uhiIHbnlY4WNkPJI34Cl0Fek=
+github.com/qubic/go-data-publisher/status-service v1.4.0 h1:/ho2SIBxACHMSv1AR7HXgl1sGUHhJl0HkwNDRQ3OBjY=
+github.com/qubic/go-data-publisher/status-service v1.4.0/go.mod h1:ac3CJ9nBUsCLbgEaPH0uhiIHbnlY4WNkPJI34Cl0Fek=
 github.com/qubic/go-node-connector v0.17.0 h1:ifsqODfO3vw16av0GGQBcq8qgcQXfYD1Y4/xIvlasx8=
 github.com/qubic/go-node-connector v0.17.0/go.mod h1:GOQGJ6IKhm3CU62bfLJJbBerjYmt6NNhDKzxC1i7HhU=
 github.com/qubic/go-schnorrq v1.0.1 h1:F0R/BQVf+O7Bp57NGJmc3uXlqsaIzerg/1bmU4jMLLE=
