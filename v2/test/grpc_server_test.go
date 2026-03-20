@@ -104,10 +104,10 @@ func (s *ServerTestSuite) TestGetLastProcessedTick() {
 	require.NoError(t, err, "getting last processed tick")
 
 	expected := &api.GetLastProcessedTickResponse{
-		TickNumber:              125,
-		Epoch:                   100,
-		IntervalInitialTick:     10,
-		EventsLastProcessedTick: 500,
+		TickNumber:          125,
+		Epoch:               100,
+		IntervalInitialTick: 10,
+		LogLastProcessedTick: 500,
 	}
 	diff := cmp.Diff(expected, resp, protocmp.Transform())
 	require.Empty(t, diff, "expected last processed tick to match")
