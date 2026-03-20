@@ -43,9 +43,9 @@ func (m *MockEventsRepository) EXPECT() *MockEventsRepositoryMockRecorder {
 }
 
 // GetEvents mocks base method.
-func (m *MockEventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
+func (m *MockEventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size, maxTick uint32) ([]*api.Event, *entities.Hits, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvents", ctx, filters, from, size)
+	ret := m.ctrl.Call(m, "GetEvents", ctx, filters, from, size, maxTick)
 	ret0, _ := ret[0].([]*api.Event)
 	ret1, _ := ret[1].(*entities.Hits)
 	ret2, _ := ret[2].(error)
@@ -53,7 +53,7 @@ func (m *MockEventsRepository) GetEvents(ctx context.Context, filters entities.F
 }
 
 // GetEvents indicates an expected call of GetEvents.
-func (mr *MockEventsRepositoryMockRecorder) GetEvents(ctx, filters, from, size any) *gomock.Call {
+func (mr *MockEventsRepositoryMockRecorder) GetEvents(ctx, filters, from, size, maxTick any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsRepository)(nil).GetEvents), ctx, filters, from, size)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockEventsRepository)(nil).GetEvents), ctx, filters, from, size, maxTick)
 }

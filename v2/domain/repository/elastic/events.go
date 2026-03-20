@@ -66,8 +66,8 @@ type eventsSearchResponse struct {
 	} `json:"hits"`
 }
 
-func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size uint32) ([]*api.Event, *entities.Hits, error) {
-	query, err := createEventsQuery(filters, from, size)
+func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filters, from, size, maxTick uint32) ([]*api.Event, *entities.Hits, error) {
+	query, err := createEventsQuery(filters, from, size, maxTick)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating events query: %w", err)
 	}
@@ -86,8 +86,19 @@ func (r *EventsRepository) GetEvents(ctx context.Context, filters entities.Filte
 	return eventHitsToAPIEvents(result.Hits.Hits), hits, nil
 }
 
-func createEventsQuery(filters entities.Filters, from, size uint32) (string, error) {
+func createEventsQuery(filters entities.Filters, from, size, maxTick uint32) (string, error) {
+	// Clamp upper bound tickNumber range to maxTick (reuses transaction logic)
+	hasUpperBoundTickFilter, err := modifyUpperBoundTickNumberFilterIfNecessary(filters.Ranges, maxTick)
+	if err != nil {
+		return "", err
+	}
+
 	filterStrings := make([]string, 0, len(filters.Include))
+
+	// Add default lte cap when no upper bound tickNumber range exists
+	if !hasUpperBoundTickFilter {
+		filterStrings = append(filterStrings, fmt.Sprintf(`{"range":{"tickNumber":{"lte":"%d"}}}`, maxTick))
+	}
 
 	// append include filters to filter section
 	filterStrings = append(filterStrings, getFilterStrings(filters.Include)...)

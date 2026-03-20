@@ -153,7 +153,7 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
 		EventsLastProcessedTick: 999999,
 	}, nil)
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(0), uint32(10)).
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(0), uint32(10), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
 			Events: []*api.Event{
@@ -228,7 +228,7 @@ func (s *ServerTestSuite) TestGetEvents_Pagination() {
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
 		EventsLastProcessedTick: 999999,
 	}, nil)
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(5), uint32(3)).
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), uint32(5), uint32(3), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 20, Relation: "eq"},
 			Events: []*api.Event{{}, {}, {}},
@@ -248,7 +248,7 @@ func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
 		EventsLastProcessedTick: 999999,
 	}, nil)
-	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&entities.EventsResult{
 			Hits:   &entities.Hits{Total: 0, Relation: "eq"},
 			Events: []*api.Event{},
@@ -281,3 +281,27 @@ func (s *ServerTestSuite) TestGetEvents_TickExceedsProcessed() {
 	require.True(t, ok)
 	assert.Equal(t, uint32(50000), lpt.TickNumber)
 }
+
+func (s *ServerTestSuite) TestGetEvents_TickRangeExceedsProcessed() {
+	t := s.T()
+	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+		EventsLastProcessedTick: 50000,
+	}, nil)
+	s.mockEvService.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(&entities.EventsResult{
+			Hits:   &entities.Hits{Total: 0, Relation: "eq"},
+			Events: nil,
+		}, nil)
+
+	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+		Ranges: map[string]*api.Range{
+			"tickNumber": {
+				LowerBound: &api.Range_Gte{Gte: "1000"},
+				UpperBound: &api.Range_Lte{Lte: "999999"},
+			},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, uint32(50000), resp.ValidForTick)
+}
+

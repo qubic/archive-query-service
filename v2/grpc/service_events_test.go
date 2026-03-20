@@ -46,7 +46,7 @@ const validId2 = "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMID"
 const validTransactionHash1 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafxib"
 const validTransactionHash2 = "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarmid"
 
-func (s *EventsServiceStub) GetEvents(_ context.Context, queryFilters entities.Filters, _, _ uint32) (*entities.EventsResult, error) {
+func (s *EventsServiceStub) GetEvents(_ context.Context, queryFilters entities.Filters, _, _, _ uint32) (*entities.EventsResult, error) {
 	s.ReceivedFilters = queryFilters
 	if s.err != nil {
 		return nil, s.err

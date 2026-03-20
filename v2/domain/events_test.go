@@ -33,10 +33,10 @@ func TestEventsService_GetEvents_Success(t *testing.T) {
 	filters := entities.Filters{
 		Include: map[string][]string{"transactionHash": {"hash1"}},
 	}
-	mockRepo.EXPECT().GetEvents(gomock.Any(), filters, uint32(0), uint32(10)).
+	mockRepo.EXPECT().GetEvents(gomock.Any(), filters, uint32(0), uint32(10), uint32(50000)).
 		Return(expectedEvents, expectedHits, nil)
 
-	result, err := service.GetEvents(context.Background(), filters, 0, 10)
+	result, err := service.GetEvents(context.Background(), filters, 0, 10, 50000)
 	require.NoError(t, err)
 	assert.Equal(t, expectedHits, result.Hits)
 	assert.Equal(t, expectedEvents, result.Events)
@@ -48,10 +48,10 @@ func TestEventsService_GetEvents_RepoError(t *testing.T) {
 	mockRepo := mock.NewMockEventsRepository(ctrl)
 	service := NewEventsService(mockRepo)
 
-	mockRepo.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	mockRepo.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil, nil, fmt.Errorf("connection refused"))
 
-	result, err := service.GetEvents(context.Background(), entities.Filters{}, 0, 10)
+	result, err := service.GetEvents(context.Background(), entities.Filters{}, 0, 10, 50000)
 	require.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "connection refused")
@@ -63,10 +63,10 @@ func TestEventsService_GetEvents_EmptyResult(t *testing.T) {
 	mockRepo := mock.NewMockEventsRepository(ctrl)
 	service := NewEventsService(mockRepo)
 
-	mockRepo.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+	mockRepo.EXPECT().GetEvents(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]*api.Event{}, &entities.Hits{Total: 0, Relation: "eq"}, nil)
 
-	result, err := service.GetEvents(context.Background(), entities.Filters{}, 0, 10)
+	result, err := service.GetEvents(context.Background(), entities.Filters{}, 0, 10, 50000)
 	require.NoError(t, err)
 	assert.Empty(t, result.Events)
 	assert.Equal(t, 0, result.Hits.Total)

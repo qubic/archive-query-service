@@ -47,7 +47,7 @@ type ComputorsListService interface {
 }
 
 type EventsService interface {
-	GetEvents(ctx context.Context, queryFilters entities.Filters, from, size uint32) (*entities.EventsResult, error)
+	GetEvents(ctx context.Context, queryFilters entities.Filters, from, size, maxTick uint32) (*entities.EventsResult, error)
 }
 
 type ArchiveQueryService struct {
@@ -275,7 +275,7 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		}
 	}
 
-	result, err := s.evService.GetEvents(ctx, queryFilters, from, size)
+	result, err := s.evService.GetEvents(ctx, queryFilters, from, size, eventsLastProcessedTick)
 	if err != nil {
 		return nil, createInternalError("failed to get events", err)
 	}

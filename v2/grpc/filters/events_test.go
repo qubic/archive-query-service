@@ -429,3 +429,4 @@ func TestCreateEventQueryRanges_InvalidRangeBounds(t *testing.T) {
 	_, err := CreateEventRanges(ranges, AllowedEventRanges)
 	require.ErrorContains(t, err, "invalid [numberOfShares] range")
 }
+
