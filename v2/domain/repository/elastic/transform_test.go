@@ -3,8 +3,10 @@ package elastic
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/google/go-cmp/cmp"
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func Test_eventToAPIEvent_BasicFields(t *testing.T) {
@@ -22,14 +24,19 @@ func Test_eventToAPIEvent_BasicFields(t *testing.T) {
 
 	apiEv := eventToAPIEvent(e)
 
-	assert.Equal(t, e.Epoch, apiEv.Epoch)
-	assert.Equal(t, e.TickNumber, apiEv.TickNumber)
-	assert.Equal(t, e.Timestamp, apiEv.Timestamp)
-	assert.Equal(t, *e.TransactionHash, apiEv.GetTransactionHash())
-	assert.Equal(t, e.LogID, apiEv.LogId)
-	assert.Equal(t, e.LogDigest, apiEv.LogDigest)
-	assert.Equal(t, e.LogType, apiEv.LogType)
-	assert.Equal(t, e.Categories, apiEv.Categories)
+	expected := &api.Event{
+		Epoch:           1,
+		TickNumber:      100,
+		Timestamp:       1000,
+		TransactionHash: &txHash,
+		LogId:           123,
+		LogDigest:       "digest",
+		LogType:         0,
+		Categories:      []int32{},
+		EventData:       &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{}},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 }
 
 func Test_eventToAPIEvent_SmartContractMessage(t *testing.T) {
@@ -56,14 +63,17 @@ func Test_eventToAPIEvent_SmartContractMessage(t *testing.T) {
 
 			apiEv := eventToAPIEvent(e)
 
-			assert.Equal(t, *e.TransactionHash, apiEv.GetTransactionHash())
-			assert.Equal(t, e.LogType, apiEv.LogType)
-
-			scMsg := apiEv.GetSmartContractMessage()
-			assert.NotNil(t, scMsg)
-			assert.Equal(t, e.ContractIndex, scMsg.ContractIndex)
-			assert.Equal(t, e.ContractMessageType, scMsg.ContractMessageType)
-			assert.Equal(t, e.RawPayload, apiEv.RawPayload) // set for smart contract messages
+			expected := &api.Event{
+				TransactionHash: &txHash,
+				LogType:         tt.logType,
+				RawPayload:      []byte{0x01, 0x02, 0x03},
+				EventData: &api.Event_SmartContractMessage{SmartContractMessage: &api.SmartContractMessageData{
+					ContractIndex:       10,
+					ContractMessageType: 20,
+				}},
+			}
+			diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+			require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 		})
 	}
 }
@@ -76,11 +86,14 @@ func Test_eventToAPIEvent_CustomMessage(t *testing.T) {
 
 	apiEv := eventToAPIEvent(e)
 
-	assert.Equal(t, e.LogType, apiEv.LogType)
-
-	customMsg := apiEv.GetCustomMessage()
-	require.NotNil(t, customMsg)
-	assert.Equal(t, e.CustomMessage, customMsg.Value)
+	expected := &api.Event{
+		LogType: 255,
+		EventData: &api.Event_CustomMessage{CustomMessage: &api.CustomMessageData{
+			Value: 6217575821008262227,
+		}},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 }
 
 func Test_eventToAPIEvent_RawTypes(t *testing.T) {
@@ -101,9 +114,12 @@ func Test_eventToAPIEvent_RawTypes(t *testing.T) {
 
 			apiEv := eventToAPIEvent(e)
 
-			assert.Equal(t, e.LogType, apiEv.LogType)
-			assert.Equal(t, e.RawPayload, apiEv.RawPayload)
-			assert.Nil(t, apiEv.EventData) // no specific event data for these types
+			expected := &api.Event{
+				LogType:    tt.logType,
+				RawPayload: []byte{0x01, 0x02, 0x03, 0x04},
+			}
+			diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+			require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 		})
 	}
 }
@@ -114,15 +130,24 @@ func Test_eventToAPIEvent_Type11(t *testing.T) {
 		Owner: "OWNER", NumberOfShares: 750,
 		SourceContractIndex: 1, DestinationContractIndex: 2,
 	}
+
 	apiEv := eventToAPIEvent(e)
-	data := apiEv.GetAssetOwnershipManagingContractChange()
-	require.NotNil(t, data)
-	assert.Equal(t, "TOKEN", data.AssetName)
-	assert.Equal(t, "ISSUER", data.AssetIssuer)
-	assert.Equal(t, "OWNER", data.Owner)
-	assert.Equal(t, uint64(750), data.NumberOfShares)
-	assert.Equal(t, uint64(1), data.SourceContractIndex)
-	assert.Equal(t, uint64(2), data.DestinationContractIndex)
+
+	expected := &api.Event{
+		LogType: 11,
+		EventData: &api.Event_AssetOwnershipManagingContractChange{
+			AssetOwnershipManagingContractChange: &api.AssetOwnershipManagingContractChangeData{
+				AssetName:                "TOKEN",
+				AssetIssuer:              "ISSUER",
+				Owner:                    "OWNER",
+				NumberOfShares:           750,
+				SourceContractIndex:      1,
+				DestinationContractIndex: 2,
+			},
+		},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 }
 
 func Test_eventToAPIEvent_Type12(t *testing.T) {
@@ -131,14 +156,23 @@ func Test_eventToAPIEvent_Type12(t *testing.T) {
 		Owner: "OWNER", Possessor: "POSSESSOR", NumberOfShares: 400,
 		SourceContractIndex: 3, DestinationContractIndex: 4,
 	}
+
 	apiEv := eventToAPIEvent(e)
-	data := apiEv.GetAssetPossessionManagingContractChange()
-	require.NotNil(t, data)
-	assert.Equal(t, "TOKEN", data.AssetName)
-	assert.Equal(t, "ISSUER", data.AssetIssuer)
-	assert.Equal(t, "OWNER", data.Owner)
-	assert.Equal(t, "POSSESSOR", data.Possessor)
-	assert.Equal(t, uint64(400), data.NumberOfShares)
-	assert.Equal(t, uint64(3), data.SourceContractIndex)
-	assert.Equal(t, uint64(4), data.DestinationContractIndex)
+
+	expected := &api.Event{
+		LogType: 12,
+		EventData: &api.Event_AssetPossessionManagingContractChange{
+			AssetPossessionManagingContractChange: &api.AssetPossessionManagingContractChangeData{
+				AssetName:                "TOKEN",
+				AssetIssuer:              "ISSUER",
+				Owner:                    "OWNER",
+				Possessor:                "POSSESSOR",
+				NumberOfShares:           400,
+				SourceContractIndex:      3,
+				DestinationContractIndex: 4,
+			},
+		},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 }
