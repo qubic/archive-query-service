@@ -92,6 +92,39 @@ var testEvent6 = event{
 	LogType:         13,
 }
 
+var testEvent7 = event{
+	Epoch:                    101,
+	TickNumber:               16003,
+	Timestamp:                1700000007,
+	TransactionHash:          test.ToStringPointer("txhash6"),
+	LogID:                    7,
+	LogDigest:                "digest7",
+	LogType:                  11,
+	AssetName:                "QX",
+	AssetIssuer:              "ISSUER",
+	Owner:                    "OWNERIDENTITY",
+	NumberOfShares:           750,
+	SourceContractIndex:      1,
+	DestinationContractIndex: 2,
+}
+
+var testEvent8 = event{
+	Epoch:                    101,
+	TickNumber:               16004,
+	Timestamp:                1700000008,
+	TransactionHash:          test.ToStringPointer("txhash7"),
+	LogID:                    8,
+	LogDigest:                "digest8",
+	LogType:                  12,
+	AssetName:                "QX",
+	AssetIssuer:              "ISSUER",
+	Owner:                    "OWNERIDENTITY",
+	Possessor:                "POSSESSORIDENTITY",
+	NumberOfShares:           400,
+	SourceContractIndex:      3,
+	DestinationContractIndex: 4,
+}
+
 type eventsSuite struct {
 	suite.Suite
 	repo      *EventsRepository
@@ -167,7 +200,11 @@ func (s *eventsSuite) SetupSuite() {
 				"deductedAmount": { "type": "unsigned_long" },
 				"remainingAmount": { "type": "long" },
 				"contractIndex": { "type": "unsigned_long" },
-				"contractIndexBurnedFor": { "type": "unsigned_long" }
+				"contractIndexBurnedFor": { "type": "unsigned_long" },
+				"owner": { "type": "keyword" },
+				"possessor": { "type": "keyword" },
+				"sourceContractIndex": { "type": "unsigned_long" },
+				"destinationContractIndex": { "type": "unsigned_long" }
 			}
 		}
 	}`
@@ -186,6 +223,8 @@ func (s *eventsSuite) SetupSuite() {
 	s.indexEvent(esClient, testEvent4, "4")
 	s.indexEvent(esClient, testEvent5, "5")
 	s.indexEvent(esClient, testEvent6, "6")
+	s.indexEvent(esClient, testEvent7, "7")
+	s.indexEvent(esClient, testEvent8, "8")
 
 	s.repo = NewEventsRepository("qubic-event-logs", esClient)
 }
@@ -208,8 +247,8 @@ func (s *eventsSuite) indexEvent(esClient *elasticsearch.Client, ev event, docID
 func (s *eventsSuite) Test_GetEvents_NoFilters() {
 	events, hits, err := s.repo.GetEvents(s.ctx, entities.Filters{}, 0, 10)
 	require.NoError(s.T(), err, "getting events without filters")
-	assert.Len(s.T(), events, 6)
-	assert.Equal(s.T(), 6, hits.Total)
+	assert.Len(s.T(), events, 8)
+	assert.Equal(s.T(), 8, hits.Total)
 }
 
 func (s *eventsSuite) Test_GetEvents_FilterByTransactionHash() {
@@ -271,13 +310,13 @@ func (s *eventsSuite) Test_GetEvents_Pagination() {
 	events1, hits1, err := s.repo.GetEvents(s.ctx, entities.Filters{}, 0, 2)
 	require.NoError(s.T(), err, "getting first page")
 	assert.Len(s.T(), events1, 2)
-	assert.Equal(s.T(), 6, hits1.Total)
+	assert.Equal(s.T(), 8, hits1.Total)
 
 	// Get second page of 2
 	events2, hits2, err := s.repo.GetEvents(s.ctx, entities.Filters{}, 2, 2)
 	require.NoError(s.T(), err, "getting second page")
 	assert.Len(s.T(), events2, 2)
-	assert.Equal(s.T(), 6, hits2.Total)
+	assert.Equal(s.T(), 8, hits2.Total)
 
 	// Pages should have different events
 	assert.NotEqual(s.T(), events1[0].LogId, events2[0].LogId)

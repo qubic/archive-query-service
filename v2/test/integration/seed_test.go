@@ -127,6 +127,24 @@ var seedType8 = seedEvent{
 	Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndex: 7,
 }
 
+var seedType11 = seedEvent{
+	Epoch: 101, TickNumber: 16003, Timestamp: 1700000007000,
+	TransactionHash: test.ToStringPointer("eoxhfragkilsmdcbtjvwnyqzpeoxhfragkilsmdcbtjvwnyqzpeoxhfragki"),
+	LogID:           7, LogDigest: "digest11", LogType: 11,
+	AssetName: "TOKEN", AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK",
+	Owner: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", NumberOfShares: 750,
+	SourceContractIndex: 1, DestinationContractIndex: 2,
+}
+
+var seedType12 = seedEvent{
+	Epoch: 101, TickNumber: 16004, Timestamp: 1700000008000,
+	TransactionHash: test.ToStringPointer("fpyigsbhljmtnedcukwxozraqfpyigsbhljmtnedcukwxozraqfpyigsbhlj"),
+	LogID:           8, LogDigest: "digest12", LogType: 12,
+	AssetName: "TOKEN", AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK",
+	Owner: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", Possessor: "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
+	NumberOfShares: 400, SourceContractIndex: 3, DestinationContractIndex: 4,
+}
+
 var seedType13 = seedEvent{
 	Epoch: 101, TickNumber: 16002, Timestamp: 1700000006000,
 	TransactionHash: test.ToStringPointer("dnwgfqzjiltoehukvycpiskabdnwgfqzjiltoehukvycpiskabdnwgfqzjilt"),

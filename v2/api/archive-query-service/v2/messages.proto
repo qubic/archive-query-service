@@ -270,6 +270,27 @@ message CustomMessageData {
   uint64 value = 1;
 }
 
+// AssetOwnershipManagingContractChangeData contains fields specific to asset ownership managing contract change events (type 11).
+message AssetOwnershipManagingContractChangeData {
+  string asset_name = 1;
+  string asset_issuer = 2;
+  string owner = 3;
+  uint64 number_of_shares = 4;
+  uint64 source_contract_index = 5;
+  uint64 destination_contract_index = 6;
+}
+
+// AssetPossessionManagingContractChangeData contains fields specific to asset possession managing contract change events (type 12).
+message AssetPossessionManagingContractChangeData {
+  string asset_name = 1;
+  string asset_issuer = 2;
+  string owner = 3;
+  string possessor = 4;
+  uint64 number_of_shares = 5;
+  uint64 source_contract_index = 6;
+  uint64 destination_contract_index = 7;
+}
+
 // Event
 message Event {
   uint32 epoch = 1;
@@ -290,6 +311,8 @@ message Event {
     ContractReserveDeductionData contract_reserve_deduction = 15;
     SmartContractMessageData smart_contract_message = 16;
     CustomMessageData custom_message = 17;
+    AssetOwnershipManagingContractChangeData asset_ownership_managing_contract_change = 18;
+    AssetPossessionManagingContractChangeData asset_possession_managing_contract_change = 19;
   }
 
 }

@@ -23,8 +23,8 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_NoFilters() {
 	t := s.T()
 	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 8)
-	require.Equal(t, uint32(8), resp.Hits.Total)
+	require.Len(t, resp.Events, 10)
+	require.Equal(t, uint32(10), resp.Hits.Total)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTransactionHash() {
@@ -83,7 +83,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Pagination() {
 	})
 	require.NoError(t, err)
 	require.Len(t, resp1.Events, 2)
-	require.Equal(t, uint32(8), resp1.Hits.Total)
+	require.Equal(t, uint32(10), resp1.Hits.Total)
 	require.Equal(t, uint32(0), resp1.Hits.From)
 	require.Equal(t, uint32(2), resp1.Hits.Size)
 
@@ -93,7 +93,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Pagination() {
 	})
 	require.NoError(t, err)
 	require.Len(t, resp2.Events, 2)
-	require.Equal(t, uint32(8), resp2.Hits.Total)
+	require.Equal(t, uint32(10), resp2.Hits.Total)
 	require.Equal(t, uint32(2), resp2.Hits.From)
 	require.Equal(t, uint32(2), resp2.Hits.Size)
 
@@ -241,6 +241,52 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type13_FullData() {
 	}
 }
 
+func (s *EventsE2ESuite) TestGRPC_GetEvents_Type11_FullData() {
+	t := s.T()
+	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+		Filters: map[string]string{"tickNumber": "16003"},
+	})
+	require.NoError(t, err)
+	require.Len(t, resp.Events, 1)
+
+	expected := &api.Event{
+		Epoch: 101, TickNumber: 16003, Timestamp: 1700000007000,
+		TransactionHash: test.ToStringPointer("eoxhfragkilsmdcbtjvwnyqzpeoxhfragkilsmdcbtjvwnyqzpeoxhfragki"),
+		LogId:           7, LogDigest: "digest11", LogType: 11,
+		EventData: &api.Event_AssetOwnershipManagingContractChange{AssetOwnershipManagingContractChange: &api.AssetOwnershipManagingContractChangeData{
+			AssetName: "TOKEN", AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK",
+			Owner: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", NumberOfShares: 750,
+			SourceContractIndex: 1, DestinationContractIndex: 2,
+		}},
+	}
+	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+		require.Fail(t, "type11 event mismatch (-expected +actual):\n"+diff)
+	}
+}
+
+func (s *EventsE2ESuite) TestGRPC_GetEvents_Type12_FullData() {
+	t := s.T()
+	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+		Filters: map[string]string{"tickNumber": "16004"},
+	})
+	require.NoError(t, err)
+	require.Len(t, resp.Events, 1)
+
+	expected := &api.Event{
+		Epoch: 101, TickNumber: 16004, Timestamp: 1700000008000,
+		TransactionHash: test.ToStringPointer("fpyigsbhljmtnedcukwxozraqfpyigsbhljmtnedcukwxozraqfpyigsbhlj"),
+		LogId:           8, LogDigest: "digest12", LogType: 12,
+		EventData: &api.Event_AssetPossessionManagingContractChange{AssetPossessionManagingContractChange: &api.AssetPossessionManagingContractChangeData{
+			AssetName: "TOKEN", AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK",
+			Owner: "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", Possessor: "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
+			NumberOfShares: 400, SourceContractIndex: 3, DestinationContractIndex: 4,
+		}},
+	}
+	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+		require.Fail(t, "type12 event mismatch (-expected +actual):\n"+diff)
+	}
+}
+
 func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 	t := s.T()
 	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
@@ -273,10 +319,10 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_NoFilters() {
 	require.Equal(t, http.StatusOK, statusCode)
 
 	events := result["events"].([]interface{})
-	require.Len(t, events, 8)
+	require.Len(t, events, 10)
 
 	hits := result["hits"].(map[string]interface{})
-	require.Equal(t, float64(8), hits["total"])
+	require.Equal(t, float64(10), hits["total"])
 }
 
 func (s *EventsE2ESuite) TestHTTP_GetEvents_VerifySortOrder() {
@@ -285,15 +331,15 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_VerifySortOrder() {
 	require.Equal(t, http.StatusOK, statusCode)
 
 	events := result["events"].([]interface{})
-	require.Len(t, events, 8)
+	require.Len(t, events, 10)
 
 	// last three are in same tick (tick number descending)
-	require.Equal(t, events[5].(map[string]interface{})["tickNumber"], events[6].(map[string]interface{})["tickNumber"])
-	require.Equal(t, events[5].(map[string]interface{})["tickNumber"], events[7].(map[string]interface{})["tickNumber"])
+	require.Equal(t, events[7].(map[string]interface{})["tickNumber"], events[8].(map[string]interface{})["tickNumber"])
+	require.Equal(t, events[7].(map[string]interface{})["tickNumber"], events[9].(map[string]interface{})["tickNumber"])
 	// they are in the correct log id order (ascending)
-	assert.Equal(t, events[5].(map[string]interface{})["logId"], "1")
-	assert.Equal(t, events[6].(map[string]interface{})["logId"], "2")
-	assert.Equal(t, events[7].(map[string]interface{})["logId"], "3")
+	assert.Equal(t, events[7].(map[string]interface{})["logId"], "1")
+	assert.Equal(t, events[8].(map[string]interface{})["logId"], "2")
+	assert.Equal(t, events[9].(map[string]interface{})["logId"], "3")
 }
 
 func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByTransactionHash() {
@@ -423,6 +469,56 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction_Full
 	}
 }
 
+func (s *EventsE2ESuite) TestHTTP_GetEvents_Type11_AssetOwnershipManagingContractChange_FullData() {
+	t := s.T()
+	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"16003"}}`)
+	require.Equal(t, http.StatusOK, statusCode)
+
+	events := result["events"].([]interface{})
+	require.Len(t, events, 1)
+	ev := events[0].(map[string]interface{})
+
+	expected := map[string]interface{}{
+		"epoch": float64(101), "tickNumber": float64(16003), "timestamp": "1700000007000",
+		"transactionHash": "eoxhfragkilsmdcbtjvwnyqzpeoxhfragkilsmdcbtjvwnyqzpeoxhfragki",
+		"categories":      []any{},
+		"logId":           "7", "logDigest": "digest11", "logType": float64(11),
+		"assetOwnershipManagingContractChange": map[string]interface{}{
+			"assetName": "TOKEN", "assetIssuer": "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK",
+			"owner": "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", "numberOfShares": "750",
+			"sourceContractIndex": "1", "destinationContractIndex": "2",
+		},
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "type11 HTTP event mismatch (-expected +actual):\n"+diff)
+	}
+}
+
+func (s *EventsE2ESuite) TestHTTP_GetEvents_Type12_AssetPossessionManagingContractChange_FullData() {
+	t := s.T()
+	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"16004"}}`)
+	require.Equal(t, http.StatusOK, statusCode)
+
+	events := result["events"].([]interface{})
+	require.Len(t, events, 1)
+	ev := events[0].(map[string]interface{})
+
+	expected := map[string]interface{}{
+		"epoch": float64(101), "tickNumber": float64(16004), "timestamp": "1700000008000",
+		"transactionHash": "fpyigsbhljmtnedcukwxozraqfpyigsbhljmtnedcukwxozraqfpyigsbhlj",
+		"categories":      []any{},
+		"logId":           "8", "logDigest": "digest12", "logType": float64(12),
+		"assetPossessionManagingContractChange": map[string]interface{}{
+			"assetName": "TOKEN", "assetIssuer": "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK",
+			"owner": "DLRMHGPFARAKPFLBCIFGQWFPMFPAQKESVFAIGGHFXQFBKGMUBBGPCJFKNMMD", "possessor": "EPFNIJQGQBSLQLGDDJGHRGQNGOBRLFRTGHBHIJGYLRGCLHJOCCQDHGKLONNE",
+			"numberOfShares": "400", "sourceContractIndex": "3", "destinationContractIndex": "4",
+		},
+	}
+	if diff := cmp.Diff(expected, ev); diff != "" {
+		require.Fail(t, "type12 HTTP event mismatch (-expected +actual):\n"+diff)
+	}
+}
+
 func (s *EventsE2ESuite) TestHTTP_GetEvents_EmptyResult() {
 	t := s.T()
 	result, statusCode := s.postGetEvents(`{"filters":{"transactionHash":"` + validTransactionHash + `"}}`)
@@ -444,7 +540,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Pagination() {
 	require.Len(t, events, 2)
 
 	hits := result["hits"].(map[string]interface{})
-	require.Equal(t, float64(8), hits["total"])
+	require.Equal(t, float64(10), hits["total"])
 	require.Equal(t, float64(0), hits["from"])
 	require.Equal(t, float64(2), hits["size"])
 }

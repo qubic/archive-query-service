@@ -88,6 +88,8 @@ func (s *EventsE2ESuite) SetupSuite() {
 	s.indexSeedEvent(esClient, seedType3, "4")
 	s.indexSeedEvent(esClient, seedType8, "5")
 	s.indexSeedEvent(esClient, seedType13, "6")
+	s.indexSeedEvent(esClient, seedType11, "7")
+	s.indexSeedEvent(esClient, seedType12, "8")
 
 	// 4. Wire service stack: ES repo -> domain service -> gRPC server
 	eventsRepo := elastic.NewEventsRepository(e2eEventsIndex, esClient)
