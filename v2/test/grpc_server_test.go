@@ -104,9 +104,9 @@ func (s *ServerTestSuite) TestGetLastProcessedTick() {
 	require.NoError(t, err, "getting last processed tick")
 
 	expected := &api.GetLastProcessedTickResponse{
-		TickNumber:          125,
-		Epoch:               100,
-		IntervalInitialTick: 10,
+		TickNumber:           125,
+		Epoch:                100,
+		IntervalInitialTick:  10,
 		LogLastProcessedTick: 500,
 	}
 	diff := cmp.Diff(expected, resp, protocmp.Transform())
@@ -304,4 +304,3 @@ func (s *ServerTestSuite) TestGetEvents_TickRangeExceedsProcessed() {
 	require.NoError(t, err)
 	assert.Equal(t, uint32(50000), resp.ValidForTick)
 }
-

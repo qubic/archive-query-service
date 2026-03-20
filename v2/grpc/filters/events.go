@@ -228,4 +228,3 @@ func getMaxLengthForKey(k string) int {
 func checkIfMultivalueKey(k string) bool {
 	return k == EventFilterSource || k == EventFilterDestination || k == EventFilterLogType || k == EventFilterCategories
 }
-
