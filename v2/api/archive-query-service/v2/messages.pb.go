@@ -1207,12 +1207,13 @@ func (x *GetProcessedTickIntervalsResponse) GetProcessedTickIntervals() []*Proce
 
 // GetLastProcessedTickResponse
 type GetLastProcessedTickResponse struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	TickNumber          uint32                 `protobuf:"varint,1,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
-	Epoch               uint32                 `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	IntervalInitialTick uint32                 `protobuf:"varint,3,opt,name=interval_initial_tick,json=intervalInitialTick,proto3" json:"interval_initial_tick,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	TickNumber              uint32                 `protobuf:"varint,1,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
+	Epoch                   uint32                 `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	IntervalInitialTick     uint32                 `protobuf:"varint,3,opt,name=interval_initial_tick,json=intervalInitialTick,proto3" json:"interval_initial_tick,omitempty"`
+	EventsLastProcessedTick uint32                 `protobuf:"varint,4,opt,name=events_last_processed_tick,json=eventsLastProcessedTick,proto3" json:"events_last_processed_tick,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *GetLastProcessedTickResponse) Reset() {
@@ -1262,6 +1263,13 @@ func (x *GetLastProcessedTickResponse) GetEpoch() uint32 {
 func (x *GetLastProcessedTickResponse) GetIntervalInitialTick() uint32 {
 	if x != nil {
 		return x.IntervalInitialTick
+	}
+	return 0
+}
+
+func (x *GetLastProcessedTickResponse) GetEventsLastProcessedTick() uint32 {
+	if x != nil {
+		return x.EventsLastProcessedTick
 	}
 	return 0
 }
@@ -2319,9 +2327,9 @@ func (x *GetEventsRequest) GetPagination() *Pagination {
 // GetEventsResponse
 type GetEventsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ValidForTick  uint32                 `protobuf:"varint,3,opt,name=valid_for_tick,json=validForTick,proto3" json:"valid_for_tick,omitempty"`
 	Hits          *Hits                  `protobuf:"bytes,1,opt,name=hits,proto3" json:"hits,omitempty"`
 	Events        []*Event               `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	ValidForTick  uint32                 `protobuf:"varint,3,opt,name=valid_for_tick,json=validForTick,proto3" json:"valid_for_tick,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2356,13 +2364,6 @@ func (*GetEventsResponse) Descriptor() ([]byte, []int) {
 	return file_messages_proto_rawDescGZIP(), []int{33}
 }
 
-func (x *GetEventsResponse) GetValidForTick() uint32 {
-	if x != nil {
-		return x.ValidForTick
-	}
-	return 0
-}
-
 func (x *GetEventsResponse) GetHits() *Hits {
 	if x != nil {
 		return x.Hits
@@ -2375,6 +2376,13 @@ func (x *GetEventsResponse) GetEvents() []*Event {
 		return x.Events
 	}
 	return nil
+}
+
+func (x *GetEventsResponse) GetValidForTick() uint32 {
+	if x != nil {
+		return x.ValidForTick
+	}
+	return 0
 }
 
 var File_messages_proto protoreflect.FileDescriptor
@@ -2506,12 +2514,13 @@ const file_messages_proto_rawDesc = "" +
 	"\x13GetTickDataResponse\x12f\n" +
 	"\ttick_data\x18\x01 \x01(\v2\x1d.qubic.v2.archive.pb.TickDataB*\xbaG'\x92\x02$The tick data of the requested tick.R\btickData\"\xbf\x01\n" +
 	"!GetProcessedTickIntervalsResponse\x12\x99\x01\n" +
-	"\x18processed_tick_intervals\x18\x01 \x03(\v2*.qubic.v2.archive.pb.ProcessedTickIntervalB3\xbaG0\x92\x02-A list of tick intervals that were processed.R\x16processedTickIntervals\"\xb0\x02\n" +
+	"\x18processed_tick_intervals\x18\x01 \x03(\v2*.qubic.v2.archive.pb.ProcessedTickIntervalB3\xbaG0\x92\x02-A list of tick intervals that were processed.R\x16processedTickIntervals\"\x9c\x03\n" +
 	"\x1cGetLastProcessedTickResponse\x12`\n" +
 	"\vtick_number\x18\x01 \x01(\rB?\xbaG<\x92\x029The last processed tick that is available in the archive.R\n" +
 	"tickNumber\x12D\n" +
 	"\x05epoch\x18\x02 \x01(\rB.\xbaG+\x92\x02(The epoch the last processed tick is in.R\x05epoch\x12h\n" +
-	"\x15interval_initial_tick\x18\x03 \x01(\rB4\xbaG1\x92\x02.The initial tick of the current tick interval.R\x13intervalInitialTick\"n\n" +
+	"\x15interval_initial_tick\x18\x03 \x01(\rB4\xbaG1\x92\x02.The initial tick of the current tick interval.R\x13intervalInitialTick\x12j\n" +
+	"\x1aevents_last_processed_tick\x18\x04 \x01(\rB-\xbaG*\x92\x02'The last processed tick for event logs.R\x17eventsLastProcessedTick\"n\n" +
 	"\x1fGetComputorListsForEpochRequest\x12K\n" +
 	"\x05epoch\x18\x01 \x01(\rB5\xbaG2\x92\x02/The epoch number to get the computor lists for.R\x05epoch\"\xcc\x02\n" +
 	"\fComputorList\x12)\n" +
@@ -2615,10 +2624,10 @@ const file_messages_proto_rawDesc = "" +
 	"pagination:\n" +
 	"  offset: 0\n" +
 	"  size: 10\"\xb6\x02\n" +
-	"\x11GetEventsResponse\x12W\n" +
-	"\x0evalid_for_tick\x18\x03 \x01(\rB1\xbaG.\x92\x02+The response is valid for this tick number.R\fvalidForTick\x12\\\n" +
+	"\x11GetEventsResponse\x12\\\n" +
 	"\x04hits\x18\x01 \x01(\v2\x19.qubic.v2.archive.pb.HitsB-\xbaG*\x92\x02'Information about the returned results.R\x04hits\x12j\n" +
-	"\x06events\x18\x02 \x03(\v2\x1a.qubic.v2.archive.pb.EventB6\xbaG3\x92\x020List of events that matched the search criteria.R\x06eventsB,Z*github.com/qubic/archive-query-service/apib\x06proto3"
+	"\x06events\x18\x02 \x03(\v2\x1a.qubic.v2.archive.pb.EventB6\xbaG3\x92\x020List of events that matched the search criteria.R\x06events\x12W\n" +
+	"\x0evalid_for_tick\x18\x03 \x01(\rB1\xbaG.\x92\x02+The response is valid for this tick number.R\fvalidForTickB,Z*github.com/qubic/archive-query-service/apib\x06proto3"
 
 var (
 	file_messages_proto_rawDescOnce sync.Once

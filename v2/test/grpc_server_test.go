@@ -95,17 +95,19 @@ func (s *ServerTestSuite) TearDownSuite() {
 func (s *ServerTestSuite) TestGetLastProcessedTick() {
 	t := s.T()
 	s.mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
-		LastProcessedTick:   125,
-		ProcessingEpoch:     100,
-		IntervalInitialTick: 10,
+		LastProcessedTick:       125,
+		ProcessingEpoch:         100,
+		IntervalInitialTick:     10,
+		EventsLastProcessedTick: 500,
 	}, nil)
 	resp, err := s.client.GetLastProcessedTick(t.Context(), nil)
 	require.NoError(t, err, "getting last processed tick")
 
 	expected := &api.GetLastProcessedTickResponse{
-		TickNumber:          125,
-		Epoch:               100,
-		IntervalInitialTick: 10,
+		TickNumber:              125,
+		Epoch:                   100,
+		IntervalInitialTick:     10,
+		EventsLastProcessedTick: 500,
 	}
 	diff := cmp.Diff(expected, resp, protocmp.Transform())
 	require.Empty(t, diff, "expected last processed tick to match")

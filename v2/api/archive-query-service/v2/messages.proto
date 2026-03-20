@@ -187,6 +187,7 @@ message GetLastProcessedTickResponse {
   uint32 tick_number = 1 [(openapi.v3.property) = {description:"The last processed tick that is available in the archive."}];
   uint32 epoch = 2 [(openapi.v3.property) = {description:"The epoch the last processed tick is in."}];
   uint32 interval_initial_tick = 3 [(openapi.v3.property) = {description:"The initial tick of the current tick interval."}];
+  uint32 events_last_processed_tick = 4 [(openapi.v3.property) = {description:"The last processed tick for event logs."}];
 }
 
 // GetComputorListsForEpochRequest
@@ -310,7 +311,7 @@ message GetEventsRequest {
 
 // GetEventsResponse
 message GetEventsResponse {
-  uint32 valid_for_tick = 3 [(openapi.v3.property) = {description:"The response is valid for this tick number."}];
   Hits hits = 1 [(openapi.v3.property) = {description:"Information about the returned results."}];
   repeated Event events = 2 [(openapi.v3.property) = {description:"List of events that matched the search criteria."}];
+  uint32 valid_for_tick = 3 [(openapi.v3.property) = {description:"The response is valid for this tick number."}];
 }
