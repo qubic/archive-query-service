@@ -13,7 +13,21 @@ func ValidateUnsignedNumericFilterValues(values []string, bitSize, maxNumberOfVa
 		return err
 	}
 	for _, val := range values {
-		_, err := stringToNumericValue(val, bitSize)
+		_, err := stringToUnsignedNumericValue(val, bitSize)
+		if err != nil {
+			return fmt.Errorf("invalid numeric value: %w", err)
+		}
+	}
+	return nil
+}
+
+func ValidateSignedNumericFilterValue(values []string, bitSize, maxNumberOfValues int) error {
+	err := checkQuantity(values, maxNumberOfValues)
+	if err != nil {
+		return err
+	}
+	for _, val := range values {
+		_, err := stringToSignedNumericValue(val, bitSize)
 		if err != nil {
 			return fmt.Errorf("invalid numeric value: %w", err)
 		}
@@ -27,6 +41,19 @@ func ValidateIdentityFilterValues(values []string, maxValues int) error {
 
 func ValidateTransactionHashFilterValues(values []string, maxValues int) error {
 	return validateDigest(values, maxValues, true)
+}
+
+func ValidateStringFilterLength(values []string, maxLength, maxNumberOfValues int) error {
+	err := checkQuantity(values, maxNumberOfValues)
+	if err != nil {
+		return err
+	}
+	for _, val := range values {
+		if len(val) > maxLength {
+			return fmt.Errorf("invalid string length: %d", len(val))
+		}
+	}
+	return nil
 }
 
 func validateDigest(values []string, maxValues int, lowercase bool) error {

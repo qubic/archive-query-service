@@ -101,7 +101,7 @@ func CreateIdentityTransactionQueryRanges(ranges map[string]*api.Range) (map[str
 	for key, value := range ranges {
 		switch key {
 		case IdentityFilterAmount, IdentityFilterTimestamp:
-			r, err := CreateNumericRange(value, 64)
+			r, err := CreateUnsignedNumericRange(value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("invalid %s range: %w", key, err)
 			}
@@ -109,7 +109,7 @@ func CreateIdentityTransactionQueryRanges(ranges map[string]*api.Range) (map[str
 				convertedRanges[key] = r
 			}
 		case IdentityFilterTickNumber, IdentityFilterInputType:
-			r, err := CreateNumericRange(value, 32)
+			r, err := CreateUnsignedNumericRange(value, 32)
 			if err != nil {
 				return nil, fmt.Errorf("invalid %s range: %w", key, err)
 			}

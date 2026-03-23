@@ -42,14 +42,14 @@ func CreateFilters(value string, maxValues, maxLength int) ([]string, error) {
 	return val, nil
 }
 
-func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
+func CreateUnsignedNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 	var ranges []entities.Range
 	var err error
 	var lowerBound uint64
 	var upperBound uint64
 	switch r.GetLowerBound().(type) {
 	case *api.Range_Gt:
-		lowerBound, err = stringToNumericValue(r.GetGt(), bitSize)
+		lowerBound, err = stringToUnsignedNumericValue(r.GetGt(), bitSize)
 		lowerBound++
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
@@ -59,7 +59,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 			Value:     r.GetGt(),
 		})
 	case *api.Range_Gte:
-		lowerBound, err = stringToNumericValue(r.GetGte(), bitSize)
+		lowerBound, err = stringToUnsignedNumericValue(r.GetGte(), bitSize)
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gte] value: %w", err)
 		}
@@ -71,7 +71,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 
 	switch r.GetUpperBound().(type) {
 	case *api.Range_Lt:
-		upperBound, err = stringToNumericValue(r.GetLt(), bitSize)
+		upperBound, err = stringToUnsignedNumericValue(r.GetLt(), bitSize)
 		upperBound--
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
@@ -81,7 +81,67 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 			Value:     r.GetLt(),
 		})
 	case *api.Range_Lte:
-		upperBound, err = stringToNumericValue(r.GetLte(), bitSize)
+		upperBound, err = stringToUnsignedNumericValue(r.GetLte(), bitSize)
+		if err != nil {
+			return nil, fmt.Errorf("invalid [lte] value: %w", err)
+		}
+		ranges = append(ranges, entities.Range{
+			Operation: "lte",
+			Value:     r.GetLte(),
+		})
+	}
+
+	if len(ranges) == 0 {
+		return nil, fmt.Errorf("invalid range: no bounds")
+	}
+
+	if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
+		return nil, fmt.Errorf("invalid range: [%d:%d]", lowerBound, upperBound)
+	}
+
+	return ranges, nil
+}
+
+func CreateSignedNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
+	var ranges []entities.Range
+	var err error
+	var lowerBound int64
+	var upperBound int64
+	switch r.GetLowerBound().(type) {
+	case *api.Range_Gt:
+		lowerBound, err = stringToSignedNumericValue(r.GetGt(), bitSize)
+		lowerBound++
+		if err != nil {
+			return nil, fmt.Errorf("invalid [gt] value: %w", err)
+		}
+		ranges = append(ranges, entities.Range{
+			Operation: "gt",
+			Value:     r.GetGt(),
+		})
+	case *api.Range_Gte:
+		lowerBound, err = stringToSignedNumericValue(r.GetGte(), bitSize)
+		if err != nil {
+			return nil, fmt.Errorf("invalid [gte] value: %w", err)
+		}
+		ranges = append(ranges, entities.Range{
+			Operation: "gte",
+			Value:     r.GetGte(),
+		})
+	}
+
+	switch r.GetUpperBound().(type) {
+	case *api.Range_Lt:
+		upperBound, err = stringToSignedNumericValue(r.GetLt(), bitSize)
+		upperBound--
+		if err != nil {
+			return nil, fmt.Errorf("invalid [lt] value: %w", err)
+		}
+		ranges = append(ranges, entities.Range{
+			Operation: "lt",
+			Value:     r.GetLt(),
+		})
+	case *api.Range_Lte:
+		upperBound, err = stringToSignedNumericValue(r.GetLte(), bitSize)
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lte] value: %w", err)
 		}
@@ -118,8 +178,16 @@ func SplitDeprecatedIncludeExcludeFilters(filters map[string]string) (map[string
 	return includeFilters, excludeFilters
 }
 
-func stringToNumericValue(val string, bitSize int) (uint64, error) {
+func stringToUnsignedNumericValue(val string, bitSize int) (uint64, error) {
 	number, err := strconv.ParseUint(val, 10, bitSize)
+	if err != nil {
+		return 0, err
+	}
+	return number, nil
+}
+
+func stringToSignedNumericValue(val string, bitSize int) (int64, error) {
+	number, err := strconv.ParseInt(val, 10, bitSize)
 	if err != nil {
 		return 0, err
 	}

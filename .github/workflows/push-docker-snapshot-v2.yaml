@@ -3,7 +3,7 @@ name: Deploy v2 prod images to GHCR
 on:
   push:
     branches:
-      - 'feature/identity-related-log-filters'
+      - '130-additional-log-events-filters'
 
 jobs:
   docker-publish:
@@ -33,4 +33,4 @@ jobs:
           context: ./v2
           file: ./v2/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v2:snapshot
+          tags: ghcr.io/qubic/archive-query-service-v2:additional-log-events-filters
