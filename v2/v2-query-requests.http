@@ -65,4 +65,104 @@ Accept: application/json
     "pagination": { "size": 10 }
 }
 
+### Get events by assetName
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "assetName": "QX" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by assetIssuer
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "assetIssuer": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by managingContractIndex
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "managingContractIndex": "1" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by contractIndex
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "contractIndex": "1" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by contractMessageType
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "contractMessageType": "1" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by deductedAmount
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "deductedAmount": "1" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by remainingAmount
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "remainingAmount": "67591059" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by customMessage
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "filters": { "customMessage": "1" },
+    "pagination": { "size": 3 }
+}
+
+### Get events by deductedAmount range
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "ranges": { "deductedAmount": { "gte": "100", "lte": "1000000" } },
+    "pagination": { "size": 3 }
+}
+
+### Get events by remainingAmount range
+
+POST {{host}}/getEvents
+Accept: application/json
+
+{
+    "ranges": { "remainingAmount": { "gte": "0", "lte": "100000000" } },
+    "pagination": { "size": 3 }
+}
+
 ###
