@@ -7,6 +7,7 @@ import (
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/qubic/archive-query-service/v2/grpc/utils"
 )
 
 func CreateFilters(value string, maxValues, maxLength int) ([]string, error) {
@@ -57,7 +58,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 	switch r.GetLowerBound().(type) {
 	case *api.Range_Gt:
 		lowerBound, err = parse(r.GetGt(), bitSize)
-		lowerBound++
+		lowerBound = utils.If(lowerBound >= 0, lowerBound+1, lowerBound-1) // for later comparison
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
 		}
@@ -79,7 +80,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 	switch r.GetUpperBound().(type) {
 	case *api.Range_Lt:
 		upperBound, err = parse(r.GetLt(), bitSize)
-		upperBound--
+		upperBound = utils.If(upperBound >= 0, upperBound-1, upperBound+1) // for later comparison
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
 		}
@@ -102,7 +103,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 		return nil, fmt.Errorf("invalid range: no bounds")
 	}
 
-	if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
+	if len(ranges) > 1 && lowerBound >= upperBound {
 		return nil, fmt.Errorf("invalid range: [%d:%d]", lowerBound, upperBound)
 	}
 
