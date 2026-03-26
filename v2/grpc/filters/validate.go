@@ -8,26 +8,20 @@ import (
 )
 
 func ValidateUnsignedNumericFilterValues(values []string, bitSize, maxNumberOfValues int) error {
-	err := checkQuantity(values, maxNumberOfValues)
-	if err != nil {
-		return err
-	}
-	for _, val := range values {
-		_, err := stringToUnsignedNumericValue(val, bitSize)
-		if err != nil {
-			return fmt.Errorf("invalid numeric value: %w", err)
-		}
-	}
-	return nil
+	return validateNumericFilterValue(values, bitSize, maxNumberOfValues, stringToUnsignedNumericValue)
 }
 
 func ValidateSignedNumericFilterValue(values []string, bitSize, maxNumberOfValues int) error {
+	return validateNumericFilterValue(values, bitSize, maxNumberOfValues, stringToSignedNumericValue)
+}
+
+func validateNumericFilterValue[T numeric](values []string, bitSize, maxNumberOfValues int, parseFunc parseFunc[T]) error {
 	err := checkQuantity(values, maxNumberOfValues)
 	if err != nil {
 		return err
 	}
 	for _, val := range values {
-		_, err := stringToSignedNumericValue(val, bitSize)
+		_, err := parseFunc(val, bitSize)
 		if err != nil {
 			return fmt.Errorf("invalid numeric value: %w", err)
 		}
