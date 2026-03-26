@@ -16,20 +16,34 @@ const validId5 = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQGNM"
 
 func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 	filters := map[string]string{
-		"transactionHash": validTransactionHash,
-		"tickNumber":      "42",
-		"logType":         "1",
-		"logId":           "2",
-		"categories":      "4",
+		"transactionHash":       validTransactionHash,
+		"tickNumber":            "42",
+		"logType":               "1",
+		"logId":                 "2",
+		"categories":            "4",
+		"assetName":             "EXAMPLE",
+		"assetIssuer":           validId,
+		"managingContractIndex": "5",
+		"contractIndex":         "6",
+		"contractMessageType":   "7",
+		"deductedAmount":        "8",
+		"remainingAmount":       "-1",
 	}
 	result, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
 	require.NoError(t, err)
 	assert.Equal(t, map[string][]string{
-		"transactionHash": {validTransactionHash},
-		"tickNumber":      {"42"},
-		"logType":         {"1"},
-		"logId":           {"2"},
-		"categories":      {"4"},
+		"transactionHash":       {validTransactionHash},
+		"tickNumber":            {"42"},
+		"logType":               {"1"},
+		"logId":                 {"2"},
+		"categories":            {"4"},
+		"assetName":             {"EXAMPLE"},
+		"assetIssuer":           {validId},
+		"managingContractIndex": {"5"},
+		"contractIndex":         {"6"},
+		"contractMessageType":   {"7"},
+		"deductedAmount":        {"8"},
+		"remainingAmount":       {"-1"},
 	}, result)
 }
 
@@ -71,6 +85,71 @@ func TestValidateEventsFilters_ValidTickNumber(t *testing.T) {
 	filters := map[string][]string{"tickNumber": {"42"}}
 	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
 	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_ValidAssetName(t *testing.T) {
+	filters := map[string][]string{"assetName": {"EXAMPLE"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_ValidManagingContractIndex(t *testing.T) {
+	filters := map[string][]string{"managingContractIndex": {"5"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_ValidContractIndex(t *testing.T) {
+	filters := map[string][]string{"contractIndex": {"6"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_ValidContractMessageType(t *testing.T) {
+	filters := map[string][]string{"contractMessageType": {"7"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_ValidDeductedAmount(t *testing.T) {
+	filters := map[string][]string{"deductedAmount": {"8"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+}
+
+func TestValidateEventsFilters_InvalidAssetName(t *testing.T) {
+	filters := map[string][]string{"assetName": {"TOOLONGNAME"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [assetName] filter")
+}
+
+func TestValidateEventsFilters_InvalidManagingContractIndex(t *testing.T) {
+	filters := map[string][]string{"managingContractIndex": {"not-a-number"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [managingContractIndex] filter")
+}
+
+func TestValidateEventsFilters_InvalidContractIndex(t *testing.T) {
+	filters := map[string][]string{"contractIndex": {"-1"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [contractIndex] filter")
+}
+
+func TestValidateEventsFilters_InvalidContractMessageType(t *testing.T) {
+	filters := map[string][]string{"contractMessageType": {"abc"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [contractMessageType] filter")
+}
+
+func TestValidateEventsFilters_InvalidDeductedAmount(t *testing.T) {
+	filters := map[string][]string{"deductedAmount": {"-500"}}
+	err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [deductedAmount] filter")
 }
 
 func TestCreateEventsFilters_SupportMultipleLogTypes(t *testing.T) {
@@ -153,10 +232,8 @@ func TestValidateEventsFilters_EmptyFilters(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// tests for source, destination, epoch, and amount filters
-
 func TestCreateEventsFilters_IdentityFilters_SingleValue(t *testing.T) {
-	filterNames := []string{"source", "destination"}
+	filterNames := []string{"source", "destination", "assetIssuer"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -167,6 +244,15 @@ func TestCreateEventsFilters_IdentityFilters_SingleValue(t *testing.T) {
 			assert.Equal(t, []string{validId}, result[filterName])
 		})
 	}
+}
+
+func TestCreateEventsFilters_MultipleIssuerFilters_ThenError(t *testing.T) {
+	filters := map[string]string{
+		"assetIssuer": validId + "," + validId2,
+	}
+	_, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "exceeds maximum length")
 }
 
 func TestCreateEventsFilters_IdentityFilters_MultipleValues(t *testing.T) {
@@ -212,7 +298,7 @@ func TestCreateEventsFilters_IdentityFilters_TooManyValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_EmptyValue(t *testing.T) {
-	filterNames := []string{"source", "destination"}
+	filterNames := []string{"source", "destination", "assetIssuer"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -240,7 +326,7 @@ func TestCreateEventsFilters_IdentityFilters_DuplicateValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_InvalidIdentity(t *testing.T) {
-	filterNames := []string{"source", "destination"}
+	filterNames := []string{"source", "destination", "assetIssuer"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -328,6 +414,33 @@ func TestCreateEventsFilters_Amount_InvalidString(t *testing.T) {
 	_, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid [amount] filter")
+}
+
+func TestCreateEventsFilters_RemainingAmount_ValidValue(t *testing.T) {
+	filters := map[string]string{
+		"remainingAmount": "1000",
+	}
+	result, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"1000"}, result["remainingAmount"])
+}
+
+func TestCreateEventsFilters_RemainingAmount_ValidNegativeValue(t *testing.T) {
+	filters := map[string]string{
+		"remainingAmount": "-100",
+	}
+	result, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"-100"}, result["remainingAmount"])
+}
+
+func TestCreateEventsFilters_RemainingAmount_InvalidString(t *testing.T) {
+	filters := map[string]string{
+		"remainingAmount": "not-a-number",
+	}
+	_, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid [remainingAmount] filter")
 }
 
 func TestCreateEventsFilters_NumberOfShares_ValidValue(t *testing.T) {
