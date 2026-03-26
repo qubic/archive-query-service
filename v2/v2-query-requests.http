@@ -141,7 +141,7 @@ POST {{host}}/getEvents
 Accept: application/json
 
 {
-    "filters": { "customMessage": "1" },
+    "filters": { "customMessage": "6217575821008262227" },
     "pagination": { "size": 3 }
 }
 

@@ -104,6 +104,29 @@ func CreateEventFilters(filterMap map[string]string, allowedKeys map[string]bool
 	return res, nil
 }
 
+type filterValidator func(values []string) error
+
+var eventFilterValidators = map[string]filterValidator{
+	EventFilterSource:                func(v []string) error { return ValidateIdentityFilterValues(v, maxValuesPerEventFilter) },
+	EventFilterDestination:           func(v []string) error { return ValidateIdentityFilterValues(v, maxValuesPerEventFilter) },
+	EventFilterTransactionHash:       func(v []string) error { return ValidateTransactionHashFilterValues(v, 1) },
+	EventFilterTickNumber:            func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 32, 1) },
+	EventFilterEpoch:                 func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 32, 1) },
+	EventFilterAmount:                func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterNumberOfShares:        func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterLogId:                 func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterManagingContractIndex: func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterContractIndex:         func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterContractMessageType:   func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterDeductedAmount:        func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterCustomMessage:         func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterLogType:               func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 8, maxValuesPerEventFilter) },
+	EventFilterCategories:            func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 8, maxValuesPerEventFilter) },
+	EventFilterAssetName:             func(v []string) error { return ValidateStringFilterLength(v, 7, 1) },
+	EventFilterAssetIssuer:           func(v []string) error { return ValidateIdentityFilterValues(v, 1) },
+	EventFilterRemainingAmount:       func(v []string) error { return ValidateSignedNumericFilterValue(v, 64, 1) },
+}
+
 func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string]bool) error {
 	if len(filterMap) == 0 {
 		return nil
@@ -114,72 +137,17 @@ func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string
 	}
 
 	for key, values := range filterMap {
-
 		if _, ok := allowedKeys[key]; !ok {
 			return fmt.Errorf("unsupported filter [%s]", key)
 		}
 
-		switch key {
-		case EventFilterSource, EventFilterDestination:
-
-			err := ValidateIdentityFilterValues(values, maxValuesPerEventFilter)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterTransactionHash:
-
-			err := ValidateTransactionHashFilterValues(values, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterTickNumber, EventFilterEpoch:
-
-			err := ValidateUnsignedNumericFilterValues(values, 32, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterAmount, EventFilterNumberOfShares, EventFilterLogId,
-			EventFilterManagingContractIndex, EventFilterContractIndex, EventFilterContractMessageType,
-			EventFilterDeductedAmount, EventFilterCustomMessage:
-
-			err := ValidateUnsignedNumericFilterValues(values, 64, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterLogType, EventFilterCategories:
-
-			err := ValidateUnsignedNumericFilterValues(values, 8, maxValuesPerEventFilter) // uint8 <= 255
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterAssetName:
-
-			err := ValidateStringFilterLength(values, 7, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterAssetIssuer:
-
-			err := ValidateIdentityFilterValues(values, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterRemainingAmount:
-
-			err := ValidateSignedNumericFilterValue(values, 64, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		default:
+		validator, ok := eventFilterValidators[key]
+		if !ok {
 			return fmt.Errorf("unhandled filter: [%s]", key)
+		}
+
+		if err := validator(values); err != nil {
+			return fmt.Errorf("invalid [%s] filter: %w", key, err)
 		}
 	}
 	return nil
