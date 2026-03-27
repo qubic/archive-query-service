@@ -68,13 +68,13 @@ func TestArchiveQueryService_GetEvents_Success(t *testing.T) {
 	}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	response, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Filters:    map[string]string{"transactionHash": validTransactionHash1},
 		Pagination: &api.Pagination{Offset: 0, Size: 10},
 	})
 	require.NoError(t, err)
 	require.NotNil(t, response)
-	assert.Len(t, response.Events, 2)
+	assert.Len(t, response.EventLogs, 2)
 	assert.Equal(t, uint32(2), response.Hits.Total)
 	assert.Equal(t, uint32(0), response.Hits.From)
 	assert.Equal(t, uint32(10), response.Hits.Size)
@@ -85,7 +85,7 @@ func TestArchiveQueryService_GetEvents_InvalidFilter(t *testing.T) {
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"unsupported": "value"},
 	})
 	require.Error(t, err)
@@ -99,7 +99,7 @@ func TestArchiveQueryService_GetEvents_InvalidEventType(t *testing.T) {
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"logType": "256"},
 	})
 	require.Error(t, err)
@@ -113,7 +113,7 @@ func TestArchiveQueryService_GetEvents_InvalidPagination(t *testing.T) {
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Pagination: &api.Pagination{Offset: 0, Size: 5000},
 	})
 	require.Error(t, err)
@@ -129,7 +129,7 @@ func TestArchiveQueryService_GetEvents_ServiceError(t *testing.T) {
 	}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{})
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)
@@ -143,16 +143,16 @@ func TestArchiveQueryService_GetEvents_EmptyResult(t *testing.T) {
 	}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{})
+	response, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, response)
-	assert.Empty(t, response.Events)
+	assert.Empty(t, response.EventLogs)
 	assert.Equal(t, uint32(0), response.Hits.Total)
 }
 
 func TestArchiveQueryService_GetEvents_GivenInvalidExcludeFilter_ThenError(t *testing.T) {
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, nil, NewPageSizeLimits(1000, 10))
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Exclude: map[string]string{"tickNumber": "123"},
 	})
 	require.ErrorContains(t, err, "creating exclude filter")
@@ -166,7 +166,7 @@ func TestArchiveQueryService_GetEvents_WithRanges(t *testing.T) {
 	}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	response, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Ranges: map[string]*api.Range{
 			"amount": {
 				LowerBound: &api.Range_Gte{Gte: "1000"},
@@ -177,7 +177,7 @@ func TestArchiveQueryService_GetEvents_WithRanges(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, response)
-	assert.Len(t, response.Events, 1)
+	assert.Len(t, response.EventLogs, 1)
 	assert.Equal(t, uint32(1), response.Hits.Total)
 
 	ranges := evService.ReceivedFilters.Ranges
@@ -194,7 +194,7 @@ func TestArchiveQueryService_GetEvents_WithShouldFilters(t *testing.T) {
 	}
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, evService, NewPageSizeLimits(1000, 10))
 
-	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	response, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Should: []*api.ShouldFilter{
 			{Terms: map[string]string{"destination": validId1 + " , " + validId2, "source": validId1}},
 			{Ranges: map[string]*api.Range{
@@ -205,7 +205,7 @@ func TestArchiveQueryService_GetEvents_WithShouldFilters(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, response)
-	assert.Len(t, response.Events, 1)
+	assert.Len(t, response.EventLogs, 1)
 	assert.Equal(t, uint32(1), response.Hits.Total)
 
 	should := evService.ReceivedFilters.Should
@@ -221,7 +221,7 @@ func TestArchiveQueryService_GetEvents_WithShouldFilters(t *testing.T) {
 func TestArchiveQueryService_GetEvents_WithShouldFilterWithOnlyOneValue_ThenError(t *testing.T) {
 	service := NewArchiveQueryService(nil, nil, defaultStatusStub(), nil, nil, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Should: []*api.ShouldFilter{
 			{Terms: map[string]string{"destination": validId1 + " , " + validId2}},
 		},
@@ -237,7 +237,7 @@ func TestArchiveQueryService_GetEvents_TickNumberExceedsLastProcessed(t *testing
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, statusStub, nil, evService, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "60000"},
 	})
 	require.Error(t, err)
@@ -263,7 +263,7 @@ func TestArchiveQueryService_GetEvents_TickNumberWithinRange(t *testing.T) {
 	}
 	service := NewArchiveQueryService(nil, nil, statusStub, nil, evService, NewPageSizeLimits(1000, 10))
 
-	response, err := service.GetEvents(context.Background(), &api.GetEventsRequest{
+	response, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "40000"},
 	})
 	require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestArchiveQueryService_GetEvents_StatusServiceError(t *testing.T) {
 	evService := &EventsServiceStub{}
 	service := NewArchiveQueryService(nil, nil, statusStub, nil, evService, NewPageSizeLimits(1000, 10))
 
-	_, err := service.GetEvents(context.Background(), &api.GetEventsRequest{})
+	_, err := service.GetEvents(context.Background(), &api.GetEventLogsRequest{})
 	require.Error(t, err)
 	st, ok := status.FromError(err)
 	require.True(t, ok)

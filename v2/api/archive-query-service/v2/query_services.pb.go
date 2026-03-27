@@ -27,7 +27,7 @@ var File_query_services_proto protoreflect.FileDescriptor
 
 const file_query_services_proto_rawDesc = "" +
 	"\n" +
-	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bopenapiv3/annotations.proto2\xc9\x0e\n" +
+	"\x14query_services.proto\x12\x13qubic.v2.archive.pb\x1a\x0emessages.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bopenapiv3/annotations.proto2\xd4\x0e\n" +
 	"\x13ArchiveQueryService\x12\xfb\x01\n" +
 	"\x14GetTransactionByHash\x120.qubic.v2.archive.pb.GetTransactionByHashRequest\x1a1.qubic.v2.archive.pb.GetTransactionByHashResponse\"~\xbaGN\n" +
 	"\fTransactions\x12\x17Get Transaction By Hash\x1a%Get a single transaction by its hash.\x82\xd3\xe4\x93\x02':\x01*b\vtransaction\"\x15/getTransactionByHash\x12\xdf\x01\n" +
@@ -42,10 +42,9 @@ const file_query_services_proto_rawDesc = "" +
 	"\x14GetLastProcessedTick\x12\x16.google.protobuf.Empty\x1a1.qubic.v2.archive.pb.GetLastProcessedTickResponse\"B\xbaG\"\n" +
 	"\aArchive\x12\x17Get Last Processed Tick\x82\xd3\xe4\x93\x02\x17\x12\x15/getLastProcessedTick\x12\xd3\x01\n" +
 	"\x19GetProcessedTickIntervals\x12\x16.google.protobuf.Empty\x1a6.qubic.v2.archive.pb.GetProcessedTickIntervalsResponse\"f\xbaG'\n" +
-	"\aArchive\x12\x1cGet Processed Tick Intervals\x82\xd3\xe4\x93\x026b\x18processed_tick_intervals\x12\x1a/getProcessedTickIntervals\x12\x93\x01\n" +
-	"\tGetEvents\x12%.qubic.v2.archive.pb.GetEventsRequest\x1a&.qubic.v2.archive.pb.GetEventsResponse\"7\xbaG\x1f\n" +
-	"\rEvents (Beta)\x12\x0eGet Event Logs\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
-	"/getEvents\x12\xcd\x01\n" +
+	"\aArchive\x12\x1cGet Processed Tick Intervals\x82\xd3\xe4\x93\x026b\x18processed_tick_intervals\x12\x1a/getProcessedTickIntervals\x12\x9e\x01\n" +
+	"\fGetEventLogs\x12(.qubic.v2.archive.pb.GetEventLogsRequest\x1a).qubic.v2.archive.pb.GetEventLogsResponse\"9\xbaG\x1e\n" +
+	"\fEvent (Beta)\x12\x0eGet Event Logs\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/getEventLogs\x12\xcd\x01\n" +
 	"\tGetHealth\x12\x16.google.protobuf.Empty\x1a#.qubic.v2.archive.pb.HealthResponse\"\x82\x01\xbaGp\x12\n" +
 	"Get Health\x1abHealth check. This is for internal use only and can change any time. Do not rely on this endpoint.\x82\xd3\xe4\x93\x02\t\x12\a/healthB\xfe\x03\xbaG\xce\x03\x12H\n" +
 	"\x0fQubic Query API\x12.API for querying historical Qubic ledger data.2\x051.0.0\x1a \n" +
@@ -64,7 +63,7 @@ var file_query_services_proto_goTypes = []any{
 	(*GetTickDataRequest)(nil),                 // 3: qubic.v2.archive.pb.GetTickDataRequest
 	(*GetComputorListsForEpochRequest)(nil),    // 4: qubic.v2.archive.pb.GetComputorListsForEpochRequest
 	(*emptypb.Empty)(nil),                      // 5: google.protobuf.Empty
-	(*GetEventsRequest)(nil),                   // 6: qubic.v2.archive.pb.GetEventsRequest
+	(*GetEventLogsRequest)(nil),                // 6: qubic.v2.archive.pb.GetEventLogsRequest
 	(*GetTransactionByHashResponse)(nil),       // 7: qubic.v2.archive.pb.GetTransactionByHashResponse
 	(*GetTransactionsForTickResponse)(nil),     // 8: qubic.v2.archive.pb.GetTransactionsForTickResponse
 	(*GetTransactionsForIdentityResponse)(nil), // 9: qubic.v2.archive.pb.GetTransactionsForIdentityResponse
@@ -72,7 +71,7 @@ var file_query_services_proto_goTypes = []any{
 	(*GetComputorListsForEpochResponse)(nil),   // 11: qubic.v2.archive.pb.GetComputorListsForEpochResponse
 	(*GetLastProcessedTickResponse)(nil),       // 12: qubic.v2.archive.pb.GetLastProcessedTickResponse
 	(*GetProcessedTickIntervalsResponse)(nil),  // 13: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse
-	(*GetEventsResponse)(nil),                  // 14: qubic.v2.archive.pb.GetEventsResponse
+	(*GetEventLogsResponse)(nil),               // 14: qubic.v2.archive.pb.GetEventLogsResponse
 	(*HealthResponse)(nil),                     // 15: qubic.v2.archive.pb.HealthResponse
 }
 var file_query_services_proto_depIdxs = []int32{
@@ -83,7 +82,7 @@ var file_query_services_proto_depIdxs = []int32{
 	4,  // 4: qubic.v2.archive.pb.ArchiveQueryService.GetComputorsListsForEpoch:input_type -> qubic.v2.archive.pb.GetComputorListsForEpochRequest
 	5,  // 5: qubic.v2.archive.pb.ArchiveQueryService.GetLastProcessedTick:input_type -> google.protobuf.Empty
 	5,  // 6: qubic.v2.archive.pb.ArchiveQueryService.GetProcessedTickIntervals:input_type -> google.protobuf.Empty
-	6,  // 7: qubic.v2.archive.pb.ArchiveQueryService.GetEvents:input_type -> qubic.v2.archive.pb.GetEventsRequest
+	6,  // 7: qubic.v2.archive.pb.ArchiveQueryService.GetEventLogs:input_type -> qubic.v2.archive.pb.GetEventLogsRequest
 	5,  // 8: qubic.v2.archive.pb.ArchiveQueryService.GetHealth:input_type -> google.protobuf.Empty
 	7,  // 9: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionByHash:output_type -> qubic.v2.archive.pb.GetTransactionByHashResponse
 	8,  // 10: qubic.v2.archive.pb.ArchiveQueryService.GetTransactionsForTick:output_type -> qubic.v2.archive.pb.GetTransactionsForTickResponse
@@ -92,7 +91,7 @@ var file_query_services_proto_depIdxs = []int32{
 	11, // 13: qubic.v2.archive.pb.ArchiveQueryService.GetComputorsListsForEpoch:output_type -> qubic.v2.archive.pb.GetComputorListsForEpochResponse
 	12, // 14: qubic.v2.archive.pb.ArchiveQueryService.GetLastProcessedTick:output_type -> qubic.v2.archive.pb.GetLastProcessedTickResponse
 	13, // 15: qubic.v2.archive.pb.ArchiveQueryService.GetProcessedTickIntervals:output_type -> qubic.v2.archive.pb.GetProcessedTickIntervalsResponse
-	14, // 16: qubic.v2.archive.pb.ArchiveQueryService.GetEvents:output_type -> qubic.v2.archive.pb.GetEventsResponse
+	14, // 16: qubic.v2.archive.pb.ArchiveQueryService.GetEventLogs:output_type -> qubic.v2.archive.pb.GetEventLogsResponse
 	15, // 17: qubic.v2.archive.pb.ArchiveQueryService.GetHealth:output_type -> qubic.v2.archive.pb.HealthResponse
 	9,  // [9:18] is the sub-list for method output_type
 	0,  // [0:9] is the sub-list for method input_type
