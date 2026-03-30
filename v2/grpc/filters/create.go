@@ -49,7 +49,7 @@ type numeric interface {
 
 type parseFunc[T numeric] func(val string, bitSize int) (T, error)
 
-func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]) ([]entities.Range, error) {
+func createNumericRange[T numeric](r *api.Range, bitSize int, parseNumeric parseFunc[T]) ([]entities.Range, error) {
 	var ranges []entities.Range
 	var err error
 	var lowerBound T
@@ -57,7 +57,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 
 	switch r.GetLowerBound().(type) {
 	case *api.Range_Gt:
-		lowerBound, err = parse(r.GetGt(), bitSize)
+		lowerBound, err = parseNumeric(r.GetGt(), bitSize)
 		lowerBound = utils.If(lowerBound >= 0, lowerBound+1, lowerBound-1) // for later comparison
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
@@ -67,7 +67,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 			Value:     r.GetGt(),
 		})
 	case *api.Range_Gte:
-		lowerBound, err = parse(r.GetGte(), bitSize)
+		lowerBound, err = parseNumeric(r.GetGte(), bitSize)
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gte] value: %w", err)
 		}
@@ -79,7 +79,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 
 	switch r.GetUpperBound().(type) {
 	case *api.Range_Lt:
-		upperBound, err = parse(r.GetLt(), bitSize)
+		upperBound, err = parseNumeric(r.GetLt(), bitSize)
 		upperBound = utils.If(upperBound >= 0, upperBound-1, upperBound+1) // for later comparison
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
@@ -89,7 +89,7 @@ func createNumericRange[T numeric](r *api.Range, bitSize int, parse parseFunc[T]
 			Value:     r.GetLt(),
 		})
 	case *api.Range_Lte:
-		upperBound, err = parse(r.GetLte(), bitSize)
+		upperBound, err = parseNumeric(r.GetLte(), bitSize)
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lte] value: %w", err)
 		}
