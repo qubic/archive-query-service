@@ -4,6 +4,9 @@ import (
 	"reflect"
 	"testing"
 
+	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -407,6 +410,123 @@ func Test_splitIncludeExcludeFilters(t *testing.T) {
 			gotInclude, gotExclude := SplitDeprecatedIncludeExcludeFilters(tt.filters)
 			require.Equal(t, tt.wantInclude, gotInclude)
 			require.Equal(t, tt.wantExclude, gotExclude)
+		})
+	}
+}
+
+func TestCreateSignedNumericRange(t *testing.T) {
+	tests := []struct {
+		name    string
+		r       *api.Range
+		bitSize int
+		want    []entities.Range
+		wantErr bool
+	}{
+		{
+			name: "valid range gte and lte",
+			r: &api.Range{
+				LowerBound: &api.Range_Gte{Gte: "10"},
+				UpperBound: &api.Range_Lte{Lte: "20"},
+			},
+			bitSize: 64,
+			want: []entities.Range{
+				{Operation: "gte", Value: "10"},
+				{Operation: "lte", Value: "20"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid range gt and lt",
+			r: &api.Range{
+				LowerBound: &api.Range_Gt{Gt: "10"},
+				UpperBound: &api.Range_Lt{Lt: "20"},
+			},
+			bitSize: 64,
+			want: []entities.Range{
+				{Operation: "gt", Value: "10"},
+				{Operation: "lt", Value: "20"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "negative values",
+			r: &api.Range{
+				LowerBound: &api.Range_Gte{Gte: "-20"},
+				UpperBound: &api.Range_Lte{Lte: "-10"},
+			},
+			bitSize: 64,
+			want: []entities.Range{
+				{Operation: "gte", Value: "-20"},
+				{Operation: "lte", Value: "-10"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid range (lower > upper)",
+			r: &api.Range{
+				LowerBound: &api.Range_Gte{Gte: "20"},
+				UpperBound: &api.Range_Lte{Lte: "10"},
+			},
+			bitSize: 64,
+			wantErr: true,
+		},
+		{
+			name: "invalid mixed range (lower > upper)",
+			r: &api.Range{
+				LowerBound: &api.Range_Gte{Gte: "0"},
+				UpperBound: &api.Range_Lte{Lte: "-1"},
+			},
+			bitSize: 64,
+			wantErr: true,
+		},
+		{
+			name: "invalid negative range (lower > upper)",
+			r: &api.Range{
+				LowerBound: &api.Range_Gte{Gte: "-1"},
+				UpperBound: &api.Range_Lte{Lte: "-2"},
+			},
+			bitSize: 64,
+			wantErr: true,
+		},
+		{
+			name: "only negative lower bound",
+			r: &api.Range{
+				LowerBound: &api.Range_Gte{Gte: "-10"},
+			},
+			bitSize: 64,
+			want: []entities.Range{
+				{Operation: "gte", Value: "-10"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "only negative upper bound",
+			r: &api.Range{
+				UpperBound: &api.Range_Lte{Lte: "-20"},
+			},
+			bitSize: 64,
+			want: []entities.Range{
+				{Operation: "lte", Value: "-20"},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "no bounds",
+			r:       &api.Range{},
+			bitSize: 64,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := CreateSignedNumericRange(tt.r, tt.bitSize)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
 		})
 	}
 }

@@ -90,7 +90,7 @@ func ValidateTickTransactionQueryRanges(filterMap map[string][]string, ranges ma
 	for key, value := range ranges {
 		switch key {
 		case TickFilterAmount:
-			r, err := CreateNumericRange(value, 64)
+			r, err := CreateUnsignedNumericRange(value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
 			}
@@ -98,7 +98,7 @@ func ValidateTickTransactionQueryRanges(filterMap map[string][]string, ranges ma
 				convertedRanges[key] = r
 			}
 		case TickFilterInputType:
-			r, err := CreateNumericRange(value, 32)
+			r, err := CreateUnsignedNumericRange(value, 32)
 			if err != nil {
 				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
 			}

@@ -4,8 +4,170 @@ import (
 	"testing"
 
 	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestValidateUnsignedNumericFilterValues(t *testing.T) {
+	tests := []struct {
+		name              string
+		values            []string
+		bitSize           int
+		maxNumberOfValues int
+		wantErr           bool
+		errMessage        string
+	}{
+		{
+			name:              "valid single value",
+			values:            []string{"123"},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           false,
+		},
+		{
+			name:              "valid multiple values",
+			values:            []string{"1", "255"},
+			bitSize:           8,
+			maxNumberOfValues: 2,
+			wantErr:           false,
+		},
+		{
+			name:              "empty values list",
+			values:            []string{},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid number of values",
+		},
+		{
+			name:              "too many values",
+			values:            []string{"1", "2", "3"},
+			bitSize:           32,
+			maxNumberOfValues: 2,
+			wantErr:           true,
+			errMessage:        "invalid number of values",
+		},
+		{
+			name:              "invalid numeric value",
+			values:            []string{"abc"},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid numeric value",
+		},
+		{
+			name:              "out of range for bit size",
+			values:            []string{"256"},
+			bitSize:           8,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid numeric value",
+		},
+		{
+			name:              "negative value as unsigned",
+			values:            []string{"-1"},
+			bitSize:           64,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid numeric value",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateUnsignedNumericFilterValues(tt.values, tt.bitSize, tt.maxNumberOfValues)
+			if tt.wantErr {
+				assert.ErrorContains(t, err, tt.errMessage)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateSignedNumericFilterValue(t *testing.T) {
+	tests := []struct {
+		name              string
+		values            []string
+		bitSize           int
+		maxNumberOfValues int
+		wantErr           bool
+		errMessage        string
+	}{
+		{
+			name:              "valid positive value",
+			values:            []string{"123"},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           false,
+		},
+		{
+			name:              "valid negative value",
+			values:            []string{"-123"},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           false,
+		},
+		{
+			name:              "valid multiple values mixed signs",
+			values:            []string{"100", "-50"},
+			bitSize:           32,
+			maxNumberOfValues: 2,
+			wantErr:           false,
+		},
+		{
+			name:              "empty values list",
+			values:            []string{},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid number of values",
+		},
+		{
+			name:              "too many values",
+			values:            []string{"1", "2", "3"},
+			bitSize:           32,
+			maxNumberOfValues: 2,
+			wantErr:           true,
+			errMessage:        "invalid number of values",
+		},
+		{
+			name:              "invalid numeric value",
+			values:            []string{"abc"},
+			bitSize:           32,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid numeric value",
+		},
+		{
+			name:              "out of range for bit size positive",
+			values:            []string{"128"},
+			bitSize:           8,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid numeric value",
+		},
+		{
+			name:              "out of range for bit size negative",
+			values:            []string{"-129"},
+			bitSize:           8,
+			maxNumberOfValues: 1,
+			wantErr:           true,
+			errMessage:        "invalid numeric value",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateSignedNumericFilterValue(tt.values, tt.bitSize, tt.maxNumberOfValues)
+			if tt.wantErr {
+				assert.ErrorContains(t, err, tt.errMessage)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
 
 func TestVerifyNoConflictingFilters(t *testing.T) {
 	tests := []struct {
@@ -298,8 +460,7 @@ func TestVerifyNoConflictingFilters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := VerifyNoConflictingFilters(tt.filters)
 			if tt.wantErr {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.errMessage)
+				require.ErrorContains(t, err, tt.errMessage)
 			} else {
 				require.NoError(t, err)
 			}

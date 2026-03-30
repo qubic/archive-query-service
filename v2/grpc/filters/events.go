@@ -9,33 +9,49 @@ import (
 )
 
 const (
-	EventFilterSource          = "source"
-	EventFilterDestination     = "destination"
-	EventFilterTransactionHash = "transactionHash"
-	EventFilterTickNumber      = "tickNumber"
-	EventFilterLogType         = "logType"
-	EventFilterEpoch           = "epoch"
-	EventFilterAmount          = "amount"
-	EventFilterNumberOfShares  = "numberOfShares"
-	EventRangeTimestamp        = "timestamp"
-	EventFilterCategories      = "categories"
-	EventFilterLogId           = "logId"
+	EventFilterSource                = "source"
+	EventFilterDestination           = "destination"
+	EventFilterTransactionHash       = "transactionHash"
+	EventFilterTickNumber            = "tickNumber"
+	EventFilterLogType               = "logType"
+	EventFilterEpoch                 = "epoch"
+	EventFilterAmount                = "amount"
+	EventFilterNumberOfShares        = "numberOfShares"
+	EventRangeTimestamp              = "timestamp"
+	EventFilterCategories            = "categories"
+	EventFilterLogId                 = "logId"
+	EventFilterAssetName             = "assetName"
+	EventFilterAssetIssuer           = "assetIssuer"
+	EventFilterManagingContractIndex = "managingContractIndex"
+	EventFilterContractIndex         = "contractIndex"
+	EventFilterContractMessageType   = "contractMessageType"
+	EventFilterDeductedAmount        = "deductedAmount"
+	EventFilterRemainingAmount       = "remainingAmount"
+	EventFilterCustomMessage         = "customMessage"
 )
 
 const maxValuesPerEventFilter = 5
 const maxValueLengthPerEventIdentityFilter = 5*60 + 5 + 4 // 5 IDs + comma + optional spaces
 
 var AllowedEventIncludeFilters = map[string]bool{
-	EventFilterSource:          true,
-	EventFilterDestination:     true,
-	EventFilterTransactionHash: true,
-	EventFilterTickNumber:      true,
-	EventFilterEpoch:           true,
-	EventFilterAmount:          true,
-	EventFilterNumberOfShares:  true,
-	EventFilterLogType:         true,
-	EventFilterCategories:      true,
-	EventFilterLogId:           true,
+	EventFilterSource:                true,
+	EventFilterDestination:           true,
+	EventFilterTransactionHash:       true,
+	EventFilterTickNumber:            true,
+	EventFilterEpoch:                 true,
+	EventFilterAmount:                true,
+	EventFilterNumberOfShares:        true,
+	EventFilterLogType:               true,
+	EventFilterCategories:            true,
+	EventFilterLogId:                 true,
+	EventFilterAssetName:             true,
+	EventFilterAssetIssuer:           true,
+	EventFilterManagingContractIndex: true,
+	EventFilterContractIndex:         true,
+	EventFilterContractMessageType:   true,
+	EventFilterDeductedAmount:        true,
+	EventFilterRemainingAmount:       true,
+	EventFilterCustomMessage:         true,
 }
 
 var AllowedEventExcludeFilters = map[string]bool{
@@ -51,11 +67,13 @@ var AllowedEventShouldFilters = map[string]bool{
 }
 
 var AllowedEventRanges = map[string]bool{
-	EventFilterTickNumber:     true,
-	EventFilterEpoch:          true,
-	EventFilterAmount:         true,
-	EventFilterNumberOfShares: true,
-	EventRangeTimestamp:       true,
+	EventFilterTickNumber:      true,
+	EventFilterEpoch:           true,
+	EventFilterAmount:          true,
+	EventFilterNumberOfShares:  true,
+	EventRangeTimestamp:        true,
+	EventFilterDeductedAmount:  true,
+	EventFilterRemainingAmount: true,
 }
 
 var AllowedEventShouldRanges = map[string]bool{
@@ -86,6 +104,29 @@ func CreateEventFilters(filterMap map[string]string, allowedKeys map[string]bool
 	return res, nil
 }
 
+type filterValidator func(values []string) error
+
+var eventFilterValidators = map[string]filterValidator{
+	EventFilterSource:                func(v []string) error { return ValidateIdentityFilterValues(v, maxValuesPerEventFilter) },
+	EventFilterDestination:           func(v []string) error { return ValidateIdentityFilterValues(v, maxValuesPerEventFilter) },
+	EventFilterTransactionHash:       func(v []string) error { return ValidateTransactionHashFilterValues(v, 1) },
+	EventFilterTickNumber:            func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 32, 1) },
+	EventFilterEpoch:                 func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 32, 1) },
+	EventFilterAmount:                func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterNumberOfShares:        func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterLogId:                 func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterManagingContractIndex: func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterContractIndex:         func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterContractMessageType:   func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterDeductedAmount:        func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterCustomMessage:         func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterLogType:               func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 8, maxValuesPerEventFilter) },
+	EventFilterCategories:            func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 8, maxValuesPerEventFilter) },
+	EventFilterAssetName:             func(v []string) error { return ValidateStringFilterLength(v, 7, 1) },
+	EventFilterAssetIssuer:           func(v []string) error { return ValidateIdentityFilterValues(v, 1) },
+	EventFilterRemainingAmount:       func(v []string) error { return ValidateSignedNumericFilterValue(v, 64, 1) },
+}
+
 func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string]bool) error {
 	if len(filterMap) == 0 {
 		return nil
@@ -96,49 +137,17 @@ func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string
 	}
 
 	for key, values := range filterMap {
-
 		if _, ok := allowedKeys[key]; !ok {
 			return fmt.Errorf("unsupported filter [%s]", key)
 		}
 
-		switch key {
-		case EventFilterSource, EventFilterDestination:
-
-			err := ValidateIdentityFilterValues(values, maxValuesPerEventFilter)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterTransactionHash:
-
-			err := ValidateTransactionHashFilterValues(values, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterTickNumber, EventFilterEpoch:
-
-			err := ValidateUnsignedNumericFilterValues(values, 32, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterAmount, EventFilterNumberOfShares, EventFilterLogId:
-
-			err := ValidateUnsignedNumericFilterValues(values, 64, 1)
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		case EventFilterLogType, EventFilterCategories:
-
-			err := ValidateUnsignedNumericFilterValues(values, 8, maxValuesPerEventFilter) // uint8 <= 255
-			if err != nil {
-				return fmt.Errorf("invalid [%s] filter: %w", key, err)
-			}
-
-		default:
+		validator, ok := eventFilterValidators[key]
+		if !ok {
 			return fmt.Errorf("unhandled filter: [%s]", key)
+		}
+
+		if err := validator(values); err != nil {
+			return fmt.Errorf("invalid [%s] filter: %w", key, err)
 		}
 	}
 	return nil
@@ -160,8 +169,16 @@ func CreateEventRanges(ranges map[string]*api.Range, allowedKeys map[string]bool
 		}
 
 		switch key {
-		case EventFilterAmount, EventFilterNumberOfShares, EventRangeTimestamp:
-			r, err := CreateNumericRange(value, 64)
+		case EventFilterAmount, EventFilterNumberOfShares, EventRangeTimestamp, EventFilterDeductedAmount:
+			r, err := CreateUnsignedNumericRange(value, 64)
+			if err != nil {
+				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
+			}
+			if len(r) > 0 {
+				convertedRanges[key] = r
+			}
+		case EventFilterRemainingAmount:
+			r, err := CreateSignedNumericRange(value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
 			}
@@ -169,7 +186,7 @@ func CreateEventRanges(ranges map[string]*api.Range, allowedKeys map[string]bool
 				convertedRanges[key] = r
 			}
 		case EventFilterTickNumber, EventFilterEpoch:
-			r, err := CreateNumericRange(value, 32)
+			r, err := CreateUnsignedNumericRange(value, 32)
 			if err != nil {
 				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
 			}
@@ -218,7 +235,7 @@ func getMaxValuesForKey(k string) int {
 }
 
 func getMaxLengthForKey(k string) int {
-	maxLength := utils.If(k == EventFilterTransactionHash, 60, 20)
+	maxLength := utils.If(k == EventFilterTransactionHash || k == EventFilterAssetIssuer, 60, 20)
 	if k == EventFilterSource || k == EventFilterDestination {
 		maxLength = maxValueLengthPerEventIdentityFilter
 	}

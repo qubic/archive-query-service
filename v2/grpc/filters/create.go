@@ -7,6 +7,7 @@ import (
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/entities"
+	"github.com/qubic/archive-query-service/v2/grpc/utils"
 )
 
 func CreateFilters(value string, maxValues, maxLength int) ([]string, error) {
@@ -42,15 +43,22 @@ func CreateFilters(value string, maxValues, maxLength int) ([]string, error) {
 	return val, nil
 }
 
-func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
+type numeric interface {
+	~int64 | ~uint64
+}
+
+type parseFunc[T numeric] func(val string, bitSize int) (T, error)
+
+func createNumericRange[T numeric](r *api.Range, bitSize int, parseNumeric parseFunc[T]) ([]entities.Range, error) {
 	var ranges []entities.Range
 	var err error
-	var lowerBound uint64
-	var upperBound uint64
+	var lowerBound T
+	var upperBound T
+
 	switch r.GetLowerBound().(type) {
 	case *api.Range_Gt:
-		lowerBound, err = stringToNumericValue(r.GetGt(), bitSize)
-		lowerBound++
+		lowerBound, err = parseNumeric(r.GetGt(), bitSize)
+		lowerBound = utils.If(lowerBound >= 0, lowerBound+1, lowerBound-1) // for later comparison
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gt] value: %w", err)
 		}
@@ -59,7 +67,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 			Value:     r.GetGt(),
 		})
 	case *api.Range_Gte:
-		lowerBound, err = stringToNumericValue(r.GetGte(), bitSize)
+		lowerBound, err = parseNumeric(r.GetGte(), bitSize)
 		if err != nil {
 			return nil, fmt.Errorf("invalid [gte] value: %w", err)
 		}
@@ -71,8 +79,8 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 
 	switch r.GetUpperBound().(type) {
 	case *api.Range_Lt:
-		upperBound, err = stringToNumericValue(r.GetLt(), bitSize)
-		upperBound--
+		upperBound, err = parseNumeric(r.GetLt(), bitSize)
+		upperBound = utils.If(upperBound >= 0, upperBound-1, upperBound+1) // for later comparison
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lt] value: %w", err)
 		}
@@ -81,7 +89,7 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 			Value:     r.GetLt(),
 		})
 	case *api.Range_Lte:
-		upperBound, err = stringToNumericValue(r.GetLte(), bitSize)
+		upperBound, err = parseNumeric(r.GetLte(), bitSize)
 		if err != nil {
 			return nil, fmt.Errorf("invalid [lte] value: %w", err)
 		}
@@ -95,11 +103,19 @@ func CreateNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
 		return nil, fmt.Errorf("invalid range: no bounds")
 	}
 
-	if lowerBound > 0 && upperBound > 0 && lowerBound >= upperBound {
+	if len(ranges) > 1 && lowerBound >= upperBound {
 		return nil, fmt.Errorf("invalid range: [%d:%d]", lowerBound, upperBound)
 	}
 
 	return ranges, nil
+}
+
+func CreateUnsignedNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
+	return createNumericRange(r, bitSize, stringToUnsignedNumericValue)
+}
+
+func CreateSignedNumericRange(r *api.Range, bitSize int) ([]entities.Range, error) {
+	return createNumericRange(r, bitSize, stringToSignedNumericValue)
 }
 
 const excludeSuffix = "-exclude"
@@ -118,8 +134,16 @@ func SplitDeprecatedIncludeExcludeFilters(filters map[string]string) (map[string
 	return includeFilters, excludeFilters
 }
 
-func stringToNumericValue(val string, bitSize int) (uint64, error) {
+func stringToUnsignedNumericValue(val string, bitSize int) (uint64, error) {
 	number, err := strconv.ParseUint(val, 10, bitSize)
+	if err != nil {
+		return 0, err
+	}
+	return number, nil
+}
+
+func stringToSignedNumericValue(val string, bitSize int) (int64, error) {
+	number, err := strconv.ParseInt(val, 10, bitSize)
 	if err != nil {
 		return 0, err
 	}
