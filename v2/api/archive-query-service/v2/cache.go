@@ -43,7 +43,7 @@ func (r *GetTransactionsForIdentityRequest) GetCacheKey() (string, error) {
 	return getTransactionsForIdentityPrefix + ":" + hex.EncodeToString(sum[:]), nil
 }
 
-func (r *GetEventsRequest) GetCacheKey() (string, error) {
+func (r *GetEventLogsRequest) GetCacheKey() (string, error) {
 	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(r)
 	if err != nil {
 		return "", fmt.Errorf("marshalling request: %w", err)

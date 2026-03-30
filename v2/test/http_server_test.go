@@ -64,7 +64,7 @@ func (s *HTTPServerTestSuite) TearDownSuite() {
 func (s *HTTPServerTestSuite) postGetEvents(body string) (map[string]interface{}, int) {
 	t := s.T()
 	t.Helper()
-	resp, err := http.Post(s.server.URL+"/getEvents", "application/json", bytes.NewBufferString(body))
+	resp, err := http.Post(s.server.URL+"/getEventLogs", "application/json", bytes.NewBufferString(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
@@ -92,7 +92,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -130,7 +130,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -168,7 +168,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -205,7 +205,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -242,7 +242,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -278,7 +278,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -330,7 +330,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 3)
 
 	// First event: quTransfer

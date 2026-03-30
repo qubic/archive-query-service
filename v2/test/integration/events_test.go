@@ -21,103 +21,103 @@ const validTransactionHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_NoFilters() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{})
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 10)
+	require.Len(t, resp.EventLogs, 10)
 	require.Equal(t, uint32(10), resp.Hits.Total)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTransactionHash() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 2)
+	require.Len(t, resp.EventLogs, 2)
 	require.Equal(t, uint32(2), resp.Hits.Total)
-	for _, ev := range resp.Events {
+	for _, ev := range resp.EventLogs {
 		require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", *ev.TransactionHash)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByTickNumber() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "15001"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 	require.Equal(t, uint32(1), resp.Hits.Total)
-	require.Equal(t, uint32(15001), resp.Events[0].TickNumber)
+	require.Equal(t, uint32(15001), resp.EventLogs[0].TickNumber)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_FilterByEventType() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"logType": "8"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 	require.Equal(t, uint32(1), resp.Hits.Total)
-	require.Equal(t, uint32(8), resp.Events[0].LogType)
+	require.Equal(t, uint32(8), resp.EventLogs[0].LogType)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_CombinedFilters() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"transactionHash": "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", "logType": "0"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 	require.Equal(t, uint32(1), resp.Hits.Total)
-	require.Equal(t, uint32(0), resp.Events[0].LogType)
-	require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", *resp.Events[0].TransactionHash)
+	require.Equal(t, uint32(0), resp.EventLogs[0].LogType)
+	require.Equal(t, "zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh", *resp.EventLogs[0].TransactionHash)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Pagination() {
 	t := s.T()
 
 	// Page 1
-	resp1, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp1, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Pagination: &api.Pagination{Offset: 0, Size: 2},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp1.Events, 2)
+	require.Len(t, resp1.EventLogs, 2)
 	require.Equal(t, uint32(10), resp1.Hits.Total)
 	require.Equal(t, uint32(0), resp1.Hits.From)
 	require.Equal(t, uint32(2), resp1.Hits.Size)
 
 	// Page 2
-	resp2, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp2, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Pagination: &api.Pagination{Offset: 2, Size: 2},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp2.Events, 2)
+	require.Len(t, resp2.EventLogs, 2)
 	require.Equal(t, uint32(10), resp2.Hits.Total)
 	require.Equal(t, uint32(2), resp2.Hits.From)
 	require.Equal(t, uint32(2), resp2.Hits.Size)
 
 	// Pages should have different events
-	require.NotEqual(t, resp1.Events[0].LogId, resp2.Events[0].LogId)
+	require.NotEqual(t, resp1.EventLogs[0].LogId, resp2.EventLogs[0].LogId)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_EmptyResult() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"transactionHash": validTransactionHash},
 	})
 	require.NoError(t, err)
-	require.Empty(t, resp.Events)
+	require.Empty(t, resp.EventLogs)
 	require.Equal(t, uint32(0), resp.Hits.Total)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type0_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "15000"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 3)
+	require.Len(t, resp.EventLogs, 3)
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15000, Timestamp: 1700000001000,
@@ -127,18 +127,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type0_FullData() {
 			Source: "QJRRSSKMJRDKUDTYVNYGAMQPULKAMILQQYOWBEXUDEUWQUMNGDHQYLOAJMEB", Destination: "BZBQFLLBNCXEMGQOUAPQYSWCBHRBJJFHFFLSENFLEVKEIYVHDSOFWKUUPGJD", Amount: 5000,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type0 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type1_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "15001"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15001, Timestamp: 1700000002000,
@@ -150,18 +150,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type1_FullData() {
 			NumberOfDecimalPlaces: 2, UnitOfMeasurement: "dW5pdHM=",
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type1 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type2_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "15002"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 100, TickNumber: 15002, Timestamp: 1700000003000,
@@ -172,18 +172,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type2_FullData() {
 			AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 500,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type2 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type3_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "16000"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16000, Timestamp: 1700000004000,
@@ -194,18 +194,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type3_FullData() {
 			AssetIssuer: "CFBMEMZOIDEXQAUXYYSZIURADQLAPWPMNJPBCGFDLXDIBITCOULXPAJFNAJK", AssetName: "TOKEN", NumberOfShares: 300,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type3 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type8_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "16001"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16001, Timestamp: 1700000005000,
@@ -215,18 +215,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type8_FullData() {
 			Source: "HSIQQNTTJTEVRPOJGGMLKDSQRJEUPIUWJKDKLMJBTOLFOMMMKRFTGKKJNRSH", Amount: 9999, ContractIndex: 7,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type8 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type13_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "16002"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16002, Timestamp: 1700000006000,
@@ -236,18 +236,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type13_FullData() {
 			DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type13 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type11_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "16003"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16003, Timestamp: 1700000007000,
@@ -259,18 +259,18 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type11_FullData() {
 			SourceContractIndex: 1, DestinationContractIndex: 2,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type11 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_Type12_FullData() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "16004"},
 	})
 	require.NoError(t, err)
-	require.Len(t, resp.Events, 1)
+	require.Len(t, resp.EventLogs, 1)
 
 	expected := &api.Event{
 		Epoch: 101, TickNumber: 16004, Timestamp: 1700000008000,
@@ -282,14 +282,14 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_Type12_FullData() {
 			NumberOfShares: 400, SourceContractIndex: 3, DestinationContractIndex: 4,
 		}},
 	}
-	if diff := cmp.Diff(expected, resp.Events[0], protocmp.Transform()); diff != "" {
+	if diff := cmp.Diff(expected, resp.EventLogs[0], protocmp.Transform()); diff != "" {
 		require.Fail(t, "type12 event mismatch (-expected +actual):\n"+diff)
 	}
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 	t := s.T()
-	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	_, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"unsupported": "value"},
 	})
 	require.Error(t, err)
@@ -300,7 +300,7 @@ func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidFilter() {
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_InvalidEventType() {
 	t := s.T()
-	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	_, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"logType": "256"},
 	})
 	require.Error(t, err)
@@ -318,7 +318,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_NoFilters() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 10)
 
 	hits := result["hits"].(map[string]interface{})
@@ -330,7 +330,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_VerifySortOrder() {
 	result, statusCode := s.postGetEvents(`{}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 10)
 
 	// last three are in same tick (tick number descending)
@@ -347,7 +347,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByTransactionHash() {
 	result, statusCode := s.postGetEvents(`{"filters":{"transactionHash":"zycobqjpgdcagflcvgtkboafbryahgjbbwhgjjlblhzocwncjhhjshqfsndh"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 2)
 
 	hits := result["hits"].(map[string]interface{})
@@ -359,7 +359,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_FilterByEventType() {
 	result, statusCode := s.postGetEvents(`{"filters":{"logType":"8"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 }
 
@@ -368,7 +368,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_FullData() {
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"15000"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 3)
 	ev := events[0].(map[string]interface{})
 
@@ -391,7 +391,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type0_QuTransfer_ExcludeDestinationF
 	result, statusCode := s.postGetEvents(`{ "filters":{"tickNumber":"15000"}, "exclude": {"destination": "AFZPUAIYVPNUYGJRQVLUKOPPVLHAZQTGLYAAUUNBXFTVTAMSBKQBLEIEPCVJ"} }`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1) // only return one
 	ev := events[0].(map[string]interface{})
 
@@ -403,7 +403,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type1_AssetIssuance_FullData() {
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"15001"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -428,7 +428,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type8_Burning_FullData() {
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"16001"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -451,7 +451,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction_Full
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"16002"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -474,7 +474,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type11_AssetOwnershipManagingContrac
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"16003"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -499,7 +499,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Type12_AssetPossessionManagingContra
 	result, statusCode := s.postGetEvents(`{"filters":{"tickNumber":"16004"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 1)
 	ev := events[0].(map[string]interface{})
 
@@ -524,7 +524,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_EmptyResult() {
 	result, statusCode := s.postGetEvents(`{"filters":{"transactionHash":"` + validTransactionHash + `"}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Empty(t, events)
 
 	hits := result["hits"].(map[string]interface{})
@@ -533,14 +533,14 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_EmptyResult() {
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_ValidForTick() {
 	t := s.T()
-	resp, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{})
+	resp, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{})
 	require.NoError(t, err)
 	assert.Equal(t, uint32(999999), resp.ValidForTick)
 }
 
 func (s *EventsE2ESuite) TestGRPC_GetEvents_TickNumberExceedsLastProcessed() {
 	t := s.T()
-	_, err := s.grpcClient.GetEvents(t.Context(), &api.GetEventsRequest{
+	_, err := s.grpcClient.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "1000000"},
 	})
 	require.Error(t, err)
@@ -555,7 +555,7 @@ func (s *EventsE2ESuite) TestHTTP_GetEvents_Pagination() {
 	result, statusCode := s.postGetEvents(`{"pagination":{"offset":0,"size":2}}`)
 	require.Equal(t, http.StatusOK, statusCode)
 
-	events := result["events"].([]interface{})
+	events := result["eventLogs"].([]interface{})
 	require.Len(t, events, 2)
 
 	hits := result["hits"].(map[string]interface{})

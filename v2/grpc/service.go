@@ -225,7 +225,7 @@ func (s *ArchiveQueryService) GetComputorsListsForEpoch(ctx context.Context, req
 	}, nil
 }
 
-func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsRequest) (*api.GetEventsResponse, error) {
+func (s *ArchiveQueryService) GetEventLogs(ctx context.Context, req *api.GetEventLogsRequest) (*api.GetEventLogsResponse, error) {
 	includeFilters, err := filters.CreateEventFilters(req.GetFilters(), filters.AllowedEventIncludeFilters)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "creating include filters: %v", err)
@@ -286,10 +286,10 @@ func (s *ArchiveQueryService) GetEvents(ctx context.Context, req *api.GetEventsR
 		Size:  size,
 	}
 
-	return &api.GetEventsResponse{
+	return &api.GetEventLogsResponse{
 		ValidForTick: eventsLastProcessedTick,
 		Hits:         apiHits,
-		Events:       result.GetEvents(),
+		EventLogs:    result.GetEvents(),
 	}, nil
 }
 

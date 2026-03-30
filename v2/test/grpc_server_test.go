@@ -166,27 +166,27 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 			},
 		}, nil)
 
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters:    map[string]string{"transactionHash": validTransactionHash},
 		Pagination: &api.Pagination{Offset: 0, Size: 10},
 	})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	assert.Len(t, resp.Events, 2)
+	assert.Len(t, resp.EventLogs, 2)
 	assert.Equal(t, uint32(2), resp.Hits.Total)
 	assert.Equal(t, uint32(0), resp.Hits.From)
 	assert.Equal(t, uint32(10), resp.Hits.Size)
 
 	// Verify oneof fields
-	assert.NotNil(t, resp.Events[0].GetQuTransfer())
-	assert.Equal(t, "SRC", resp.Events[0].GetQuTransfer().GetSource())
-	assert.NotNil(t, resp.Events[1].GetAssetIssuance())
-	assert.Equal(t, "ISSUER", resp.Events[1].GetAssetIssuance().GetAssetIssuer())
+	assert.NotNil(t, resp.EventLogs[0].GetQuTransfer())
+	assert.Equal(t, "SRC", resp.EventLogs[0].GetQuTransfer().GetSource())
+	assert.NotNil(t, resp.EventLogs[1].GetAssetIssuance())
+	assert.Equal(t, "ISSUER", resp.EventLogs[1].GetAssetIssuance().GetAssetIssuer())
 }
 
 func (s *ServerTestSuite) TestGetEvents_InvalidFilter() {
 	t := s.T()
-	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+	_, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"unsupported": "value"},
 	})
 	require.Error(t, err)
@@ -201,7 +201,7 @@ func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Second)
 	defer cancel()
 
-	_, err := s.client.GetEvents(ctx, &api.GetEventsRequest{
+	_, err := s.client.GetEventLogs(ctx, &api.GetEventLogsRequest{
 		Filters: map[string]string{"logType": "invalid"},
 	})
 	require.Error(t, err)
@@ -214,7 +214,7 @@ func (s *ServerTestSuite) TestGetEvents_InvalidEventType() {
 
 func (s *ServerTestSuite) TestGetEvents_InvalidTickNumber() {
 	t := s.T()
-	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+	_, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "not-a-number"},
 	})
 	require.Error(t, err)
@@ -234,7 +234,7 @@ func (s *ServerTestSuite) TestGetEvents_Pagination() {
 			Events: []*api.Event{{}, {}, {}},
 		}, nil)
 
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Pagination: &api.Pagination{Offset: 5, Size: 3},
 	})
 	require.NoError(t, err)
@@ -254,9 +254,9 @@ func (s *ServerTestSuite) TestGetEvents_EmptyResult() {
 			Events: []*api.Event{},
 		}, nil)
 
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{})
+	resp, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{})
 	require.NoError(t, err)
-	assert.Empty(t, resp.Events)
+	assert.Empty(t, resp.EventLogs)
 	assert.Equal(t, uint32(0), resp.Hits.Total)
 }
 
@@ -266,7 +266,7 @@ func (s *ServerTestSuite) TestGetEvents_TickExceedsProcessed() {
 		LastProcessedLogTick: 50000,
 	}, nil)
 
-	_, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+	_, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Filters: map[string]string{"tickNumber": "60000"},
 	})
 	require.Error(t, err)
@@ -293,7 +293,7 @@ func (s *ServerTestSuite) TestGetEvents_TickRangeExceedsProcessed() {
 			Events: nil,
 		}, nil)
 
-	resp, err := s.client.GetEvents(t.Context(), &api.GetEventsRequest{
+	resp, err := s.client.GetEventLogs(t.Context(), &api.GetEventLogsRequest{
 		Ranges: map[string]*api.Range{
 			"tickNumber": {
 				LowerBound: &api.Range_Gte{Gte: "1000"},
