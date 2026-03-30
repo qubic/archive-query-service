@@ -47,16 +47,16 @@ func run() error {
 			MaxSendSizeInMb       int           `conf:"default:2"`
 		}
 		ElasticSearch struct {
-			Address                               []string      `conf:"default:https://localhost:9200"`
-			Username                              string        `conf:"default:qubic-query"`
-			Password                              string        `conf:"mask,optional"`
-			CertificatePath                       string        `conf:"default:http_ca.crt"`
-			MaxRetries                            int           `conf:"default:3"`
-			ReadTimeout                           time.Duration `conf:"default:10s"`
-			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
-			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
-			TickDataIndex                         string        `conf:"default:qubic-tick-data-alias"`
-			ComputorListIndex                     string        `conf:"default:qubic-computors-alias"`
+			Address                   []string      `conf:"default:https://localhost:9200"`
+			Username                  string        `conf:"default:qubic-query"`
+			Password                  string        `conf:"mask,optional"`
+			CertificatePath           string        `conf:"default:http_ca.crt"`
+			MaxRetries                int           `conf:"default:3"`
+			ReadTimeout               time.Duration `conf:"default:10s"`
+			ConsecutiveErrorThreshold int           `conf:"default:10"`
+			TransactionsIndex         string        `conf:"default:qubic-transactions-alias"`
+			TickDataIndex             string        `conf:"default:qubic-tick-data-alias"`
+			ComputorListIndex         string        `conf:"default:qubic-computors-alias"`
 		}
 		Metrics struct {
 			Namespace string `conf:"default:query_service_v1"`
@@ -168,7 +168,7 @@ func run() error {
 
 			consecutiveErrorCount := int(queryService.ConsecutiveElasticErrorCount.Load())
 
-			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveRequestErrorCountThreshold {
+			if consecutiveErrorCount >= cfg.ElasticSearch.ConsecutiveErrorThreshold {
 				writer.WriteHeader(http.StatusInternalServerError)
 			}
 			_, err := writer.Write([]byte{})
