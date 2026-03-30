@@ -174,7 +174,7 @@ func (s *EventsE2ESuite) indexSeedEvent(esClient *elasticsearch.Client, ev seedE
 func (s *EventsE2ESuite) postGetEvents(body string) (map[string]interface{}, int) {
 	t := s.T()
 	t.Helper()
-	resp, err := http.Post(s.httpServer.URL+"/getEvents", "application/json", bytes.NewBufferString(body))
+	resp, err := http.Post(s.httpServer.URL+"/getEventLogs", "application/json", bytes.NewBufferString(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)

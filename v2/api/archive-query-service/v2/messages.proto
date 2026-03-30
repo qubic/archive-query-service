@@ -318,8 +318,8 @@ message Event {
 
 }
 
-// GetEventsRequest
-message GetEventsRequest {
+// GetEventLogsRequest
+message GetEventLogsRequest {
   option (openapi.v3.schema) = {
     example: {
       yaml: "filters:\n  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\npagination:\n  offset: 0\n  size: 10"
@@ -332,9 +332,9 @@ message GetEventsRequest {
   Pagination pagination = 9 [(openapi.v3.property) = {description:"Optional paging information."}];
 }
 
-// GetEventsResponse
-message GetEventsResponse {
+// GetEventLogsResponse
+message GetEventLogsResponse {
   Hits hits = 1 [(openapi.v3.property) = {description:"Information about the returned results."}];
-  repeated Event events = 2 [(openapi.v3.property) = {description:"List of events that matched the search criteria."}];
+  repeated Event event_logs = 2 [(openapi.v3.property) = {description:"List of event logs that matched the search criteria."}];
   uint32 valid_for_tick = 3 [(openapi.v3.property) = {description:"The response is valid for this tick number."}];
 }

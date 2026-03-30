@@ -29,10 +29,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetComputorListsForEpochResponse'
-  /getEvents:
+  /getEventLogs:
     post:
       tags:
-        - Events (Beta)
+        - Event (Beta)
       summary: Get Event Logs
       description: "Query event logs with optional filters.\n\n Please note: beta\
         \ version – may be subject to incompatible changes.\n\n ###  Request structure\n\
@@ -131,12 +131,12 @@ paths:
         \ Defaults to zero (first record). Maximum offset is 10000. |\n | size   |\
         \ uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is\
         \ ignored (uses default). |"
-      operationId: ArchiveQueryService_GetEvents
+      operationId: ArchiveQueryService_GetEventLogs
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetEventsRequest'
+              $ref: '#/components/schemas/GetEventLogsRequest'
         required: true
       responses:
         '200':
@@ -144,7 +144,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetEventsResponse'
+                $ref: '#/components/schemas/GetEventLogsResponse'
   /getLastProcessedTick:
     get:
       tags:
@@ -544,7 +544,7 @@ components:
             $ref: '#/components/schemas/ComputorList'
           description: The lists of computors that voted in this epoch.
       description: GetComputorListsForEpochResponse
-    GetEventsRequest:
+    GetEventLogsRequest:
       example:
         filters:
           transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz
@@ -575,22 +575,22 @@ components:
           description: Ranges restrict the results by a maximum and/or minimum value.
         pagination:
           $ref: '#/components/schemas/Pagination'
-      description: GetEventsRequest
-    GetEventsResponse:
+      description: GetEventLogsRequest
+    GetEventLogsResponse:
       type: object
       properties:
         hits:
           $ref: '#/components/schemas/Hits'
-        events:
+        eventLogs:
           type: array
           items:
             $ref: '#/components/schemas/Event'
-          description: List of events that matched the search criteria.
+          description: List of event logs that matched the search criteria.
         validForTick:
           type: integer
           description: The response is valid for this tick number.
           format: uint32
-      description: GetEventsResponse
+      description: GetEventLogsResponse
     GetLastProcessedTickResponse:
       type: object
       properties:

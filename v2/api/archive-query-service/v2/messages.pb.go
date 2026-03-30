@@ -2457,8 +2457,8 @@ func (*Event_AssetOwnershipManagingContractChange) isEvent_EventData() {}
 
 func (*Event_AssetPossessionManagingContractChange) isEvent_EventData() {}
 
-// GetEventsRequest
-type GetEventsRequest struct {
+// GetEventLogsRequest
+type GetEventLogsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filters       map[string]string      `protobuf:"bytes,1,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Exclude       map[string]string      `protobuf:"bytes,2,rep,name=exclude,proto3" json:"exclude,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -2469,20 +2469,20 @@ type GetEventsRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetEventsRequest) Reset() {
-	*x = GetEventsRequest{}
+func (x *GetEventLogsRequest) Reset() {
+	*x = GetEventLogsRequest{}
 	mi := &file_messages_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetEventsRequest) String() string {
+func (x *GetEventLogsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetEventsRequest) ProtoMessage() {}
+func (*GetEventLogsRequest) ProtoMessage() {}
 
-func (x *GetEventsRequest) ProtoReflect() protoreflect.Message {
+func (x *GetEventLogsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_messages_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2494,70 +2494,70 @@ func (x *GetEventsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetEventsRequest.ProtoReflect.Descriptor instead.
-func (*GetEventsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetEventLogsRequest.ProtoReflect.Descriptor instead.
+func (*GetEventLogsRequest) Descriptor() ([]byte, []int) {
 	return file_messages_proto_rawDescGZIP(), []int{34}
 }
 
-func (x *GetEventsRequest) GetFilters() map[string]string {
+func (x *GetEventLogsRequest) GetFilters() map[string]string {
 	if x != nil {
 		return x.Filters
 	}
 	return nil
 }
 
-func (x *GetEventsRequest) GetExclude() map[string]string {
+func (x *GetEventLogsRequest) GetExclude() map[string]string {
 	if x != nil {
 		return x.Exclude
 	}
 	return nil
 }
 
-func (x *GetEventsRequest) GetShould() []*ShouldFilter {
+func (x *GetEventLogsRequest) GetShould() []*ShouldFilter {
 	if x != nil {
 		return x.Should
 	}
 	return nil
 }
 
-func (x *GetEventsRequest) GetRanges() map[string]*Range {
+func (x *GetEventLogsRequest) GetRanges() map[string]*Range {
 	if x != nil {
 		return x.Ranges
 	}
 	return nil
 }
 
-func (x *GetEventsRequest) GetPagination() *Pagination {
+func (x *GetEventLogsRequest) GetPagination() *Pagination {
 	if x != nil {
 		return x.Pagination
 	}
 	return nil
 }
 
-// GetEventsResponse
-type GetEventsResponse struct {
+// GetEventLogsResponse
+type GetEventLogsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Hits          *Hits                  `protobuf:"bytes,1,opt,name=hits,proto3" json:"hits,omitempty"`
-	Events        []*Event               `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	EventLogs     []*Event               `protobuf:"bytes,2,rep,name=event_logs,json=eventLogs,proto3" json:"event_logs,omitempty"`
 	ValidForTick  uint32                 `protobuf:"varint,3,opt,name=valid_for_tick,json=validForTick,proto3" json:"valid_for_tick,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetEventsResponse) Reset() {
-	*x = GetEventsResponse{}
+func (x *GetEventLogsResponse) Reset() {
+	*x = GetEventLogsResponse{}
 	mi := &file_messages_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetEventsResponse) String() string {
+func (x *GetEventLogsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetEventsResponse) ProtoMessage() {}
+func (*GetEventLogsResponse) ProtoMessage() {}
 
-func (x *GetEventsResponse) ProtoReflect() protoreflect.Message {
+func (x *GetEventLogsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_messages_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2569,26 +2569,26 @@ func (x *GetEventsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetEventsResponse.ProtoReflect.Descriptor instead.
-func (*GetEventsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetEventLogsResponse.ProtoReflect.Descriptor instead.
+func (*GetEventLogsResponse) Descriptor() ([]byte, []int) {
 	return file_messages_proto_rawDescGZIP(), []int{35}
 }
 
-func (x *GetEventsResponse) GetHits() *Hits {
+func (x *GetEventLogsResponse) GetHits() *Hits {
 	if x != nil {
 		return x.Hits
 	}
 	return nil
 }
 
-func (x *GetEventsResponse) GetEvents() []*Event {
+func (x *GetEventLogsResponse) GetEventLogs() []*Event {
 	if x != nil {
-		return x.Events
+		return x.EventLogs
 	}
 	return nil
 }
 
-func (x *GetEventsResponse) GetValidForTick() uint32 {
+func (x *GetEventLogsResponse) GetValidForTick() uint32 {
 	if x != nil {
 		return x.ValidForTick
 	}
@@ -2832,12 +2832,12 @@ const file_messages_proto_rawDesc = "" +
 	"\n" +
 	"event_dataB\x13\n" +
 	"\x11_transaction_hashB\x0e\n" +
-	"\f_raw_payload\"\xe1\a\n" +
-	"\x10GetEventsRequest\x12\x7f\n" +
-	"\afilters\x18\x01 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.FiltersEntryB1\xbaG.\x92\x02+Include filters: all the values must match.R\afilters\x12\x88\x01\n" +
-	"\aexclude\x18\x02 \x03(\v22.qubic.v2.archive.pb.GetEventsRequest.ExcludeEntryB:\xbaG7\x92\x024Exclude filters: all the values must must not match.R\aexclude\x12v\n" +
-	"\x06should\x18\x03 \x03(\v2!.qubic.v2.archive.pb.ShouldFilterB;\xbaG8\x92\x025Should filters: one or more of the values must match.R\x06should\x12\x8f\x01\n" +
-	"\x06ranges\x18\x05 \x03(\v21.qubic.v2.archive.pb.GetEventsRequest.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x12c\n" +
+	"\f_raw_payload\"\xee\a\n" +
+	"\x13GetEventLogsRequest\x12\x82\x01\n" +
+	"\afilters\x18\x01 \x03(\v25.qubic.v2.archive.pb.GetEventLogsRequest.FiltersEntryB1\xbaG.\x92\x02+Include filters: all the values must match.R\afilters\x12\x8b\x01\n" +
+	"\aexclude\x18\x02 \x03(\v25.qubic.v2.archive.pb.GetEventLogsRequest.ExcludeEntryB:\xbaG7\x92\x024Exclude filters: all the values must must not match.R\aexclude\x12v\n" +
+	"\x06should\x18\x03 \x03(\v2!.qubic.v2.archive.pb.ShouldFilterB;\xbaG8\x92\x025Should filters: one or more of the values must match.R\x06should\x12\x92\x01\n" +
+	"\x06ranges\x18\x05 \x03(\v24.qubic.v2.archive.pb.GetEventLogsRequest.RangesEntryBD\xbaGA\x92\x02>Ranges restrict the results by a maximum and/or minimum value.R\x06ranges\x12c\n" +
 	"\n" +
 	"pagination\x18\t \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
 	"pagination\x1a:\n" +
@@ -2853,10 +2853,11 @@ const file_messages_proto_rawDesc = "" +
 	"  transactionHash: zvqvtjzvgwgpegmalkkjedhbdrnckqcfthpzfqzxbcljttljzidmvaxalxyz\n" +
 	"pagination:\n" +
 	"  offset: 0\n" +
-	"  size: 10\"\xb6\x02\n" +
-	"\x11GetEventsResponse\x12\\\n" +
-	"\x04hits\x18\x01 \x01(\v2\x19.qubic.v2.archive.pb.HitsB-\xbaG*\x92\x02'Information about the returned results.R\x04hits\x12j\n" +
-	"\x06events\x18\x02 \x03(\v2\x1a.qubic.v2.archive.pb.EventB6\xbaG3\x92\x020List of events that matched the search criteria.R\x06events\x12W\n" +
+	"  size: 10\"\xc4\x02\n" +
+	"\x14GetEventLogsResponse\x12\\\n" +
+	"\x04hits\x18\x01 \x01(\v2\x19.qubic.v2.archive.pb.HitsB-\xbaG*\x92\x02'Information about the returned results.R\x04hits\x12u\n" +
+	"\n" +
+	"event_logs\x18\x02 \x03(\v2\x1a.qubic.v2.archive.pb.EventB:\xbaG7\x92\x024List of event logs that matched the search criteria.R\teventLogs\x12W\n" +
 	"\x0evalid_for_tick\x18\x03 \x01(\rB1\xbaG.\x92\x02+The response is valid for this tick number.R\fvalidForTickB,Z*github.com/qubic/archive-query-service/apib\x06proto3"
 
 var (
@@ -2907,8 +2908,8 @@ var file_messages_proto_goTypes = []any{
 	(*AssetOwnershipManagingContractChangeData)(nil),  // 31: qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
 	(*AssetPossessionManagingContractChangeData)(nil), // 32: qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
 	(*Event)(nil),                                     // 33: qubic.v2.archive.pb.Event
-	(*GetEventsRequest)(nil),                          // 34: qubic.v2.archive.pb.GetEventsRequest
-	(*GetEventsResponse)(nil),                         // 35: qubic.v2.archive.pb.GetEventsResponse
+	(*GetEventLogsRequest)(nil),                       // 34: qubic.v2.archive.pb.GetEventLogsRequest
+	(*GetEventLogsResponse)(nil),                      // 35: qubic.v2.archive.pb.GetEventLogsResponse
 	nil,                                               // 36: qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
 	nil,                                               // 37: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
 	nil,                                               // 38: qubic.v2.archive.pb.ShouldFilter.TermsEntry
@@ -2916,9 +2917,9 @@ var file_messages_proto_goTypes = []any{
 	nil,                                               // 40: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
 	nil,                                               // 41: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
 	nil,                                               // 42: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	nil,                                               // 43: qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	nil,                                               // 44: qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
-	nil,                                               // 45: qubic.v2.archive.pb.GetEventsRequest.RangesEntry
+	nil,                                               // 43: qubic.v2.archive.pb.GetEventLogsRequest.FiltersEntry
+	nil,                                               // 44: qubic.v2.archive.pb.GetEventLogsRequest.ExcludeEntry
+	nil,                                               // 45: qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry
 }
 var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
@@ -2946,17 +2947,17 @@ var file_messages_proto_depIdxs = []int32{
 	30, // 22: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
 	31, // 23: qubic.v2.archive.pb.Event.asset_ownership_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
 	32, // 24: qubic.v2.archive.pb.Event.asset_possession_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
-	43, // 25: qubic.v2.archive.pb.GetEventsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventsRequest.FiltersEntry
-	44, // 26: qubic.v2.archive.pb.GetEventsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventsRequest.ExcludeEntry
-	11, // 27: qubic.v2.archive.pb.GetEventsRequest.should:type_name -> qubic.v2.archive.pb.ShouldFilter
-	45, // 28: qubic.v2.archive.pb.GetEventsRequest.ranges:type_name -> qubic.v2.archive.pb.GetEventsRequest.RangesEntry
-	5,  // 29: qubic.v2.archive.pb.GetEventsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	13, // 30: qubic.v2.archive.pb.GetEventsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	33, // 31: qubic.v2.archive.pb.GetEventsResponse.events:type_name -> qubic.v2.archive.pb.Event
+	43, // 25: qubic.v2.archive.pb.GetEventLogsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.FiltersEntry
+	44, // 26: qubic.v2.archive.pb.GetEventLogsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.ExcludeEntry
+	11, // 27: qubic.v2.archive.pb.GetEventLogsRequest.should:type_name -> qubic.v2.archive.pb.ShouldFilter
+	45, // 28: qubic.v2.archive.pb.GetEventLogsRequest.ranges:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry
+	5,  // 29: qubic.v2.archive.pb.GetEventLogsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	13, // 30: qubic.v2.archive.pb.GetEventLogsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	33, // 31: qubic.v2.archive.pb.GetEventLogsResponse.event_logs:type_name -> qubic.v2.archive.pb.Event
 	10, // 32: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
 	10, // 33: qubic.v2.archive.pb.ShouldFilter.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
 	10, // 34: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 35: qubic.v2.archive.pb.GetEventsRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 35: qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
 	36, // [36:36] is the sub-list for method output_type
 	36, // [36:36] is the sub-list for method input_type
 	36, // [36:36] is the sub-list for extension type_name

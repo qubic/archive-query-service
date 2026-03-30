@@ -27,7 +27,7 @@ const (
 	ArchiveQueryService_GetComputorsListsForEpoch_FullMethodName  = "/qubic.v2.archive.pb.ArchiveQueryService/GetComputorsListsForEpoch"
 	ArchiveQueryService_GetLastProcessedTick_FullMethodName       = "/qubic.v2.archive.pb.ArchiveQueryService/GetLastProcessedTick"
 	ArchiveQueryService_GetProcessedTickIntervals_FullMethodName  = "/qubic.v2.archive.pb.ArchiveQueryService/GetProcessedTickIntervals"
-	ArchiveQueryService_GetEvents_FullMethodName                  = "/qubic.v2.archive.pb.ArchiveQueryService/GetEvents"
+	ArchiveQueryService_GetEventLogs_FullMethodName               = "/qubic.v2.archive.pb.ArchiveQueryService/GetEventLogs"
 	ArchiveQueryService_GetHealth_FullMethodName                  = "/qubic.v2.archive.pb.ArchiveQueryService/GetHealth"
 )
 
@@ -256,7 +256,7 @@ type ArchiveQueryServiceClient interface {
 	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
 	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
 	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
-	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error)
+	GetEventLogs(ctx context.Context, in *GetEventLogsRequest, opts ...grpc.CallOption) (*GetEventLogsResponse, error)
 	GetHealth(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
@@ -338,10 +338,10 @@ func (c *archiveQueryServiceClient) GetProcessedTickIntervals(ctx context.Contex
 	return out, nil
 }
 
-func (c *archiveQueryServiceClient) GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error) {
+func (c *archiveQueryServiceClient) GetEventLogs(ctx context.Context, in *GetEventLogsRequest, opts ...grpc.CallOption) (*GetEventLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetEventsResponse)
-	err := c.cc.Invoke(ctx, ArchiveQueryService_GetEvents_FullMethodName, in, out, cOpts...)
+	out := new(GetEventLogsResponse)
+	err := c.cc.Invoke(ctx, ArchiveQueryService_GetEventLogs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -583,7 +583,7 @@ type ArchiveQueryServiceServer interface {
 	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
 	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
 	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
-	GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error)
+	GetEventLogs(context.Context, *GetEventLogsRequest) (*GetEventLogsResponse, error)
 	GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()
 }
@@ -616,8 +616,8 @@ func (UnimplementedArchiveQueryServiceServer) GetLastProcessedTick(context.Conte
 func (UnimplementedArchiveQueryServiceServer) GetProcessedTickIntervals(context.Context, *emptypb.Empty) (*GetProcessedTickIntervalsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProcessedTickIntervals not implemented")
 }
-func (UnimplementedArchiveQueryServiceServer) GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetEvents not implemented")
+func (UnimplementedArchiveQueryServiceServer) GetEventLogs(context.Context, *GetEventLogsRequest) (*GetEventLogsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEventLogs not implemented")
 }
 func (UnimplementedArchiveQueryServiceServer) GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetHealth not implemented")
@@ -769,20 +769,20 @@ func _ArchiveQueryService_GetProcessedTickIntervals_Handler(srv interface{}, ctx
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ArchiveQueryService_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetEventsRequest)
+func _ArchiveQueryService_GetEventLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEventLogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ArchiveQueryServiceServer).GetEvents(ctx, in)
+		return srv.(ArchiveQueryServiceServer).GetEventLogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ArchiveQueryService_GetEvents_FullMethodName,
+		FullMethod: ArchiveQueryService_GetEventLogs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ArchiveQueryServiceServer).GetEvents(ctx, req.(*GetEventsRequest))
+		return srv.(ArchiveQueryServiceServer).GetEventLogs(ctx, req.(*GetEventLogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -841,8 +841,8 @@ var ArchiveQueryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ArchiveQueryService_GetProcessedTickIntervals_Handler,
 		},
 		{
-			MethodName: "GetEvents",
-			Handler:    _ArchiveQueryService_GetEvents_Handler,
+			MethodName: "GetEventLogs",
+			Handler:    _ArchiveQueryService_GetEventLogs_Handler,
 		},
 		{
 			MethodName: "GetHealth",
