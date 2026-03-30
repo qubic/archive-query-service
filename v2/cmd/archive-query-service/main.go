@@ -55,16 +55,15 @@ func run() error {
 			DefaultPageSize uint32 `conf:"default:10"`
 		}
 		ElasticSearch struct {
-			Address                               []string      `conf:"default:https://localhost:9200"`
-			Username                              string        `conf:"default:qubic-query"`
-			Password                              string        `conf:"mask,optional"`
-			CertificatePath                       string        `conf:"default:http_ca.crt"`
-			MaxRetries                            int           `conf:"default:3"`
-			ReadTimeout                           time.Duration `conf:"default:10s"`
-			ConsecutiveRequestErrorCountThreshold int           `conf:"default:10"`
-			TransactionsIndex                     string        `conf:"default:qubic-transactions-alias"`
-			TickDataIndex                         string        `conf:"default:qubic-tick-data-alias"`
-			ComputorsListIndex                    string        `conf:"default:qubic-computors-alias"`
+			Address            []string      `conf:"default:https://localhost:9200"`
+			Username           string        `conf:"default:qubic-query"`
+			Password           string        `conf:"mask,optional"`
+			CertificatePath    string        `conf:"default:http_ca.crt"`
+			MaxRetries         int           `conf:"default:3"`
+			ReadTimeout        time.Duration `conf:"default:10s"`
+			TransactionsIndex  string        `conf:"default:qubic-transactions-alias"`
+			TickDataIndex      string        `conf:"default:qubic-tick-data-alias"`
+			ComputorsListIndex string        `conf:"default:qubic-computors-alias"`
 		}
 		EventsElasticSearch struct {
 			Address         []string      `conf:"default:https://localhost:9200"`
