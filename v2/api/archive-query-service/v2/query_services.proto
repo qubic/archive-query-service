@@ -352,7 +352,7 @@ service ArchiveQueryService {
   // | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
   rpc GetEventLogs(GetEventLogsRequest) returns (GetEventLogsResponse) {
     option (openapi.v3.operation) = {
-      tags: ["Event (Beta)"]
+      tags: ["Events (Beta)"]
       summary: "Get Event Logs"
     };
 
