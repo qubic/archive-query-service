@@ -9,12 +9,12 @@ import (
 )
 
 func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, intervals []*statusPb.TickInterval) (*EmptyTicks, error) {
-	qs.emptyTicksLock.Lock() // costly and not threadsafe in case of update
+	qs.emptyTicksLock.Lock() // costly and not threadsafe in case of update TODO use rwlock
 	defer qs.emptyTicksLock.Unlock()
 
 	emptyTicks := qs.cache.GetEmptyTicks(epoch)
 
-	if emptyTicks != nil { // some sanity checks
+	if emptyTicks != nil { // some sanity checks (TODO does this work on epoch change???)
 		if len(intervals) == 0 || intervals[0].Epoch != epoch || emptyTicks.Epoch != epoch || emptyTicks.StartTick != intervals[0].FirstTick {
 			log.Printf("[ERROR] Illegal argument. Empty ticks epoch [%d] / start [%d] / end [%d] / len [%d].",
 				emptyTicks.Epoch, emptyTicks.StartTick, emptyTicks.EndTick, len(emptyTicks.Ticks))
@@ -22,7 +22,7 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 			return nil, fmt.Errorf("illegal argument for epoch [%d]", epoch)
 		}
 		tick := uint32(0)
-		for _, interval := range intervals {
+		for _, interval := range intervals { // TODO remove or refactor into own method (verify that sorted)
 			if interval.FirstTick < tick {
 				return nil, fmt.Errorf("unsorted intervals: %v", intervals)
 			}
@@ -65,7 +65,7 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 	} else { // add missing ticks if necessary. Needs lock as we operate on the cached value!
 
 		for _, interval := range intervals {
-			if interval.Epoch == epoch {
+			if interval.Epoch == epoch { // TODO dangerous as it operates on cached value
 				if emptyTicks.EndTick < interval.LastTick {
 					from := max(emptyTicks.EndTick+1, interval.FirstTick) // do no reload ticks we already have
 					ticks, err := qs.queryEmptyTicksFromElastic(ctx, from, interval.LastTick, epoch)
@@ -82,7 +82,7 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 		qs.cache.SetEmptyTicks(emptyTicks) // not sure if this is necessary (update ttl, ...)
 
 	}
-	return emptyTicks, nil
+	return emptyTicks, nil // TODO return copy instead of pointer
 }
 
 func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to uint32, epoch uint32) ([]uint32, error) {
