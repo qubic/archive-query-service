@@ -12,27 +12,10 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 	qs.emptyTicksLock.Lock() // costly and not threadsafe in case of update TODO use rwlock
 	defer qs.emptyTicksLock.Unlock()
 
-	emptyTicks := qs.cache.GetEmptyTicks(epoch)
-
-	if emptyTicks != nil { // some sanity checks
-
-		if emptyTicks.Epoch != epoch { // should not be possible (remove?)
-			log.Printf("[ERROR] unexpected empty ticks data (expected data for epoch [%d], but got [%d]).", epoch, emptyTicks.Epoch)
-			return nil, fmt.Errorf("illegal cache state for epoch [%d]", epoch)
-		}
-
-		// if len intervals == 0 (can happen on epoch change), then proceed with current empty ticks
-		if len(intervals) != 0 && (intervals[0].Epoch != epoch || emptyTicks.StartTick != intervals[0].FirstTick) {
-			log.Printf("[ERROR] Illegal argument. Empty ticks epoch [%d] / start [%d] / end [%d] / len [%d].",
-				emptyTicks.Epoch, emptyTicks.StartTick, emptyTicks.EndTick, len(emptyTicks.Ticks))
-			log.Printf("[ERROR] Illegal argument. Intervals: %v", intervals)
-			return nil, fmt.Errorf("illegal state for epoch [%d]", epoch)
-		}
-
-		err := verifySorted(intervals)
-		if err != nil {
-			return nil, fmt.Errorf("unsorted intervals: %v", intervals)
-		}
+	emptyTicks := qs.cache.GetEmptyTicks(epoch).Clone() // do not operate on cached object directly
+	err := sanityCheckData(emptyTicks, epoch, intervals)
+	if err != nil {
+		return nil, err
 	}
 
 	if emptyTicks == nil { // reload
@@ -84,13 +67,13 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 				}
 			}
 		}
-		qs.cache.SetEmptyTicks(emptyTicks) // not sure if this is necessary (update ttl, ...)
+		qs.cache.SetEmptyTicks(emptyTicks)
 
 	}
-	return emptyTicks, nil // TODO return copy instead of pointer
+	return emptyTicks, nil
 }
 
-func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to uint32, epoch uint32) ([]uint32, error) {
+func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to, epoch uint32) ([]uint32, error) {
 	if to-from > 100 {
 		log.Printf("[DEBUG] Query empty ticks: from [%d], to [%d], epoch [%d]", from, to, epoch)
 	}
@@ -104,6 +87,30 @@ func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to
 
 	qs.ConsecutiveElasticErrorCount.Store(0)
 	return ticks, nil
+}
+
+func sanityCheckData(emptyTicks *EmptyTicks, epoch uint32, intervals []*statusPb.TickInterval) error {
+	err := verifySorted(intervals)
+	if err != nil {
+		return err
+	}
+
+	if emptyTicks != nil {
+		if emptyTicks.Epoch != epoch { // should not be possible (remove?)
+			log.Printf("[ERROR] unexpected empty ticks data (expected data for epoch [%d], but got [%d]).", epoch, emptyTicks.Epoch)
+			return fmt.Errorf("illegal cache state for epoch [%d]", epoch)
+		}
+
+		// if len intervals == 0 (can happen on epoch change), then proceed with current empty ticks
+		if len(intervals) != 0 && (intervals[0].Epoch != epoch || emptyTicks.StartTick != intervals[0].FirstTick) {
+			log.Printf("[ERROR] Illegal argument. Empty ticks epoch [%d] / start [%d] / end [%d] / len [%d].",
+				emptyTicks.Epoch, emptyTicks.StartTick, emptyTicks.EndTick, len(emptyTicks.Ticks))
+			log.Printf("[ERROR] Illegal argument. Intervals: %v", intervals)
+			return fmt.Errorf("illegal state for epoch [%d]", epoch)
+		}
+	}
+
+	return nil
 }
 
 func verifySorted(intervals []*statusPb.TickInterval) error {

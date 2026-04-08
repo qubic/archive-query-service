@@ -20,6 +20,22 @@ type EmptyTicks struct {
 	Ticks     map[uint32]bool
 }
 
+func (e *EmptyTicks) Clone() *EmptyTicks {
+	if e == nil {
+		return nil
+	}
+	ticks := make(map[uint32]bool, len(e.Ticks))
+	for k, v := range e.Ticks {
+		ticks[k] = v
+	}
+	return &EmptyTicks{
+		Epoch:     e.Epoch,
+		StartTick: e.StartTick,
+		EndTick:   e.EndTick,
+		Ticks:     ticks,
+	}
+}
+
 type StatusCache struct {
 	lastProcessedTickProvider *ttlcache.Cache[string, uint32]
 	tickIntervalsProvider     *ttlcache.Cache[string, []*statusPb.TickInterval]
