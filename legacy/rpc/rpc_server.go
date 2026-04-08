@@ -468,10 +468,8 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	}
 
 	if request.Epoch+1 < intervals[len(intervals)-1].Epoch {
-		// log.Printf("[DEBUG] Get ticks: invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch too old. Only current epoch-1 is supported.")
 	} else if request.Epoch > intervals[len(intervals)-1].Epoch {
-		// log.Printf("[DEBUG] Get ticks: invalid epoch: [%d]", request.Epoch)
 		return nil, status.Errorf(codes.InvalidArgument, "Requested epoch is in the future.")
 	}
 
