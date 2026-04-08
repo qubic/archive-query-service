@@ -104,7 +104,8 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 
 	// fill up with empty ticks
 	for i := nextTick; i <= uint64(endTick); i++ {
-		log.Printf("[DEBUG] Fill up empty tick: [%d]", i)
+		log.Printf("[DEBUG] Fill up empty tick: [%d] (start %d, end %d, total %d, processed %d, number empty %d, empty ticks size %d)",
+			i, startTick, endTick, total, processed, numberOfEmpty, len(emptyTicks))
 		emptyTicks = append(emptyTicks, uint32(i))
 	}
 
@@ -116,6 +117,7 @@ func (c *Client) performGetTicksQuery(ctx context.Context, startTick, endTick, e
 	query := `{
 	  "size": %d,
 	  "_source": false,
+      "track_total_hits": true,
 	  "query": {
 		"bool": {
 		  "must": [
