@@ -478,7 +478,11 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	for _, interval := range intervals {
 		if request.Epoch == interval.Epoch {
 			count += (interval.LastTick + 1) - interval.FirstTick
-			intervalCopy := proto.Clone(interval).(*statusPb.TickInterval) // Deep copy
+			intervalCopy, ok := proto.Clone(interval).(*statusPb.TickInterval)
+			if !ok {
+				log.Println("[ERROR] failed to copy tick interval.")
+				return nil, status.Errorf(codes.Internal, "failed to copy tick interval")
+			}
 			filteredIntervals = append(filteredIntervals, intervalCopy)
 		}
 	}
@@ -577,7 +581,11 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 	filteredIntervals := make([]*statusPb.TickInterval, 0)
 	for _, interval := range intervals {
 		if request.Epoch == interval.Epoch {
-			intervalCopy := proto.Clone(interval).(*statusPb.TickInterval) // Deep copy
+			intervalCopy, ok := proto.Clone(interval).(*statusPb.TickInterval)
+			if !ok {
+				log.Println("[ERROR] failed to copy tick interval.")
+				return nil, status.Errorf(codes.Internal, "failed to copy tick interval")
+			}
 			filteredIntervals = append(filteredIntervals, intervalCopy)
 		}
 	}
