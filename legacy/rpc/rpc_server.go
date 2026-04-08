@@ -480,7 +480,8 @@ func (s *Server) GetEpochTickListV2(ctx context.Context, request *protobuf.GetEp
 	for _, interval := range intervals {
 		if request.Epoch == interval.Epoch {
 			count += (interval.LastTick + 1) - interval.FirstTick
-			filteredIntervals = append(filteredIntervals, interval)
+			intervalCopy := proto.Clone(interval).(*statusPb.TickInterval) // Deep copy
+			filteredIntervals = append(filteredIntervals, intervalCopy)
 		}
 	}
 
@@ -580,7 +581,8 @@ func (s *Server) GetEmptyTickListV2(ctx context.Context, request *protobuf.GetEp
 	filteredIntervals := make([]*statusPb.TickInterval, 0)
 	for _, interval := range intervals {
 		if request.Epoch == interval.Epoch {
-			filteredIntervals = append(filteredIntervals, interval)
+			intervalCopy := proto.Clone(interval).(*statusPb.TickInterval) // Deep copy
+			filteredIntervals = append(filteredIntervals, intervalCopy)
 		}
 	}
 
