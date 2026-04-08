@@ -96,8 +96,15 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 
 	}
 
+	// this should never happen if total calculation is correct
+	if searchResult.Hits.Total.Relation != "eq" {
+		log.Printf("[ERROR] Finished empty ticks query prematurely: total [%d], processed [%d], last hits [%d], relation [%s].",
+			total, processed, searchResult.Hits.Total.Value, searchResult.Hits.Total.Relation)
+	}
+
 	// fill up with empty ticks
 	for i := nextTick; i <= uint64(endTick); i++ {
+		log.Printf("[DEBUG] Fill up empty tick: [%d]", i)
 		emptyTicks = append(emptyTicks, uint32(i))
 	}
 
