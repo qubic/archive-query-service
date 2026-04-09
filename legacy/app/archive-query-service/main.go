@@ -44,7 +44,7 @@ func run() error {
 			StatusDataCacheTtl    time.Duration `conf:"default:1s"`  // nolint:revive
 			EmptyTicksTtl         time.Duration `conf:"default:24h"` // nolint:revive
 			MaxRecvSizeInMb       int           `conf:"default:1"`
-			MaxSendSizeInMb       int           `conf:"default:2"`
+			MaxSendSizeInMb       int           `conf:"default:10"`
 		}
 		ElasticSearch struct {
 			Address                   []string      `conf:"default:https://localhost:9200"`

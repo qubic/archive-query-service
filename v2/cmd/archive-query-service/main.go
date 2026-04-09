@@ -48,7 +48,7 @@ func run() error {
 			CacheEnabled          bool          `conf:"default:false"`
 			CacheTTLFile          string        `conf:"default:cache_ttl.json"`
 			MaxRecvSizeInMb       int           `conf:"default:1"`
-			MaxSendSizeInMb       int           `conf:"default:2"`
+			MaxSendSizeInMb       int           `conf:"default:10"`
 		}
 		Pagination struct {
 			MaxPageSize     uint32 `conf:"default:1000"`
