@@ -12,7 +12,7 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 	qs.emptyTicksLock.Lock() // costly and not threadsafe in case of update TODO use rwlock
 	defer qs.emptyTicksLock.Unlock()
 
-	emptyTicks := qs.cache.GetEmptyTicks(epoch).Clone() // do not operate on cached object directly
+	emptyTicks := qs.cache.GetEmptyTicks(epoch) // only used here
 	err := sanityCheckData(emptyTicks, epoch, intervals)
 	if err != nil {
 		return nil, err
@@ -67,10 +67,10 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 				}
 			}
 		}
-		qs.cache.SetEmptyTicks(emptyTicks)
+		// setting is not needed as we use the cached object qs.cache.SetEmptyTicks(emptyTicks)
 
 	}
-	return emptyTicks, nil
+	return emptyTicks.Clone(), nil // Return deep copy
 }
 
 func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to, epoch uint32) ([]uint32, error) {
