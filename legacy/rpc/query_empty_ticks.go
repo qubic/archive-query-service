@@ -54,7 +54,7 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 
 		for i, interval := range intervals {
 			if emptyTicks.EndTick < interval.LastTick {
-				from, to := calculateRange(emptyTicks, interval, i, len(intervals))
+				from, to := calculateRange(emptyTicks, interval, isLast(i, len(intervals)))
 				ticks, err := qs.queryEmptyTicksFromElastic(ctx, from, to, epoch)
 				if err != nil {
 					return nil, err
@@ -70,10 +70,10 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 	return emptyTicks.Clone(), nil // Return deep copy
 }
 
-func calculateRange(emptyTicks *EmptyTicks, interval *statusPb.TickInterval, index, len int) (uint32, uint32) {
+func calculateRange(emptyTicks *EmptyTicks, interval *statusPb.TickInterval, isLastInterval bool) (uint32, uint32) {
 	from := max(emptyTicks.EndTick+1, interval.FirstTick) // do no reload ticks we already have
 	to := interval.LastTick
-	if isLast(index, len) && isFirstCall(emptyTicks, interval) {
+	if isLastInterval && isFirstCall(emptyTicks, interval) {
 		to = max(from, interval.LastTick-emptyTickQueryOffset)
 	}
 	return from, to

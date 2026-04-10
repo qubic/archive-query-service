@@ -279,7 +279,7 @@ func TestCalculateRange(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			emptyTicks := &EmptyTicks{EndTick: tc.endTick}
-			from, to := calculateRange(emptyTicks, tc.interval, tc.index, tc.length)
+			from, to := calculateRange(emptyTicks, tc.interval, tc.index == tc.length-1)
 			assert.Equal(t, tc.wantFrom, from)
 			assert.Equal(t, tc.wantTo, to)
 		})
