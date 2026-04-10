@@ -8,12 +8,14 @@ import (
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 )
 
+const emptyTickQueryOffset = 3
+
 func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, intervals []*statusPb.TickInterval) (*EmptyTicks, error) {
 	qs.emptyTicksLock.Lock() // costly and not threadsafe in case of update TODO use rwlock
 	defer qs.emptyTicksLock.Unlock()
 
-	emptyTicks := qs.cache.GetEmptyTicks(epoch) // only used here
-	err := sanityCheckData(emptyTicks, epoch, intervals)
+	emptyTicks := qs.cache.GetEmptyTicks(epoch)          // only used here
+	err := sanityCheckData(emptyTicks, intervals, epoch) // checks intervals and empty ticks
 	if err != nil {
 		return nil, err
 	}
@@ -24,19 +26,17 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 		var startTick uint32
 		var endTick uint32
 		for _, interval := range intervals {
-			if interval.Epoch == epoch {
-				if startTick == 0 {
-					startTick = interval.FirstTick
-				}
-				if endTick < interval.LastTick {
-					endTick = interval.LastTick
-				}
-				ticks, err := qs.queryEmptyTicksFromElastic(ctx, interval.FirstTick, interval.LastTick, epoch)
-				if err != nil {
-					return nil, err
-				}
-				emptyTickList = append(emptyTickList, ticks...)
+			if startTick == 0 {
+				startTick = interval.FirstTick
 			}
+			if endTick < interval.LastTick {
+				endTick = interval.LastTick
+			}
+			ticks, err := qs.queryEmptyTicksFromElastic(ctx, interval.FirstTick, interval.LastTick, epoch)
+			if err != nil {
+				return nil, err
+			}
+			emptyTickList = append(emptyTickList, ticks...)
 		}
 		tickMap := make(map[uint32]bool, len(emptyTickList))
 		for _, tick := range emptyTickList {
@@ -52,25 +52,39 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 
 	} else { // add missing ticks if necessary. Needs lock as we operate on the cached value!
 
-		for _, interval := range intervals {
-			if interval.Epoch == epoch {
-				if emptyTicks.EndTick < interval.LastTick {
-					from := max(emptyTicks.EndTick+1, interval.FirstTick) // do no reload ticks we already have
-					ticks, err := qs.queryEmptyTicksFromElastic(ctx, from, interval.LastTick, epoch)
-					if err != nil {
-						return nil, err
-					}
-					for _, tick := range ticks {
-						emptyTicks.Ticks[tick] = true
-					}
-					emptyTicks.EndTick = interval.LastTick
+		for i, interval := range intervals {
+			if emptyTicks.EndTick < interval.LastTick {
+				from, to := calculateRange(emptyTicks, interval, i, len(intervals))
+				ticks, err := qs.queryEmptyTicksFromElastic(ctx, from, to, epoch)
+				if err != nil {
+					return nil, err
 				}
+				for _, tick := range ticks {
+					emptyTicks.Ticks[tick] = true
+				}
+				emptyTicks.EndTick = to
 			}
 		}
-		// setting is not needed as we use the cached object qs.cache.SetEmptyTicks(emptyTicks)
 
 	}
 	return emptyTicks.Clone(), nil // Return deep copy
+}
+
+func calculateRange(emptyTicks *EmptyTicks, interval *statusPb.TickInterval, index, len int) (uint32, uint32) {
+	from := max(emptyTicks.EndTick+1, interval.FirstTick) // do no reload ticks we already have
+	to := interval.LastTick
+	if isLast(index, len) && isFirstCall(emptyTicks, interval) {
+		to = max(from, interval.LastTick-emptyTickQueryOffset)
+	}
+	return from, to
+}
+
+func isFirstCall(emptyTicks *EmptyTicks, interval *statusPb.TickInterval) bool {
+	return emptyTicks.EndTick < interval.LastTick-emptyTickQueryOffset
+}
+
+func isLast(index int, len int) bool {
+	return index == len-1
 }
 
 func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to, epoch uint32) ([]uint32, error) {
@@ -89,8 +103,8 @@ func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to
 	return ticks, nil
 }
 
-func sanityCheckData(emptyTicks *EmptyTicks, epoch uint32, intervals []*statusPb.TickInterval) error {
-	err := verifySorted(intervals)
+func sanityCheckData(emptyTicks *EmptyTicks, intervals []*statusPb.TickInterval, epoch uint32) error {
+	err := verifySortedInEpoch(intervals, epoch)
 	if err != nil {
 		return err
 	}
@@ -113,9 +127,12 @@ func sanityCheckData(emptyTicks *EmptyTicks, epoch uint32, intervals []*statusPb
 	return nil
 }
 
-func verifySorted(intervals []*statusPb.TickInterval) error {
+func verifySortedInEpoch(intervals []*statusPb.TickInterval, epoch uint32) error {
 	tick := uint32(0)
 	for _, interval := range intervals {
+		if interval.Epoch != epoch {
+			return fmt.Errorf("got interval for wrong epoch [%d] (expected: [%d])", interval.Epoch, epoch)
+		}
 		if interval.FirstTick < tick {
 			return fmt.Errorf("unsorted intervals: %v", intervals)
 		}
