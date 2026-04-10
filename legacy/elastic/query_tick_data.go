@@ -65,8 +65,10 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 		}
 		if nextTick < tickNumber { // only the gaps are empty
 			for i := nextTick; i < tickNumber; i++ {
-				log.Printf("[DEBUG] Add empty tick: [%d] (start %d, end %d, total %d, processed %d, number empty %d, empty ticks size %d)",
-					i, startTick, endTick, total, processed, numberOfEmpty, len(emptyTicks))
+				if total < 100 {
+					log.Printf("[DEBUG] Add empty tick: [%d] (start %d, end %d, total %d, processed %d, number empty %d, empty ticks size %d)",
+						i, startTick, endTick, total, processed, numberOfEmpty, len(emptyTicks))
+				}
 				emptyTicks = append(emptyTicks, uint32(i))
 			}
 		}
@@ -89,8 +91,6 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 			}
 			if nextTick < tickNumber { // only the gaps are empty
 				for i := nextTick; i < tickNumber; i++ {
-					log.Printf("[DEBUG] Add empty tick (scroll): [%d] (start %d, end %d, total %d, processed %d, number empty %d, empty ticks size %d)",
-						i, startTick, endTick, total, processed, numberOfEmpty, len(emptyTicks))
 					emptyTicks = append(emptyTicks, uint32(i))
 				}
 			}
@@ -110,7 +110,6 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 	for i := nextTick; i <= uint64(endTick); i++ {
 		log.Printf("[DEBUG] Fill up empty tick: [%d] (start %d, end %d, total %d, processed %d, number empty %d, empty ticks size %d)",
 			i, startTick, endTick, total, processed, numberOfEmpty, len(emptyTicks))
-		log.Printf("[DEBUG] Hits: %v", searchResult.Hits.Hits)
 		emptyTicks = append(emptyTicks, uint32(i))
 	}
 
