@@ -83,8 +83,8 @@ func isFirstCall(emptyTicks *EmptyTicks, interval *statusPb.TickInterval) bool {
 	return emptyTicks.EndTick < interval.LastTick-emptyTickQueryOffset
 }
 
-func isLast(index int, len int) bool {
-	return index == len-1
+func isLast(index int, length int) bool {
+	return index == length-1
 }
 
 func (qs *QueryService) queryEmptyTicksFromElastic(ctx context.Context, from, to, epoch uint32) ([]uint32, error) {
