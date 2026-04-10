@@ -3,7 +3,7 @@ name: Deploy v1 snapshot image to GHCR
 on:
   push:
     branches:
-      - 'feature/update-v1-module-name'
+      - 'bugfix/empty-ticks'
 
 jobs:
   docker-publish:
