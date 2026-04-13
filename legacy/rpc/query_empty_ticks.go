@@ -94,7 +94,11 @@ func isFirstCall(emptyTicks *EmptyTicks, interval *statusPb.TickInterval) bool {
 	// lastTick should only increase.
 	// if we have endTick == lastTick - offset, then it is the second call
 	// if we have endTick < lastTick - offset, then the last tick increased
-	return emptyTicks.EndTick < interval.LastTick-emptyTickQueryOffset
+	firstCall := emptyTicks.EndTick < interval.LastTick-emptyTickQueryOffset
+	if !firstCall {
+		log.Printf("[DEBUG] Second empty ticks call for end tick [%d].", interval.LastTick)
+	}
+	return firstCall
 }
 
 func isLast(index int, length int) bool {
