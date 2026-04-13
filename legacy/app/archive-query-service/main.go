@@ -43,7 +43,7 @@ func run() error {
 			StatusServiceGrpcHost    string        `conf:"default:127.0.0.1:9901"`
 			StatusDataCacheTtl       time.Duration `conf:"default:1s"`  // nolint:revive
 			EmptyTicksTtl            time.Duration `conf:"default:24h"` // nolint:revive
-			EmptyTicksUpdateInterval time.Duration `conf:"default:5s"`  // nolint:revive
+			EmptyTicksUpdateInterval time.Duration `conf:"default:5s"`
 			MaxRecvSizeInMb          int           `conf:"default:1"`
 			MaxSendSizeInMb          int           `conf:"default:2"`
 		}
