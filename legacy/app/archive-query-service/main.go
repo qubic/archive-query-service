@@ -34,17 +34,18 @@ func main() {
 func run() error {
 	var cfg struct {
 		Server struct {
-			ReadTimeout           time.Duration `conf:"default:5s"`
-			WriteTimeout          time.Duration `conf:"default:5s"`
-			ShutdownTimeout       time.Duration `conf:"default:5s"`
-			HttpHost              string        `conf:"default:0.0.0.0:8000"` // nolint:revive
-			GrpcHost              string        `conf:"default:0.0.0.0:8001"`
-			ProfilingHost         string        `conf:"default:0.0.0.0:8002"`
-			StatusServiceGrpcHost string        `conf:"default:127.0.0.1:9901"`
-			StatusDataCacheTtl    time.Duration `conf:"default:1s"`  // nolint:revive
-			EmptyTicksTtl         time.Duration `conf:"default:24h"` // nolint:revive
-			MaxRecvSizeInMb       int           `conf:"default:1"`
-			MaxSendSizeInMb       int           `conf:"default:2"`
+			ReadTimeout              time.Duration `conf:"default:5s"`
+			WriteTimeout             time.Duration `conf:"default:5s"`
+			ShutdownTimeout          time.Duration `conf:"default:5s"`
+			HttpHost                 string        `conf:"default:0.0.0.0:8000"` // nolint:revive
+			GrpcHost                 string        `conf:"default:0.0.0.0:8001"`
+			ProfilingHost            string        `conf:"default:0.0.0.0:8002"`
+			StatusServiceGrpcHost    string        `conf:"default:127.0.0.1:9901"`
+			StatusDataCacheTtl       time.Duration `conf:"default:1s"`  // nolint:revive
+			EmptyTicksTtl            time.Duration `conf:"default:24h"` // nolint:revive
+			EmptyTicksUpdateInterval time.Duration `conf:"default:5s"`  // nolint:revive
+			MaxRecvSizeInMb          int           `conf:"default:1"`
+			MaxSendSizeInMb          int           `conf:"default:2"`
 		}
 		ElasticSearch struct {
 			Address                   []string      `conf:"default:https://localhost:9200"`
@@ -137,7 +138,7 @@ func run() error {
 		MaxSendMsgSize: cfg.Server.MaxSendSizeInMb * 1024 * 1024,
 	}
 
-	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
+	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache, cfg.Server.EmptyTicksUpdateInterval)
 	rpcServer := rpc.NewServer(queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor

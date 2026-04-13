@@ -73,6 +73,7 @@ func TestQueryService_GetEmptyTicks_ThenCreateAndCache(t *testing.T) {
 	}, emptyTicks)
 
 	cached := qs.cache.GetEmptyTicks(123)
+	cached.LastUpdate = time.Time{} // updated. exclude from comparison.
 	assert.Equal(t, emptyTicks, cached)
 }
 
@@ -114,6 +115,7 @@ func TestQueryService_GetEmptyTicks_GivenNewIntervalEnd_ThenUpdate(t *testing.T)
 	require.Equal(t, updated, emptyTicks)
 
 	cached := qs.cache.GetEmptyTicks(123)
+	cached.LastUpdate = time.Time{} // updated. exclude from comparison.
 	require.Equal(t, emptyTicks, cached)
 }
 
@@ -122,7 +124,8 @@ func TestQueryService_GetEmptyTicks_GivenNewInterval_ThenUpdate(t *testing.T) {
 		elasticClient: &FakeElasticClient{
 			emptyTicks: map[string][]uint32{"123-1-10": {1, 2, 3}, "123-100-200": {101, 102, 200}},
 		},
-		cache: NewStatusCache(nil, time.Second, time.Second),
+		cache:                    NewStatusCache(nil, time.Minute, time.Minute),
+		emptyTicksUpdateInterval: 0 * time.Nanosecond,
 	}
 
 	intervals := []*statusPb.TickInterval{
@@ -157,6 +160,8 @@ func TestQueryService_GetEmptyTicks_GivenNewInterval_ThenUpdate(t *testing.T) {
 			LastTick:  203, // plus query offset
 		},
 	}
+
+	//time.Sleep(time.Millisecond) // expire wait time (emptyTicksUpdateInterval)
 
 	emptyTicks, err = qs.GetEmptyTicks(context.Background(), 123, intervals)
 	require.NoError(t, err)
@@ -205,6 +210,50 @@ func TestQueryService_GetEmptyTicks_GivenMultipleIntervals_ThenQueryMultipleTime
 
 }
 
+func TestQueryService_GetEmptyTicks_GivenUpdateInterval_ThenOnlyUpdateAfterIntervalElapsed(t *testing.T) {
+	qs := &QueryService{
+		elasticClient: &FakeElasticClient{
+			emptyTicks: map[string][]uint32{"123-11-11": {11}},
+		},
+		cache:                    NewStatusCache(nil, time.Hour, time.Hour),
+		emptyTicksUpdateInterval: time.Hour,
+	}
+
+	intervals := []*statusPb.TickInterval{
+		{
+			Epoch:     123,
+			FirstTick: 1,
+			LastTick:  11,
+		},
+	}
+
+	// Cached with a recent LastUpdate — interval has not elapsed
+	qs.cache.SetEmptyTicks(&EmptyTicks{
+		Epoch:      123,
+		StartTick:  1,
+		EndTick:    10,
+		Ticks:      map[uint32]bool{1: true, 2: true, 3: true},
+		LastUpdate: time.Now(),
+	})
+
+	emptyTicks, err := qs.GetEmptyTicks(context.Background(), 123, intervals)
+	require.NoError(t, err)
+	assert.Equal(t, uint32(10), emptyTicks.EndTick, "should not update before interval elapses")
+
+	// Re-cache with an old LastUpdate — interval has elapsed
+	qs.cache.SetEmptyTicks(&EmptyTicks{
+		Epoch:      123,
+		StartTick:  1,
+		EndTick:    10,
+		Ticks:      map[uint32]bool{1: true, 2: true, 3: true},
+		LastUpdate: time.Now().Add(-2 * time.Hour),
+	})
+
+	emptyTicks, err = qs.GetEmptyTicks(context.Background(), 123, intervals)
+	require.NoError(t, err)
+	assert.Equal(t, uint32(11), emptyTicks.EndTick, "should update after interval elapses")
+}
+
 func TestCalculateRange(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -240,7 +289,7 @@ func TestCalculateRange(t *testing.T) {
 			interval: &statusPb.TickInterval{FirstTick: 5, LastTick: 20},
 			index:    0,
 			length:   1,
-			// anotherCall: 10 < 20-3=17 → true, to = max(11, 17) = 17
+			// anotherCall: 10 < 20-3=17 → true, to = 17
 			wantFrom: 11, // max(10+1, 5)
 			wantTo:   17, // LastTick - emptyTickQueryOffset
 		},
@@ -250,7 +299,7 @@ func TestCalculateRange(t *testing.T) {
 			interval: &statusPb.TickInterval{FirstTick: 5, LastTick: 20},
 			index:    0,
 			length:   1,
-			// anotherCall: 15 < 17 → true, to = max(16, 17) = 17
+			// anotherCall: 15 < 17 → true, to = LastTick - 3 (17)
 			wantFrom: 16, // max(15+1, 5)
 			wantTo:   17,
 		},
@@ -274,14 +323,23 @@ func TestCalculateRange(t *testing.T) {
 			wantFrom: 19,
 			wantTo:   20,
 		},
+		{
+			name:     "new interval, from < LastTick-offset: to < from", // needs to be handled
+			endTick:  10,
+			interval: &statusPb.TickInterval{FirstTick: 19, LastTick: 20},
+			index:    0,
+			length:   1,
+			wantFrom: 19, // initial tick,
+			wantTo:   17, // last tick - offset
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			emptyTicks := &EmptyTicks{EndTick: tc.endTick}
 			from, to := calculateRange(emptyTicks, tc.interval, tc.index == tc.length-1)
-			assert.Equal(t, tc.wantFrom, from)
-			assert.Equal(t, tc.wantTo, to)
+			assert.Equal(t, int(tc.wantFrom), int(from))
+			assert.Equal(t, int(tc.wantTo), int(to))
 		})
 	}
 }

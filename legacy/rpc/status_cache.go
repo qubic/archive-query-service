@@ -14,10 +14,11 @@ const tickIntervalsCacheKey = "tick_intervals"
 const emptyTicksCacheKeyFormat = "empty_ticks_%d"
 
 type EmptyTicks struct {
-	Epoch     uint32
-	StartTick uint32
-	EndTick   uint32
-	Ticks     map[uint32]bool
+	Epoch      uint32
+	StartTick  uint32
+	EndTick    uint32
+	Ticks      map[uint32]bool
+	LastUpdate time.Time
 }
 
 func (e *EmptyTicks) Clone() *EmptyTicks {
