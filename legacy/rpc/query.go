@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/qubic/archive-query-service/legacy/elastic"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
@@ -30,15 +31,17 @@ type QueryService struct {
 	tickDataIndex                string
 	computorListIndex            string
 	emptyTicksLock               sync.Mutex
+	emptyTicksUpdateInterval     time.Duration
 }
 
-func NewQueryService(txIndex, tickDataIndex, computorListIndex string, elasticClient elastic.SearchClient, cache QueryCache) *QueryService {
+func NewQueryService(txIndex, tickDataIndex, computorListIndex string, elasticClient elastic.SearchClient, cache QueryCache, emptyTicksUpdateInterval time.Duration) *QueryService {
 	return &QueryService{
-		elasticClient:     elasticClient,
-		txIndex:           txIndex,
-		tickDataIndex:     tickDataIndex,
-		computorListIndex: computorListIndex,
-		cache:             cache,
+		elasticClient:            elasticClient,
+		txIndex:                  txIndex,
+		tickDataIndex:            tickDataIndex,
+		computorListIndex:        computorListIndex,
+		cache:                    cache,
+		emptyTicksUpdateInterval: emptyTicksUpdateInterval,
 	}
 }
 

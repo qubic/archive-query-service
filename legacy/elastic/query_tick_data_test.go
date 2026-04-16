@@ -229,7 +229,7 @@ func createHits(total int, ids []string) struct {
 		Total: struct {
 			Value    int    `json:"value"`
 			Relation string `json:"relation"`
-		}{Value: total},
+		}{Value: total, Relation: "eq"},
 		Hits: hits,
 	}
 }
