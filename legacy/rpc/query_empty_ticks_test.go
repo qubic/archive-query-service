@@ -343,3 +343,89 @@ func TestCalculateRange(t *testing.T) {
 		})
 	}
 }
+
+func TestSanityCheckData(t *testing.T) {
+	tests := []struct {
+		name       string
+		emptyTicks *EmptyTicks
+		intervals  []*statusPb.TickInterval
+		epoch      uint32
+		wantErr    bool
+	}{
+		{
+			name: "success - all valid",
+			emptyTicks: &EmptyTicks{
+				Epoch:     1,
+				StartTick: 100,
+			},
+			intervals: []*statusPb.TickInterval{
+				{Epoch: 1, FirstTick: 100},
+				{Epoch: 1, FirstTick: 200},
+			},
+			epoch:   1,
+			wantErr: false,
+		},
+		{
+			name: "success - len(intervals) is 0",
+			emptyTicks: &EmptyTicks{
+				Epoch: 1,
+			},
+			intervals: []*statusPb.TickInterval{},
+			epoch:     1,
+			wantErr:   false,
+		},
+		{
+			name:       "error - verifySortedInEpoch fails (wrong epoch)",
+			emptyTicks: nil,
+			intervals: []*statusPb.TickInterval{
+				{Epoch: 2, FirstTick: 100},
+			},
+			epoch:   1,
+			wantErr: true,
+		},
+		{
+			name:       "error - verifySortedInEpoch fails (unsorted)",
+			emptyTicks: nil,
+			intervals: []*statusPb.TickInterval{
+				{Epoch: 1, FirstTick: 200},
+				{Epoch: 1, FirstTick: 100},
+			},
+			epoch:   1,
+			wantErr: true,
+		},
+		{
+			name: "error - emptyTicks wrong epoch",
+			emptyTicks: &EmptyTicks{
+				Epoch: 2,
+			},
+			intervals: []*statusPb.TickInterval{
+				{Epoch: 1, FirstTick: 100},
+			},
+			epoch:   1,
+			wantErr: true,
+		},
+		{
+			name: "error - emptyTicks.StartTick != intervals[0].FirstTick",
+			emptyTicks: &EmptyTicks{
+				Epoch:     1,
+				StartTick: 150,
+			},
+			intervals: []*statusPb.TickInterval{
+				{Epoch: 1, FirstTick: 100},
+			},
+			epoch:   1,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := sanityCheckData(tt.emptyTicks, tt.intervals, tt.epoch)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
