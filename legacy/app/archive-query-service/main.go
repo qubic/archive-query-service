@@ -45,7 +45,7 @@ func run() error {
 			EmptyTicksTtl            time.Duration `conf:"default:24h"` // nolint:revive
 			EmptyTicksUpdateInterval time.Duration `conf:"default:5s"`
 			MaxRecvSizeInMb          int           `conf:"default:1"`
-			MaxSendSizeInMb          int           `conf:"default:2"`
+			MaxSendSizeInMb          int           `conf:"default:10"`
 		}
 		ElasticSearch struct {
 			Address                   []string      `conf:"default:https://localhost:9200"`
@@ -138,7 +138,7 @@ func run() error {
 		MaxSendMsgSize: cfg.Server.MaxSendSizeInMb * 1024 * 1024,
 	}
 
-	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache, cfg.Server.EmptyTicksUpdateInterval)
+	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
 	rpcServer := rpc.NewServer(queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
