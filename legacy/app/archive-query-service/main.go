@@ -138,7 +138,7 @@ func run() error {
 		MaxSendMsgSize: cfg.Server.MaxSendSizeInMb * 1024 * 1024,
 	}
 
-	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache)
+	queryService := rpc.NewQueryService(cfg.ElasticSearch.TransactionsIndex, cfg.ElasticSearch.TickDataIndex, cfg.ElasticSearch.ComputorListIndex, elasticClient, cache, cfg.Server.EmptyTicksUpdateInterval)
 	rpcServer := rpc.NewServer(queryService, statusServiceClient)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusServiceClient, cache)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
