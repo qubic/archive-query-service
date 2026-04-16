@@ -22,61 +22,75 @@ func (qs *QueryService) GetEmptyTicks(ctx context.Context, epoch uint32, interva
 	}
 
 	if emptyTicks == nil { // reload
+		emptyTicks, err = qs.createNewEmptyTicks(ctx, epoch, intervals)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create empty ticks object: %w", err)
+		}
+	} else if isNextQueryFeasible(emptyTicks.LastUpdate, qs.emptyTicksUpdateInterval) {
+		// only refresh if not recently updated (to avoid multiple similar updates after each other)
+		err = qs.updateEmptyTicks(ctx, emptyTicks, intervals)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update empty ticks object: %w", err)
+		}
+	}
 
-		var emptyTickList []uint32
-		var startTick uint32
-		var endTick uint32
-		for _, interval := range intervals {
-			if startTick == 0 {
-				startTick = interval.FirstTick
-			}
-			if endTick < interval.LastTick {
-				endTick = interval.LastTick
-			}
-			// initially we ignore the offset this could get improved but typically is no problem
-			ticks, err := qs.queryEmptyTicksFromElastic(ctx, interval.FirstTick, interval.LastTick, epoch)
-			if err != nil {
-				return nil, err
-			}
-			emptyTickList = append(emptyTickList, ticks...)
-		}
-		tickMap := make(map[uint32]bool, len(emptyTickList))
-		for _, tick := range emptyTickList {
-			tickMap[tick] = true
-		}
-		emptyTicks = &EmptyTicks{
-			Epoch:      epoch,
-			StartTick:  startTick,
-			EndTick:    endTick,
-			Ticks:      tickMap,
-			LastUpdate: time.Now(),
-		}
-		if endTick > 0 { // ignore empty intervals on epoch change
-			qs.cache.SetEmptyTicks(emptyTicks)
-		}
+	return emptyTicks.Clone(), nil // return deep copy and not the cached instance
+}
 
-	} else if time.Since(emptyTicks.LastUpdate) >= qs.emptyTicksUpdateInterval {
-		// only refresh if not recently updated (to avoid two fast similar updates after each other)
+func (qs *QueryService) createNewEmptyTicks(ctx context.Context, epoch uint32, intervals []*statusPb.TickInterval) (*EmptyTicks, error) {
+	var emptyTickList []uint32
+	var startTick uint32
+	var endTick uint32
+	for _, interval := range intervals {
+		if startTick == 0 {
+			startTick = interval.FirstTick
+		}
+		if endTick < interval.LastTick {
+			endTick = interval.LastTick
+		}
+		// initially we ignore the offset this could get improved but typically is no problem
+		ticks, err := qs.queryEmptyTicksFromElastic(ctx, interval.FirstTick, interval.LastTick, epoch)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query empty ticks: %w", err)
+		}
+		emptyTickList = append(emptyTickList, ticks...)
+	}
+	tickMap := make(map[uint32]bool, len(emptyTickList))
+	for _, tick := range emptyTickList {
+		tickMap[tick] = true
+	}
+	emptyTicks := &EmptyTicks{
+		Epoch:      epoch,
+		StartTick:  startTick,
+		EndTick:    endTick,
+		Ticks:      tickMap,
+		LastUpdate: time.Now(),
+	}
+	if endTick > 0 { // ignore empty intervals on epoch change
+		qs.cache.SetEmptyTicks(emptyTicks)
+	}
+	return emptyTicks, nil
+}
 
-		emptyTicks.LastUpdate = time.Now()
-		for i, interval := range intervals {
-			if emptyTicks.EndTick < interval.LastTick {
-				// add missing ticks if necessary. Needs lock as we operate on the cached value!
-				from, to := calculateRange(emptyTicks, interval, isLast(i, len(intervals)))
-				if from <= to {
-					ticks, err := qs.queryEmptyTicksFromElastic(ctx, from, to, epoch)
-					if err != nil {
-						return nil, err
-					}
-					for _, tick := range ticks {
-						emptyTicks.Ticks[tick] = true
-					}
-					emptyTicks.EndTick = to
+func (qs *QueryService) updateEmptyTicks(ctx context.Context, emptyTicks *EmptyTicks, intervals []*statusPb.TickInterval) error {
+	emptyTicks.LastUpdate = time.Now()
+	for i, interval := range intervals {
+		if emptyTicks.EndTick < interval.LastTick {
+			// add missing ticks if necessary. Needs lock as we operate on the cached value!
+			from, to := calculateRange(emptyTicks, interval, isLast(i, len(intervals)))
+			if from <= to {
+				ticks, err := qs.queryEmptyTicksFromElastic(ctx, from, to, emptyTicks.Epoch)
+				if err != nil {
+					return fmt.Errorf("failed to query empty ticks: %w", err)
 				}
+				for _, tick := range ticks {
+					emptyTicks.Ticks[tick] = true
+				}
+				emptyTicks.EndTick = to
 			}
 		}
 	}
-	return emptyTicks.Clone(), nil // Return deep copy
+	return nil
 }
 
 func calculateRange(emptyTicks *EmptyTicks, interval *statusPb.TickInterval, isLastInterval bool) (uint32, uint32) {
@@ -88,6 +102,10 @@ func calculateRange(emptyTicks *EmptyTicks, interval *statusPb.TickInterval, isL
 		to = interval.LastTick - emptyTickQueryOffset // can be < from theoretically
 	}
 	return from, to
+}
+
+func isNextQueryFeasible(lastUpdate time.Time, interval time.Duration) bool {
+	return time.Since(lastUpdate) >= interval
 }
 
 func isFirstCall(emptyTicks *EmptyTicks, interval *statusPb.TickInterval) bool {

@@ -49,7 +49,7 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 
 	searchResult, err := c.performGetTicksQuery(ctx, startTick, endTick, epoch)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("performing (empty) ticks query: %w", err)
 	}
 
 	total := uint32(searchResult.Hits.Total.Value) // doesn't change in following queries
@@ -65,10 +65,6 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 		}
 		if nextTick < tickNumber { // only the gaps are empty
 			for i := nextTick; i < tickNumber; i++ {
-				if total < 100 {
-					log.Printf("[DEBUG] Add empty tick: [%d] (start %d, end %d, total %d, processed %d, number empty %d, empty ticks size %d)",
-						i, startTick, endTick, total, processed, numberOfEmpty, len(emptyTicks))
-				}
 				emptyTicks = append(emptyTicks, uint32(i))
 			}
 		}
@@ -77,11 +73,10 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 	}
 
 	for processed < total {
-
 		scrollID := searchResult.ScrollID
 		searchResult, err = c.performGetTicksScroll(ctx, scrollID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("performing scroll es call: %w", err)
 		}
 
 		for _, hit := range searchResult.Hits.Hits {
@@ -97,7 +92,6 @@ func (c *Client) QueryEmptyTicks(ctx context.Context, startTick, endTick, epoch 
 			nextTick = tickNumber + 1
 			processed++
 		}
-
 	}
 
 	// this should never happen if total calculation is correct
