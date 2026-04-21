@@ -1839,67 +1839,6 @@ func (x *BurningData) GetContractIndex() uint64 {
 	return 0
 }
 
-// ContractReserveDeductionData contains fields specific to contract reserve deduction events (type 13).
-type ContractReserveDeductionData struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	DeductedAmount  uint64                 `protobuf:"varint,1,opt,name=deducted_amount,json=deductedAmount,proto3" json:"deducted_amount,omitempty"`
-	RemainingAmount int64                  `protobuf:"varint,2,opt,name=remaining_amount,json=remainingAmount,proto3" json:"remaining_amount,omitempty"`
-	ContractIndex   uint64                 `protobuf:"varint,3,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *ContractReserveDeductionData) Reset() {
-	*x = ContractReserveDeductionData{}
-	mi := &file_messages_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ContractReserveDeductionData) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ContractReserveDeductionData) ProtoMessage() {}
-
-func (x *ContractReserveDeductionData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ContractReserveDeductionData.ProtoReflect.Descriptor instead.
-func (*ContractReserveDeductionData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *ContractReserveDeductionData) GetDeductedAmount() uint64 {
-	if x != nil {
-		return x.DeductedAmount
-	}
-	return 0
-}
-
-func (x *ContractReserveDeductionData) GetRemainingAmount() int64 {
-	if x != nil {
-		return x.RemainingAmount
-	}
-	return 0
-}
-
-func (x *ContractReserveDeductionData) GetContractIndex() uint64 {
-	if x != nil {
-		return x.ContractIndex
-	}
-	return 0
-}
-
 type SmartContractMessageData struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	ContractIndex       uint64                 `protobuf:"varint,1,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
@@ -1910,7 +1849,7 @@ type SmartContractMessageData struct {
 
 func (x *SmartContractMessageData) Reset() {
 	*x = SmartContractMessageData{}
-	mi := &file_messages_proto_msgTypes[29]
+	mi := &file_messages_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1922,7 +1861,7 @@ func (x *SmartContractMessageData) String() string {
 func (*SmartContractMessageData) ProtoMessage() {}
 
 func (x *SmartContractMessageData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[29]
+	mi := &file_messages_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1935,7 +1874,7 @@ func (x *SmartContractMessageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SmartContractMessageData.ProtoReflect.Descriptor instead.
 func (*SmartContractMessageData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{29}
+	return file_messages_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SmartContractMessageData) GetContractIndex() uint64 {
@@ -1961,7 +1900,7 @@ type CustomMessageData struct {
 
 func (x *CustomMessageData) Reset() {
 	*x = CustomMessageData{}
-	mi := &file_messages_proto_msgTypes[30]
+	mi := &file_messages_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1973,7 +1912,7 @@ func (x *CustomMessageData) String() string {
 func (*CustomMessageData) ProtoMessage() {}
 
 func (x *CustomMessageData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[30]
+	mi := &file_messages_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1986,7 +1925,7 @@ func (x *CustomMessageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomMessageData.ProtoReflect.Descriptor instead.
 func (*CustomMessageData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{30}
+	return file_messages_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CustomMessageData) GetValue() uint64 {
@@ -2011,7 +1950,7 @@ type AssetOwnershipManagingContractChangeData struct {
 
 func (x *AssetOwnershipManagingContractChangeData) Reset() {
 	*x = AssetOwnershipManagingContractChangeData{}
-	mi := &file_messages_proto_msgTypes[31]
+	mi := &file_messages_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2023,7 +1962,7 @@ func (x *AssetOwnershipManagingContractChangeData) String() string {
 func (*AssetOwnershipManagingContractChangeData) ProtoMessage() {}
 
 func (x *AssetOwnershipManagingContractChangeData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[31]
+	mi := &file_messages_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2036,7 +1975,7 @@ func (x *AssetOwnershipManagingContractChangeData) ProtoReflect() protoreflect.M
 
 // Deprecated: Use AssetOwnershipManagingContractChangeData.ProtoReflect.Descriptor instead.
 func (*AssetOwnershipManagingContractChangeData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{31}
+	return file_messages_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AssetOwnershipManagingContractChangeData) GetAssetName() string {
@@ -2097,7 +2036,7 @@ type AssetPossessionManagingContractChangeData struct {
 
 func (x *AssetPossessionManagingContractChangeData) Reset() {
 	*x = AssetPossessionManagingContractChangeData{}
-	mi := &file_messages_proto_msgTypes[32]
+	mi := &file_messages_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2109,7 +2048,7 @@ func (x *AssetPossessionManagingContractChangeData) String() string {
 func (*AssetPossessionManagingContractChangeData) ProtoMessage() {}
 
 func (x *AssetPossessionManagingContractChangeData) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[32]
+	mi := &file_messages_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2122,7 +2061,7 @@ func (x *AssetPossessionManagingContractChangeData) ProtoReflect() protoreflect.
 
 // Deprecated: Use AssetPossessionManagingContractChangeData.ProtoReflect.Descriptor instead.
 func (*AssetPossessionManagingContractChangeData) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{32}
+	return file_messages_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *AssetPossessionManagingContractChangeData) GetAssetName() string {
@@ -2174,6 +2113,68 @@ func (x *AssetPossessionManagingContractChangeData) GetDestinationContractIndex(
 	return 0
 }
 
+// ContractReserveDeductionData contains fields specific to contract reserve deduction events (type 13).
+type ContractReserveDeductionData struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	DeductedAmount  uint64                 `protobuf:"varint,1,opt,name=deducted_amount,json=deductedAmount,proto3" json:"deducted_amount,omitempty"`
+	RemainingAmount int64                  `protobuf:"varint,2,opt,name=remaining_amount,json=remainingAmount,proto3" json:"remaining_amount,omitempty"`
+	ContractIndex   uint64                 `protobuf:"varint,3,opt,name=contract_index,json=contractIndex,proto3" json:"contract_index,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ContractReserveDeductionData) Reset() {
+	*x = ContractReserveDeductionData{}
+	mi := &file_messages_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractReserveDeductionData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractReserveDeductionData) ProtoMessage() {}
+
+func (x *ContractReserveDeductionData) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractReserveDeductionData.ProtoReflect.Descriptor instead.
+func (*ContractReserveDeductionData) Descriptor() ([]byte, []int) {
+	return file_messages_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ContractReserveDeductionData) GetDeductedAmount() uint64 {
+	if x != nil {
+		return x.DeductedAmount
+	}
+	return 0
+}
+
+func (x *ContractReserveDeductionData) GetRemainingAmount() int64 {
+	if x != nil {
+		return x.RemainingAmount
+	}
+	return 0
+}
+
+func (x *ContractReserveDeductionData) GetContractIndex() uint64 {
+	if x != nil {
+		return x.ContractIndex
+	}
+	return 0
+}
+
+// OracleQueryStatusChangeData contains fields specific to the oracle query status change events (type 14)
 type OracleQueryStatusChangeData struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	QueryingEntity string                 `protobuf:"bytes,1,opt,name=querying_entity,json=queryingEntity,proto3" json:"querying_entity,omitempty"`
@@ -2250,6 +2251,7 @@ func (x *OracleQueryStatusChangeData) GetQueryStatus() uint64 {
 	return 0
 }
 
+// OracleSubscriberLogMessageData contains field specific to the oracle subscriber log message events (type 15)
 type OracleSubscriberLogMessageData struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	SubscriptionId      uint64                 `protobuf:"varint,1,opt,name=subscription_id,json=subscriptionId,proto3" json:"subscription_id,omitempty"`
@@ -2958,10 +2960,6 @@ const file_messages_proto_rawDesc = "" +
 	"\vBurningData\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\tR\x06source\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x04R\x06amount\x12%\n" +
-	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\x99\x01\n" +
-	"\x1cContractReserveDeductionData\x12'\n" +
-	"\x0fdeducted_amount\x18\x01 \x01(\x04R\x0edeductedAmount\x12)\n" +
-	"\x10remaining_amount\x18\x02 \x01(\x03R\x0fremainingAmount\x12%\n" +
 	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"u\n" +
 	"\x18SmartContractMessageData\x12%\n" +
 	"\x0econtract_index\x18\x01 \x01(\x04R\rcontractIndex\x122\n" +
@@ -2984,7 +2982,11 @@ const file_messages_proto_rawDesc = "" +
 	"\tpossessor\x18\x04 \x01(\tR\tpossessor\x12(\n" +
 	"\x10number_of_shares\x18\x05 \x01(\x04R\x0enumberOfShares\x122\n" +
 	"\x15source_contract_index\x18\x06 \x01(\x04R\x13sourceContractIndex\x12<\n" +
-	"\x1adestination_contract_index\x18\a \x01(\x04R\x18destinationContractIndex\"\xcc\x01\n" +
+	"\x1adestination_contract_index\x18\a \x01(\x04R\x18destinationContractIndex\"\x99\x01\n" +
+	"\x1cContractReserveDeductionData\x12'\n" +
+	"\x0fdeducted_amount\x18\x01 \x01(\x04R\x0edeductedAmount\x12)\n" +
+	"\x10remaining_amount\x18\x02 \x01(\x03R\x0fremainingAmount\x12%\n" +
+	"\x0econtract_index\x18\x03 \x01(\x04R\rcontractIndex\"\xcc\x01\n" +
 	"\x1bOracleQueryStatusChangeData\x12'\n" +
 	"\x0fquerying_entity\x18\x01 \x01(\tR\x0equeryingEntity\x12\x19\n" +
 	"\bquery_id\x18\x02 \x01(\x04R\aqueryId\x12'\n" +
@@ -3100,11 +3102,11 @@ var file_messages_proto_goTypes = []any{
 	(*AssetOwnershipChangeData)(nil),                  // 25: qubic.v2.archive.pb.AssetOwnershipChangeData
 	(*AssetPossessionChangeData)(nil),                 // 26: qubic.v2.archive.pb.AssetPossessionChangeData
 	(*BurningData)(nil),                               // 27: qubic.v2.archive.pb.BurningData
-	(*ContractReserveDeductionData)(nil),              // 28: qubic.v2.archive.pb.ContractReserveDeductionData
-	(*SmartContractMessageData)(nil),                  // 29: qubic.v2.archive.pb.SmartContractMessageData
-	(*CustomMessageData)(nil),                         // 30: qubic.v2.archive.pb.CustomMessageData
-	(*AssetOwnershipManagingContractChangeData)(nil),  // 31: qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
-	(*AssetPossessionManagingContractChangeData)(nil), // 32: qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
+	(*SmartContractMessageData)(nil),                  // 28: qubic.v2.archive.pb.SmartContractMessageData
+	(*CustomMessageData)(nil),                         // 29: qubic.v2.archive.pb.CustomMessageData
+	(*AssetOwnershipManagingContractChangeData)(nil),  // 30: qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
+	(*AssetPossessionManagingContractChangeData)(nil), // 31: qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
+	(*ContractReserveDeductionData)(nil),              // 32: qubic.v2.archive.pb.ContractReserveDeductionData
 	(*OracleQueryStatusChangeData)(nil),               // 33: qubic.v2.archive.pb.OracleQueryStatusChangeData
 	(*OracleSubscriberLogMessageData)(nil),            // 34: qubic.v2.archive.pb.OracleSubscriberLogMessageData
 	(*Event)(nil),                                     // 35: qubic.v2.archive.pb.Event
@@ -3142,11 +3144,11 @@ var file_messages_proto_depIdxs = []int32{
 	25, // 17: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
 	26, // 18: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
 	27, // 19: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
-	28, // 20: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
-	29, // 21: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
-	30, // 22: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
-	31, // 23: qubic.v2.archive.pb.Event.asset_ownership_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
-	32, // 24: qubic.v2.archive.pb.Event.asset_possession_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
+	32, // 20: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
+	28, // 21: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
+	29, // 22: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
+	30, // 23: qubic.v2.archive.pb.Event.asset_ownership_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
+	31, // 24: qubic.v2.archive.pb.Event.asset_possession_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
 	33, // 25: qubic.v2.archive.pb.Event.oracle_query_status_change:type_name -> qubic.v2.archive.pb.OracleQueryStatusChangeData
 	34, // 26: qubic.v2.archive.pb.Event.oracle_subscriber_log_message:type_name -> qubic.v2.archive.pb.OracleSubscriberLogMessageData
 	45, // 27: qubic.v2.archive.pb.GetEventLogsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.FiltersEntry

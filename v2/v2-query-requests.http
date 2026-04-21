@@ -49,7 +49,7 @@ Accept: application/json
 
 ### Get event logs
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -67,7 +67,7 @@ Accept: application/json
 
 ### Get events by assetName
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -77,7 +77,7 @@ Accept: application/json
 
 ### Get events by assetIssuer
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -87,7 +87,7 @@ Accept: application/json
 
 ### Get events by managingContractIndex
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -97,7 +97,7 @@ Accept: application/json
 
 ### Get events by contractIndex
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -107,7 +107,7 @@ Accept: application/json
 
 ### Get events by contractMessageType
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -117,7 +117,7 @@ Accept: application/json
 
 ### Get events by deductedAmount
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -127,7 +127,7 @@ Accept: application/json
 
 ### Get events by remainingAmount
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -137,7 +137,7 @@ Accept: application/json
 
 ### Get events by customMessage
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -147,7 +147,7 @@ Accept: application/json
 
 ### Get events by deductedAmount range
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
@@ -157,12 +157,122 @@ Accept: application/json
 
 ### Get events by remainingAmount range
 
-POST {{host}}/getEvents
+POST {{host}}/getEventLogs
 Accept: application/json
 
 {
     "ranges": { "remainingAmount": { "gte": "0", "lte": "100000000" } },
     "pagination": { "size": 3 }
+}
+
+### Get oracle query status change events (logType 14)
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "14" },
+    "pagination": { "size": 5 }
+}
+
+### Get oracle subscriber log message events (logType 15)
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "15" },
+    "pagination": { "size": 5 }
+}
+
+### Get both new oracle event types in one call
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "14,15" },
+    "pagination": { "size": 10 }
+}
+
+### Get oracle events by queryingEntity
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": {
+        "logType": "14",
+        "queryingEntity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB"
+    },
+    "pagination": { "size": 5 }
+}
+
+### Get oracle events by queryId
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "14", "queryId": "105138845195961344" },
+    "pagination": { "size": 5 }
+}
+
+### Get oracle events by queryType + queryStatus
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "14", "queryType": "2", "queryStatus": "1" },
+    "pagination": { "size": 5 }
+}
+
+### Get oracle subscriber events by subscriptionId
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "15", "subscriptionId": "0" },
+    "pagination": { "size": 5 }
+}
+
+### Get oracle subscriber events by interfaceIndex
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "logType": "15", "interfaceIndex": "0" },
+    "pagination": { "size": 5 }
+}
+
+### Negative test: invalid identity for queryingEntity (expect 400)
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "queryingEntity": "not-an-identity" }
+}
+
+### Negative test: non-numeric queryId (expect 400)
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "queryId": "abc" }
+}
+
+### Negative test: periodMillis is intentionally not exposed (expect 400 unsupported)
+
+POST {{host}}/getEventLogs
+Accept: application/json
+
+{
+    "filters": { "periodMillis": "1000" }
 }
 
 ###

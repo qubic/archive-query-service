@@ -198,6 +198,12 @@ type ArchiveQueryServiceClient interface {
 	// | deductedAmount        | string | Numeric (uint64)               | Deducted amount. (conditional)                                            |
 	// | remainingAmount       | string | Numeric (int64)                | Remaining amount. (conditional)                                           |
 	// | customMessage         | string | Numeric (uint64)               | Custom message. (conditional)                                             |
+	// | queryingEntity        | string | 60 character identity          | Querying entity identity. (conditional)                                   |
+	// | queryId               | string | Numeric (uint64)               | Oracle query id. (conditional)                                            |
+	// | queryType             | string | Numeric (uint64)               | Oracle query type. (conditional)                                          |
+	// | queryStatus           | string | Numeric (uint64)               | Oracle query status. (conditional)                                        |
+	// | subscriptionId        | string | Numeric (uint64)               | Oracle subscription id. (conditional)                                     |
+	// | interfaceIndex        | string | Numeric (uint64)               | Oracle interface index. (conditional)                                     |
 	//
 	// The following categories are theoretically supported at the moment. Not all are available in the archive.
 	// See log data consumer code for more details:
@@ -525,6 +531,12 @@ type ArchiveQueryServiceServer interface {
 	// | deductedAmount        | string | Numeric (uint64)               | Deducted amount. (conditional)                                            |
 	// | remainingAmount       | string | Numeric (int64)                | Remaining amount. (conditional)                                           |
 	// | customMessage         | string | Numeric (uint64)               | Custom message. (conditional)                                             |
+	// | queryingEntity        | string | 60 character identity          | Querying entity identity. (conditional)                                   |
+	// | queryId               | string | Numeric (uint64)               | Oracle query id. (conditional)                                            |
+	// | queryType             | string | Numeric (uint64)               | Oracle query type. (conditional)                                          |
+	// | queryStatus           | string | Numeric (uint64)               | Oracle query status. (conditional)                                        |
+	// | subscriptionId        | string | Numeric (uint64)               | Oracle subscription id. (conditional)                                     |
+	// | interfaceIndex        | string | Numeric (uint64)               | Oracle interface index. (conditional)                                     |
 	//
 	// The following categories are theoretically supported at the moment. Not all are available in the archive.
 	// See log data consumer code for more details:
