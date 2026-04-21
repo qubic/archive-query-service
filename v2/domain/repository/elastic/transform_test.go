@@ -176,3 +176,83 @@ func Test_eventToAPIEvent_Type12(t *testing.T) {
 	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
 	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 }
+
+func Test_eventToAPIEvent_Type13(t *testing.T) {
+	e := event{
+		LogType:         13,
+		DeductedAmount:  100,
+		RemainingAmount: 123,
+		ContractIndex:   5,
+	}
+
+	apiEv := eventToAPIEvent(e)
+
+	expected := &api.Event{
+		LogType: 13,
+		EventData: &api.Event_ContractReserveDeduction{
+			ContractReserveDeduction: &api.ContractReserveDeductionData{
+				DeductedAmount:  100,
+				RemainingAmount: 123,
+				ContractIndex:   5,
+			},
+		},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
+}
+
+func Test_eventToAPIEvent_Type14(t *testing.T) {
+	e := event{
+		LogType:        14,
+		QueryingEntity: "AAAAAAAAAAA",
+		QueryId:        123,
+		InterfaceIndex: 21,
+		QueryType:      1,
+		QueryStatus:    3,
+	}
+
+	apiEv := eventToAPIEvent(e)
+
+	expected := &api.Event{
+		LogType: 14,
+		EventData: &api.Event_OracleQueryStatusChange{
+			OracleQueryStatusChange: &api.OracleQueryStatusChangeData{
+				QueryingEntity: "AAAAAAAAAAA",
+				QueryId:        123,
+				InterfaceIndex: 21,
+				QueryType:      1,
+				QueryStatus:    3,
+			},
+		},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
+}
+
+func Test_eventToAPIEvent_Type15(t *testing.T) {
+	e := event{
+		LogType:             15,
+		SubscriptionId:      123,
+		InterfaceIndex:      24,
+		ContractIndex:       5,
+		PeriodMillis:        200,
+		FirstQueryTimestamp: 12312332,
+	}
+
+	apiEv := eventToAPIEvent(e)
+
+	expected := &api.Event{
+		LogType: 15,
+		EventData: &api.Event_OracleSubscriberLogMessage{
+			OracleSubscriberLogMessage: &api.OracleSubscriberLogMessageData{
+				SubscriptionId:      123,
+				InterfaceIndex:      24,
+				ContractIndex:       5,
+				PeriodMillis:        200,
+				FirstQueryTimestamp: 12312332,
+			},
+		},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
+}

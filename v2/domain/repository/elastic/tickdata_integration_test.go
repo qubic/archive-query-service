@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -13,9 +17,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcelastic "github.com/testcontainers/testcontainers-go/modules/elasticsearch"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"strings"
-	"testing"
-	"time"
 )
 
 var testTickData1 = tickData{

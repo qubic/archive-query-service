@@ -28,6 +28,12 @@ const (
 	EventFilterDeductedAmount        = "deductedAmount"
 	EventFilterRemainingAmount       = "remainingAmount"
 	EventFilterCustomMessage         = "customMessage"
+	EventFilterQueryingEntity        = "queryingEntity"
+	EventFilterQueryId               = "queryId"
+	EventFilterQueryType             = "queryType"
+	EventFilterQueryStatus           = "queryStatus"
+	EventFilterSubscriptionId        = "subscriptionId"
+	EventFilterInterfaceIndex        = "interfaceIndex"
 )
 
 const maxValuesPerEventFilter = 5
@@ -52,6 +58,12 @@ var AllowedEventIncludeFilters = map[string]bool{
 	EventFilterDeductedAmount:        true,
 	EventFilterRemainingAmount:       true,
 	EventFilterCustomMessage:         true,
+	EventFilterQueryingEntity:        true,
+	EventFilterQueryId:               true,
+	EventFilterQueryType:             true,
+	EventFilterQueryStatus:           true,
+	EventFilterSubscriptionId:        true,
+	EventFilterInterfaceIndex:        true,
 }
 
 var AllowedEventExcludeFilters = map[string]bool{
@@ -125,6 +137,12 @@ var eventFilterValidators = map[string]filterValidator{
 	EventFilterAssetName:             func(v []string) error { return ValidateStringFilterLength(v, 7, 1) },
 	EventFilterAssetIssuer:           func(v []string) error { return ValidateIdentityFilterValues(v, 1) },
 	EventFilterRemainingAmount:       func(v []string) error { return ValidateSignedNumericFilterValue(v, 64, 1) },
+	EventFilterQueryingEntity:        func(v []string) error { return ValidateIdentityFilterValues(v, 1) },
+	EventFilterQueryId:               func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterQueryType:             func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterQueryStatus:           func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterSubscriptionId:        func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
+	EventFilterInterfaceIndex:        func(v []string) error { return ValidateUnsignedNumericFilterValues(v, 64, 1) },
 }
 
 func validateEventsFilters(filterMap map[string][]string, allowedKeys map[string]bool) error {
@@ -235,7 +253,7 @@ func getMaxValuesForKey(k string) int {
 }
 
 func getMaxLengthForKey(k string) int {
-	maxLength := utils.If(k == EventFilterTransactionHash || k == EventFilterAssetIssuer, 60, 20)
+	maxLength := utils.If(k == EventFilterTransactionHash || k == EventFilterAssetIssuer || k == EventFilterQueryingEntity, 60, 20)
 	if k == EventFilterSource || k == EventFilterDestination {
 		maxLength = maxValueLengthPerEventIdentityFilter
 	}

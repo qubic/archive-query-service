@@ -119,6 +119,14 @@ func eventToAPIEvent(e event) *api.Event {
 		ev.EventData = &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 			DeductedAmount: e.DeductedAmount, RemainingAmount: e.RemainingAmount, ContractIndex: e.ContractIndex,
 		}}
+	case 14:
+		ev.EventData = &api.Event_OracleQueryStatusChange{OracleQueryStatusChange: &api.OracleQueryStatusChangeData{
+			QueryingEntity: e.QueryingEntity, QueryId: e.QueryId, InterfaceIndex: e.InterfaceIndex, QueryType: e.QueryType, QueryStatus: e.QueryStatus,
+		}}
+	case 15:
+		ev.EventData = &api.Event_OracleSubscriberLogMessage{OracleSubscriberLogMessage: &api.OracleSubscriberLogMessageData{
+			SubscriptionId: e.SubscriptionId, InterfaceIndex: e.InterfaceIndex, ContractIndex: e.ContractIndex, PeriodMillis: e.PeriodMillis, FirstQueryTimestamp: e.FirstQueryTimestamp,
+		}}
 	case 255:
 		ev.EventData = &api.Event_CustomMessage{CustomMessage: &api.CustomMessageData{
 			Value: e.CustomMessage,
