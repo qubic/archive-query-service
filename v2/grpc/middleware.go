@@ -45,6 +45,7 @@ func (twb *TickWithinBoundsInterceptor) GetInterceptor(ctx context.Context, req 
 		break
 	}
 
+	// TODO doesn't this override the more accurate status code from above?
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, fmt.Errorf("invalid tick number: %w", err).Error())
 	}
