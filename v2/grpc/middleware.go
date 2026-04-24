@@ -35,24 +35,20 @@ func (twb *TickWithinBoundsInterceptor) GetInterceptor(ctx context.Context, req 
 	var err error
 
 	switch request := req.(type) {
-
+	// errors returned here should be errors with grpc status codes (status.Errorf(...))
 	case *api.GetTickDataRequest:
 		err = twb.checkTickWithinArchiverIntervals(ctx, request.TickNumber)
 	case *api.GetTransactionsForTickRequest:
 		err = twb.checkTickWithinArchiverIntervals(ctx, request.TickNumber)
-
 	default:
 		break
 	}
 
-	// TODO doesn't this override the more accurate status code from above?
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Errorf("invalid tick number: %w", err).Error())
+		return nil, err
 	}
 
-	h, err := handler(ctx, req)
-
-	return h, err
+	return handler(ctx, req)
 }
 
 type IdentitiesValidatorInterceptor struct{}
@@ -164,7 +160,12 @@ func CreateTTLMapFromJSONFile(jsonFilePath string) (map[string]time.Duration, er
 	if err != nil {
 		return nil, fmt.Errorf("opening json file: %w", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		e := file.Close()
+		if e != nil {
+			log.Printf("[ERROR] Failed to close file: %v", e)
+		}
+	}(file)
 
 	var rawMap map[string]string
 	if err := json.NewDecoder(file).Decode(&rawMap); err != nil {
