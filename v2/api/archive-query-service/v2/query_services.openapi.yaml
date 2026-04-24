@@ -655,10 +655,6 @@ components:
                     type: integer
                     description: The initial tick of the current tick interval.
                     format: uint32
-                lastProcessedLogTick:
-                    type: integer
-                    description: The last processed tick for event logs.
-                    format: uint32
                 logTickNumber:
                     type: integer
                     description: The last processed tick for event logs.
