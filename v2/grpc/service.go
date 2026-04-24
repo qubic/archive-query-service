@@ -198,6 +198,7 @@ func (s *ArchiveQueryService) GetLastProcessedTick(ctx context.Context, _ *empty
 		Epoch:                cachedStatus.ProcessingEpoch,
 		IntervalInitialTick:  cachedStatus.IntervalInitialTick,
 		LastProcessedLogTick: cachedStatus.LastProcessedLogTick,
+		LogTickNumber:        cachedStatus.LastProcessedLogTick,
 	}, nil
 }
 

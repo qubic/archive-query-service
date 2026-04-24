@@ -659,6 +659,10 @@ components:
                     type: integer
                     description: The last processed tick for event logs.
                     format: uint32
+                logTickNumber:
+                    type: integer
+                    description: The last processed tick for event logs.
+                    format: uint32
             description: GetLastProcessedTickResponse
         GetProcessedTickIntervalsResponse:
             type: object

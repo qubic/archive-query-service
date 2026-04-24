@@ -107,7 +107,8 @@ func (s *ServerTestSuite) TestGetLastProcessedTick() {
 		TickNumber:           125,
 		Epoch:                100,
 		IntervalInitialTick:  10,
-		LastProcessedLogTick: 500,
+		LastProcessedLogTick: 500, // TODO remove
+		LogTickNumber:        500,
 	}
 	diff := cmp.Diff(expected, resp, protocmp.Transform())
 	require.Empty(t, diff, "expected last processed tick to match")
