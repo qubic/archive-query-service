@@ -33,4 +33,4 @@ jobs:
           context: ./v2
           file: ./v2/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v2:snapshot
+          tags: ghcr.io/qubic/archive-query-service-v2:log-tick-renaming
