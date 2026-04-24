@@ -50,6 +50,14 @@ type event struct {
 	CustomMessage            uint64  `json:"customMessage"`
 	ContractMessageType      uint64  `json:"contractMessageType"`
 	RawPayload               []byte  `json:"rawPayload"` // not all events have raw payload
+	QueryingEntity           string  `json:"queryingEntity"`
+	QueryId                  uint64  `json:"queryId"`
+	QueryType                uint64  `json:"queryType"`
+	QueryStatus              uint64  `json:"queryStatus"`
+	SubscriptionId           uint64  `json:"subscriptionId"`
+	InterfaceIndex           uint64  `json:"interfaceIndex"`
+	PeriodMillis             uint64  `json:"periodMillis"`
+	FirstQueryTimestamp      uint64  `json:"firstQueryTimestamp"`
 }
 
 type eventHit struct {

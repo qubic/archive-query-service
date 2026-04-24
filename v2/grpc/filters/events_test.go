@@ -28,6 +28,12 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"contractMessageType":   "7",
 		"deductedAmount":        "8",
 		"remainingAmount":       "-1",
+		"queryingEntity":        validId,
+		"queryId":               "10",
+		"queryType":             "2",
+		"queryStatus":           "3",
+		"subscriptionId":        "53",
+		"interfaceIndex":        "2",
 	}
 	result, err := CreateEventFilters(filters, AllowedEventIncludeFilters)
 	require.NoError(t, err)
@@ -44,6 +50,12 @@ func TestCreateEventsFilters_ValidFilters(t *testing.T) {
 		"contractMessageType":   {"7"},
 		"deductedAmount":        {"8"},
 		"remainingAmount":       {"-1"},
+		"queryingEntity":        {validId},
+		"queryId":               {"10"},
+		"queryType":             {"2"},
+		"queryStatus":           {"3"},
+		"subscriptionId":        {"53"},
+		"interfaceIndex":        {"2"},
 	}, result)
 }
 
@@ -233,7 +245,7 @@ func TestValidateEventsFilters_EmptyFilters(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_SingleValue(t *testing.T) {
-	filterNames := []string{"source", "destination", "assetIssuer"}
+	filterNames := []string{"source", "destination", "assetIssuer", "queryingEntity"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -298,7 +310,7 @@ func TestCreateEventsFilters_IdentityFilters_TooManyValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_EmptyValue(t *testing.T) {
-	filterNames := []string{"source", "destination", "assetIssuer"}
+	filterNames := []string{"source", "destination", "assetIssuer", "queryingEntity"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -326,7 +338,7 @@ func TestCreateEventsFilters_IdentityFilters_DuplicateValues(t *testing.T) {
 }
 
 func TestCreateEventsFilters_IdentityFilters_InvalidIdentity(t *testing.T) {
-	filterNames := []string{"source", "destination", "assetIssuer"}
+	filterNames := []string{"source", "destination", "assetIssuer", "queryingEntity"}
 	for _, filterName := range filterNames {
 		t.Run(filterName, func(t *testing.T) {
 			filters := map[string]string{
@@ -541,4 +553,33 @@ func TestCreateEventQueryRanges_InvalidRangeBounds(t *testing.T) {
 	}
 	_, err := CreateEventRanges(ranges, AllowedEventRanges)
 	require.ErrorContains(t, err, "invalid [numberOfShares] range")
+}
+
+func TestValidateEventsFilters_ValidUint64OracleFilters(t *testing.T) {
+	filterNames := []string{"queryId", "queryType", "queryStatus", "subscriptionId", "interfaceIndex"}
+	for _, filterName := range filterNames {
+		t.Run(filterName, func(t *testing.T) {
+			filters := map[string][]string{filterName: {"42"}}
+			err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestValidateEventsFilters_InvalidUint64OracleFilters(t *testing.T) {
+	filterNames := []string{"queryId", "queryType", "queryStatus", "subscriptionId", "interfaceIndex"}
+	for _, filterName := range filterNames {
+		t.Run(filterName+"_negative", func(t *testing.T) {
+			filters := map[string][]string{filterName: {"-1"}}
+			err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("invalid [%s] filter", filterName))
+		})
+		t.Run(filterName+"_nonNumeric", func(t *testing.T) {
+			filters := map[string][]string{filterName: {"abc"}}
+			err := validateEventsFilters(filters, AllowedEventIncludeFilters)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("invalid [%s] filter", filterName))
+		})
+	}
 }
