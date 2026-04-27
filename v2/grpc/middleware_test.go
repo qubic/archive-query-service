@@ -1,14 +1,84 @@
 package grpc
 
 import (
+	"context"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/grpc/mock"
+	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+func TestTickWithinBoundsInterceptor_checkTickWithinArchiverIntervals(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockStatusService := mock.NewMockStatusService(ctrl)
+	interceptor := NewTickWithinBoundsInterceptor(mockStatusService)
+
+	tcs := []struct {
+		name              string
+		tickNumber        uint32
+		lastProcessedTick uint32
+		intervals         []*api.ProcessedTickInterval
+		expectedCode      codes.Code
+	}{
+		{
+			name:              "tick greater than last processed tick",
+			tickNumber:        101,
+			lastProcessedTick: 100,
+			intervals:         nil,                      // not reached
+			expectedCode:      codes.FailedPrecondition, // changing this breaks backwards compatibility
+		},
+		{
+			name:              "tick skipped by archive",
+			tickNumber:        15,
+			lastProcessedTick: 100,
+			intervals: []*api.ProcessedTickInterval{
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
+			},
+			expectedCode: codes.OutOfRange, // changing this breaks backwards compatibility
+		},
+		{
+			name:              "tick within valid interval",
+			tickNumber:        25,
+			lastProcessedTick: 100,
+			intervals: []*api.ProcessedTickInterval{
+				{FirstTick: 20, LastTick: 30},
+			},
+			expectedCode: codes.OK,
+		},
+	}
+
+	for _, tc := range tcs {
+		tc := tc // Capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			mockStatusService.EXPECT().GetStatus(gomock.Any()).Return(&statusPb.GetStatusResponse{
+				LastProcessedTick: tc.lastProcessedTick,
+			}, nil)
+
+			mockStatusService.EXPECT().GetProcessedTickIntervals(gomock.Any()).Return(tc.intervals, nil)
+
+			err := interceptor.checkTickWithinArchiverIntervals(context.Background(), tc.tickNumber)
+			if tc.expectedCode == codes.OK {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, tc.expectedCode, st.Code())
+			}
+		})
+	}
+}
 
 func Test_WasSkippedByArchive(t *testing.T) {
 	tcs := []struct {
@@ -22,14 +92,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "before first interval",
 			tick: 10,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 31,
-					LastTick:  40,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 31, LastTick: 40},
 			},
 			expectedSkipped:           true,
 			expectedNextAvailableTick: 20,
@@ -38,14 +102,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "between first and second interval",
 			tick: 31,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           true,
 			expectedNextAvailableTick: 40,
@@ -54,14 +112,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "in first interval - first tick",
 			tick: 20,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
@@ -70,14 +122,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "in first interval - between first and last",
 			tick: 25,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
@@ -86,14 +132,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "in first interval - last tick",
 			tick: 30,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
@@ -102,14 +142,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "in last interval - first tick",
 			tick: 40,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
@@ -118,14 +152,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "in last interval - between first and last",
 			tick: 45,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
@@ -134,14 +162,8 @@ func Test_WasSkippedByArchive(t *testing.T) {
 			name: "in last interval - last tick",
 			tick: 50,
 			intervals: []*api.ProcessedTickInterval{
-				{
-					FirstTick: 20,
-					LastTick:  30,
-				},
-				{
-					FirstTick: 40,
-					LastTick:  50,
-				},
+				{FirstTick: 20, LastTick: 30},
+				{FirstTick: 40, LastTick: 50},
 			},
 			expectedSkipped:           false,
 			expectedNextAvailableTick: 0,
