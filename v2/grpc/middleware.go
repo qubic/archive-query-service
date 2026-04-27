@@ -81,12 +81,14 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {
 	cachedStatus, err := twb.statusService.GetStatus(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get status from cache: %v", err)
+		log.Printf("[ERROR] (middleware) getting status from cache: %v", err)
+		return status.Error(codes.Internal, "failed to get status from cache")
 	}
 
 	tickIntervals, err := twb.statusService.GetProcessedTickIntervals(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get tick intervals from cache: %v", err)
+		log.Printf("[ERROR] (middleware) getting tick intervals from cache: %v", err)
+		return status.Error(codes.Internal, "failed to get tick intervals from cache")
 	}
 
 	lastProcessedTick := cachedStatus.LastProcessedTick
@@ -95,6 +97,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 		st := status.Newf(codes.OutOfRange, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)
 		st, err = st.WithDetails(&api.LastProcessedTick{TickNumber: lastProcessedTick})
 		if err != nil {
+			log.Printf("[ERROR] (middleware) creating out of range grpc error details: %v", err)
 			return status.Errorf(codes.Internal, "creating custom status")
 		}
 		return st.Err()
@@ -106,6 +109,7 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 		st := status.Newf(codes.FailedPrecondition, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
 		st, err = st.WithDetails(&api.NextAvailableTick{NextTickNumber: nextAvailableTick})
 		if err != nil {
+			log.Printf("[ERROR] (middleware) creating failed precondition error details: %v", err)
 			return status.Errorf(codes.Internal, "creating custom status")
 		}
 		return st.Err()
