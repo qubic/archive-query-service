@@ -35,23 +35,20 @@ func (twb *TickWithinBoundsInterceptor) GetInterceptor(ctx context.Context, req 
 	var err error
 
 	switch request := req.(type) {
-
+	// errors returned here should be errors with grpc status codes (status.Errorf(...))
 	case *api.GetTickDataRequest:
 		err = twb.checkTickWithinArchiverIntervals(ctx, request.TickNumber)
 	case *api.GetTransactionsForTickRequest:
 		err = twb.checkTickWithinArchiverIntervals(ctx, request.TickNumber)
-
 	default:
 		break
 	}
 
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, fmt.Errorf("invalid tick number: %w", err).Error())
+		return nil, err
 	}
 
-	h, err := handler(ctx, req)
-
-	return h, err
+	return handler(ctx, req)
 }
 
 type IdentitiesValidatorInterceptor struct{}
@@ -84,20 +81,23 @@ func (i *IdentitiesValidatorInterceptor) checkFormat(idStr string, isLowercase b
 func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx context.Context, tickNumber uint32) error {
 	cachedStatus, err := twb.statusService.GetStatus(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get status from cache: %v", err)
+		log.Printf("[ERROR] (middleware) getting status from cache: %v", err)
+		return status.Error(codes.Internal, "failed to get status from cache")
 	}
 
 	tickIntervals, err := twb.statusService.GetProcessedTickIntervals(ctx)
 	if err != nil {
-		return status.Errorf(codes.Internal, "failed to get tick intervals from cache: %v", err)
+		log.Printf("[ERROR] (middleware) getting tick intervals from cache: %v", err)
+		return status.Error(codes.Internal, "failed to get tick intervals from cache")
 	}
 
 	lastProcessedTick := cachedStatus.LastProcessedTick
 
 	if tickNumber > lastProcessedTick {
-		st := status.Newf(codes.FailedPrecondition, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)
+		st := status.Newf(codes.OutOfRange, "requested tick number %d is greater than last processed tick %d", tickNumber, lastProcessedTick)
 		st, err = st.WithDetails(&api.LastProcessedTick{TickNumber: lastProcessedTick})
 		if err != nil {
+			log.Printf("[ERROR] (middleware) creating out of range grpc error details: %v", err)
 			return status.Errorf(codes.Internal, "creating custom status")
 		}
 		return st.Err()
@@ -106,9 +106,10 @@ func (twb *TickWithinBoundsInterceptor) checkTickWithinArchiverIntervals(ctx con
 	processedTickIntervalsPerEpoch := tickIntervals
 	wasSkipped, nextAvailableTick := WasSkippedByArchive(tickNumber, processedTickIntervalsPerEpoch)
 	if wasSkipped {
-		st := status.Newf(codes.OutOfRange, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
+		st := status.Newf(codes.FailedPrecondition, "provided tick number %d was skipped by the system, next available tick is %d", tickNumber, nextAvailableTick)
 		st, err = st.WithDetails(&api.NextAvailableTick{NextTickNumber: nextAvailableTick})
 		if err != nil {
+			log.Printf("[ERROR] (middleware) creating failed precondition error details: %v", err)
 			return status.Errorf(codes.Internal, "creating custom status")
 		}
 		return st.Err()
@@ -163,7 +164,12 @@ func CreateTTLMapFromJSONFile(jsonFilePath string) (map[string]time.Duration, er
 	if err != nil {
 		return nil, fmt.Errorf("opening json file: %w", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		e := file.Close()
+		if e != nil {
+			log.Printf("[ERROR] Failed to close file: %v", e)
+		}
+	}(file)
 
 	var rawMap map[string]string
 	if err := json.NewDecoder(file).Decode(&rawMap); err != nil {
