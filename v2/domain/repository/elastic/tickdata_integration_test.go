@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -159,4 +160,10 @@ func (t *tickDataSuite) Test_GetTickData() {
 	expected := tickDataToAPITickData(testTickData1)
 	diff := cmp.Diff(expected, td, cmpopts.IgnoreUnexported(api.TickData{}))
 	require.Emptyf(t.T(), diff, "tick data received should match the one inserted, diff: %s", diff)
+}
+
+func (t *tickDataSuite) Test_GetTickData_NotFound() {
+	td, err := t.repo.GetTickData(t.ctx, 9999999)
+	require.ErrorIs(t.T(), err, domain.ErrNotFound)
+	require.Nil(t.T(), td)
 }

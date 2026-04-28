@@ -2,9 +2,8 @@ package elastic
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strconv"
+	"strings"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain"
@@ -20,6 +19,14 @@ type tickDataGetResponse struct {
 	Source      tickData `json:"_source"`
 }
 
+type tickDataSearchResponse struct {
+	Hits struct {
+		Hits []struct {
+			Source tickData `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
 type tickData struct {
 	ComputorIndex     uint32   `json:"computorIndex"`
 	Epoch             uint32   `json:"epoch"`
@@ -33,25 +40,22 @@ type tickData struct {
 }
 
 // GetTickData Returns the tick data or domain.ErrNotFound if there is not tick data for this tick number.
-func (r *ArchiveRepository) GetTickData(_ context.Context, tickNumber uint32) (*api.TickData, error) {
-	res, err := r.esClient.Get(r.tickDataIndex, strconv.FormatUint(uint64(tickNumber), 10))
-	if err != nil {
-		return nil, fmt.Errorf("calling es client get: %w", err)
-	}
-	defer res.Body.Close()
+func (r *ArchiveRepository) GetTickData(ctx context.Context, tickNumber uint32) (*api.TickData, error) {
+	query := createTickDataByTickNumberQuery(tickNumber)
 
-	if res.StatusCode == 404 {
+	var searchRes tickDataSearchResponse
+	err := performElasticSearch(ctx, r.esClient, r.tickDataIndex, strings.NewReader(query), &searchRes)
+	if err != nil {
+		return nil, fmt.Errorf("performing elastic search: %w", err)
+	}
+
+	if len(searchRes.Hits.Hits) == 0 {
 		return nil, domain.ErrNotFound
 	}
 
-	if res.IsError() {
-		return nil, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
-	}
+	return tickDataToAPITickData(searchRes.Hits.Hits[0].Source), nil
+}
 
-	var result tickDataGetResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decoding response: %w", err)
-	}
-
-	return tickDataToAPITickData(result.Source), nil
+func createTickDataByTickNumberQuery(tickNumber uint32) string {
+	return fmt.Sprintf(`{"query":{"term":{"tickNumber":"%d"}},"size":1}`, tickNumber)
 }

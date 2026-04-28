@@ -13,6 +13,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
+	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -229,6 +230,12 @@ func (t *transactionsSuite) Test_GetTransactionByHash() {
 	expected := transactionToAPITransaction(testTx1)
 	diff := cmp.Diff(expected, tx, cmpopts.IgnoreUnexported(api.Transaction{}))
 	require.Empty(t.T(), diff, "transaction received should match the one inserted, diff: %s", diff)
+}
+
+func (t *transactionsSuite) Test_GetTransactionByHash_NotFound() {
+	tx, err := t.repo.GetTransactionByHash(t.ctx, "non-existent-hash")
+	require.ErrorIs(t.T(), err, domain.ErrNotFound)
+	require.Nil(t.T(), tx)
 }
 
 func (t *transactionsSuite) Test_GetIdentityTransactions() {
