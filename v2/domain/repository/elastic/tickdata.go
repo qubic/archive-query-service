@@ -3,21 +3,12 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 	"github.com/qubic/archive-query-service/v2/domain"
 )
-
-type tickDataGetResponse struct {
-	Index       string   `json:"_index"`
-	ID          string   `json:"_id"`
-	Version     int      `json:"_version"`
-	SeqNo       int      `json:"_seq_no"`
-	PrimaryTerm int      `json:"_primary_term"`
-	Found       bool     `json:"found"`
-	Source      tickData `json:"_source"`
-}
 
 type tickDataSearchResponse struct {
 	Hits struct {
@@ -51,6 +42,10 @@ func (r *ArchiveRepository) GetTickData(ctx context.Context, tickNumber uint32) 
 
 	if len(searchRes.Hits.Hits) == 0 {
 		return nil, domain.ErrNotFound
+	}
+
+	if len(searchRes.Hits.Hits) > 1 { // should never happen. same tick number in multiple indices.
+		log.Printf("[WARN] multiple tick data results found for tick [%d].", tickNumber)
 	}
 
 	return tickDataToAPITickData(searchRes.Hits.Hits[0].Source), nil

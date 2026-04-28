@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -11,16 +12,6 @@ import (
 	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
 )
-
-type transactionGetResponse struct {
-	Index       string      `json:"_index"`
-	ID          string      `json:"_id"`
-	Version     int         `json:"_version"`
-	SeqNo       int         `json:"_seq_no"`
-	PrimaryTerm int         `json:"_primary_term"`
-	Found       bool        `json:"found"`
-	Source      transaction `json:"_source"`
-}
 
 type transactionHit struct {
 	Source transaction `json:"_source"`
@@ -63,6 +54,10 @@ func (r *ArchiveRepository) GetTransactionByHash(ctx context.Context, hash strin
 
 	if len(searchRes.Hits.Hits) == 0 {
 		return nil, domain.ErrNotFound
+	}
+
+	if len(searchRes.Hits.Hits) > 1 { // should never happen. same hash in multiple indices.
+		log.Printf("[WARN] multiple transactions found for hash [%s].", hash)
 	}
 
 	return transactionToAPITransaction(searchRes.Hits.Hits[0].Source), nil
