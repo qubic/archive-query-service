@@ -36,26 +36,38 @@ func (c *Client) QueryIdentityTransactions(ctx context.Context, id string, pageS
 }
 
 func (c *Client) QueryTransactionByHash(ctx context.Context, txID string) (result TransactionGetResponse, err error) {
-	res, err := c.elastic.Get(
-		c.txIndex,
-		txID,
-		c.elastic.Get.WithContext(ctx),
+	query, err := createTransactionByHashQuery(txID)
+	if err != nil {
+		return TransactionGetResponse{}, fmt.Errorf("creating query: %w", err)
+	}
+
+	res, err := c.elastic.Search(
+		c.elastic.Search.WithContext(ctx),
+		c.elastic.Search.WithIndex(c.txIndex),
+		c.elastic.Search.WithBody(&query),
 	)
 	if err != nil {
-		return TransactionGetResponse{}, fmt.Errorf("calling es client get: %w", err)
+		return TransactionGetResponse{}, fmt.Errorf("performing search: %w", err)
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode == 404 {
+	if res.IsError() {
+		return TransactionGetResponse{}, fmt.Errorf("error response from Elasticsearch: %s", res.String())
+	}
+
+	var searchRes TransactionsSearchResponse
+	if err = json.NewDecoder(res.Body).Decode(&searchRes); err != nil {
+		return TransactionGetResponse{}, fmt.Errorf("decoding response: %w", err)
+	}
+
+	if len(searchRes.Hits.Hits) == 0 {
 		return TransactionGetResponse{}, ErrDocumentNotFound
 	}
 
-	if res.IsError() {
-		return TransactionGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
-	}
-
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return TransactionGetResponse{}, fmt.Errorf("decoding response: %w", err)
+	hit := searchRes.Hits.Hits[0]
+	result = TransactionGetResponse{
+		Found:  true,
+		Source: hit.Source,
 	}
 
 	return result, nil
@@ -152,7 +164,7 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	query := map[string]interface{}{
 		"track_total_hits": "true",
 		"query": map[string]interface{}{
-			"match": map[string]interface{}{
+			"term": map[string]interface{}{
 				"tickNumber": tick,
 			},
 		},
@@ -165,6 +177,12 @@ func createTickTransactionsQuery(tick uint32) (bytes.Buffer, error) {
 	}
 
 	return buf, nil
+}
+
+func createTransactionByHashQuery(txID string) (bytes.Buffer, error) {
+	query := `{ "query": { "term": { "hash": "%s" } }, "size": 1 }`
+	query = fmt.Sprintf(query, txID)
+	return *bytes.NewBufferString(query), nil
 }
 
 type TxHit struct {

@@ -1,6 +1,7 @@
 package elastic
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,15 +15,20 @@ import (
 )
 
 func (c *Client) QueryTickDataByTickNumber(ctx context.Context, tickNumber uint32) (result TickDataGetResponse, err error) {
+	query, err := createTickDataByTickNumberQuery(tickNumber)
+	if err != nil {
+		return TickDataGetResponse{}, fmt.Errorf("creating query: %w", err)
+	}
 
-	res, err := c.elastic.Get(
-		c.tickDataIndex,
-		strconv.FormatUint(uint64(tickNumber), 10),
-		c.elastic.Get.WithContext(ctx),
+	res, err := c.elastic.Search(
+		c.elastic.Search.WithContext(ctx),
+		c.elastic.Search.WithIndex(c.tickDataIndex),
+		c.elastic.Search.WithBody(&query),
 	)
 	if err != nil {
-		return TickDataGetResponse{}, fmt.Errorf("calling es client get: %w", err)
+		return TickDataGetResponse{}, fmt.Errorf("performing search: %w", err)
 	}
+
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
@@ -30,16 +36,23 @@ func (c *Client) QueryTickDataByTickNumber(ctx context.Context, tickNumber uint3
 		}
 	}(res.Body)
 
-	if res.StatusCode == 404 {
-		return TickDataGetResponse{}, ErrDocumentNotFound
-	}
-
 	if res.IsError() {
 		return TickDataGetResponse{}, fmt.Errorf("got error response from Elasticsearch: %s", res.String())
 	}
 
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
+	var searchRes TickListSearchWithSourceResponse
+	if err = json.NewDecoder(res.Body).Decode(&searchRes); err != nil {
 		return TickDataGetResponse{}, fmt.Errorf("decoding response: %w", err)
+	}
+
+	if len(searchRes.Hits.Hits) == 0 {
+		return TickDataGetResponse{}, ErrDocumentNotFound
+	}
+
+	hit := searchRes.Hits.Hits[0]
+	result = TickDataGetResponse{
+		Found:  true,
+		Source: hit.Source,
 	}
 
 	return result, nil
@@ -151,6 +164,12 @@ func (c *Client) performGetTicksScroll(ctx context.Context, scrollID string) (*T
 	})
 }
 
+func createTickDataByTickNumberQuery(tickNumber uint32) (bytes.Buffer, error) {
+	query := `{ "query": { "term": { "tickNumber": "%d" } }, "size": 1 }`
+	query = fmt.Sprintf(query, tickNumber)
+	return *bytes.NewBufferString(query), nil
+}
+
 func executeSearch(search func() (*esapi.Response, error)) (*TickListSearchResponse, error) {
 	res, err := search()
 	if err != nil {
@@ -188,6 +207,14 @@ type TickListSearchResponse struct {
 		} `json:"total"`
 		Hits []struct {
 			ID string `json:"_id"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
+type TickListSearchWithSourceResponse struct {
+	Hits struct {
+		Hits []struct {
+			Source TickData `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
 }

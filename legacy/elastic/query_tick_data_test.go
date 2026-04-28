@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -196,6 +197,112 @@ func TestClient_QueryEmptyTicks(t *testing.T) {
 				} else {
 					assert.Equal(t, tt.expectedResult, result)
 				}
+			}
+		})
+	}
+}
+
+func TestClient_QueryTickDataByTickNumber(t *testing.T) {
+	tests := []struct {
+		name           string
+		tickNumber     uint32
+		mockResponse   interface{}
+		mockStatusCode int
+		expectedResult TickDataGetResponse
+		expectedErr    error
+	}{
+		{
+			name:       "Success - found tick data",
+			tickNumber: 123,
+			mockResponse: TickListSearchWithSourceResponse{
+				Hits: struct {
+					Hits []struct {
+						Source TickData `json:"_source"`
+					} `json:"hits"`
+				}{
+					Hits: []struct {
+						Source TickData `json:"_source"`
+					}{
+						{
+							Source: TickData{
+								TickNumber: 123,
+								Epoch:      1,
+								Timestamp:  123456789,
+							},
+						},
+					},
+				},
+			},
+			mockStatusCode: http.StatusOK,
+			expectedResult: TickDataGetResponse{
+				Found: true,
+				Source: TickData{
+					TickNumber: 123,
+					Epoch:      1,
+					Timestamp:  123456789,
+				},
+			},
+			expectedErr: nil,
+		},
+		{
+			name:       "Not found",
+			tickNumber: 456,
+			mockResponse: TickListSearchWithSourceResponse{
+				Hits: struct {
+					Hits []struct {
+						Source TickData `json:"_source"`
+					} `json:"hits"`
+				}{
+					Hits: []struct {
+						Source TickData `json:"_source"`
+					}{},
+				},
+			},
+			mockStatusCode: http.StatusOK,
+			expectedResult: TickDataGetResponse{},
+			expectedErr:    ErrDocumentNotFound,
+		},
+		{
+			name:           "Elastic error",
+			tickNumber:     789,
+			mockResponse:   map[string]string{"error": "some error"},
+			mockStatusCode: http.StatusInternalServerError,
+			expectedResult: TickDataGetResponse{},
+			expectedErr:    fmt.Errorf("got error response from Elasticsearch"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockTrans := &mockTransport{
+				roundTripFunc: func(req *http.Request) (*http.Response, error) {
+					header := make(http.Header)
+					header.Set("X-Elastic-Product", "Elasticsearch")
+
+					body, _ := json.Marshal(tt.mockResponse)
+					return &http.Response{
+						StatusCode: tt.mockStatusCode,
+						Body:       io.NopCloser(bytes.NewReader(body)),
+						Header:     header,
+					}, nil
+				},
+			}
+
+			esClient, err := elasticsearch.NewClient(elasticsearch.Config{
+				Transport: mockTrans,
+			})
+			require.NoError(t, err)
+
+			client := NewElasticClient("tx", "tick", "comp", esClient)
+
+			result, err := client.QueryTickDataByTickNumber(context.Background(), tt.tickNumber)
+
+			if tt.expectedErr != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedResult, result)
 			}
 		})
 	}
