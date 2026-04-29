@@ -1,4 +1,4 @@
-name: Deploy v2 prod images to GHCR
+name: Deploy v2 snapshot images to GHCR
 
 on:
   push:
