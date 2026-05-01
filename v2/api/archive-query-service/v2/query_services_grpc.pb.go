@@ -160,8 +160,6 @@ type ArchiveQueryServiceClient interface {
 	GetProcessedTickIntervals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProcessedTickIntervalsResponse, error)
 	// Query event logs with optional filters.
 	//
-	// Please note: beta version – may be subject to incompatible changes.
-	//
 	// ###  Request structure
 	//
 	// | Name       | Type               | Necessity | Description                                                    |
@@ -492,8 +490,6 @@ type ArchiveQueryServiceServer interface {
 	// interval by using the `get last processed tick` endpoint.
 	GetProcessedTickIntervals(context.Context, *emptypb.Empty) (*GetProcessedTickIntervalsResponse, error)
 	// Query event logs with optional filters.
-	//
-	// Please note: beta version – may be subject to incompatible changes.
 	//
 	// ###  Request structure
 	//

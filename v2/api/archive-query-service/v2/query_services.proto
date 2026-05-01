@@ -41,8 +41,8 @@ option (openapi.v3.document) = {
       description: "Archive processing status and coverage information."
     },
     {
-      name: "Events (Beta)"
-      description: "Query event logs from the Qubic blockchain. Beta endpoint."
+      name: "Events"
+      description: "Query event logs from the Qubic blockchain."
     }
   ]
 };
@@ -253,8 +253,6 @@ service ArchiveQueryService {
   }
 
   // Query event logs with optional filters.
-  //
-  // Please note: beta version – may be subject to incompatible changes.
   //
   // ###  Request structure
   //

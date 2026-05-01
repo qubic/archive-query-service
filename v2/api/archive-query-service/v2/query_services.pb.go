@@ -46,14 +46,14 @@ const file_query_services_proto_rawDesc = "" +
 	"\fGetEventLogs\x12(.qubic.v2.archive.pb.GetEventLogsRequest\x1a).qubic.v2.archive.pb.GetEventLogsResponse\":\xbaG\x1f\n" +
 	"\rEvents (Beta)\x12\x0eGet Event Logs\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/getEventLogs\x12\xcd\x01\n" +
 	"\tGetHealth\x12\x16.google.protobuf.Empty\x1a#.qubic.v2.archive.pb.HealthResponse\"\x82\x01\xbaGp\x12\n" +
-	"Get Health\x1abHealth check. This is for internal use only and can change any time. Do not rely on this endpoint.\x82\xd3\xe4\x93\x02\t\x12\a/healthB\xfe\x03\xbaG\xce\x03\x12H\n" +
+	"Get Health\x1abHealth check. This is for internal use only and can change any time. Do not rely on this endpoint.\x82\xd3\xe4\x93\x02\t\x12\a/healthB\xe8\x03\xbaG\xb8\x03\x12H\n" +
 	"\x0fQubic Query API\x12.API for querying historical Qubic ledger data.2\x051.0.0\x1a \n" +
 	"\x1ehttps://rpc.qubic.org/query/v1:*\n" +
 	"\x05Ticks\x12!Query tick data from the archive.:8\n" +
 	"\fTransactions\x12(Search and retrieve transaction history.:3\n" +
 	"\aNetwork\x12(Network status and computor information.:>\n" +
-	"\aArchive\x123Archive processing status and coverage information.:K\n" +
-	"\rEvents (Beta)\x12:Query event logs from the Qubic blockchain. Beta endpoint.B8\n" +
+	"\aArchive\x123Archive processing status and coverage information.:5\n" +
+	"\x06Events\x12+Query event logs from the Qubic blockchain.B8\n" +
 	"\x06GitHub\x12.https://github.com/qubic/archive-query-serviceZ*github.com/qubic/archive-query-service/apib\x06proto3"
 
 var file_query_services_proto_goTypes = []any{
