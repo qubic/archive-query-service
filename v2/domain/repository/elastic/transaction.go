@@ -3,8 +3,8 @@ package elastic
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -12,16 +12,6 @@ import (
 	"github.com/qubic/archive-query-service/v2/domain"
 	"github.com/qubic/archive-query-service/v2/entities"
 )
-
-type transactionGetResponse struct {
-	Index       string      `json:"_index"`
-	ID          string      `json:"_id"`
-	Version     int         `json:"_version"`
-	SeqNo       int         `json:"_seq_no"`
-	PrimaryTerm int         `json:"_primary_term"`
-	Found       bool        `json:"found"`
-	Source      transaction `json:"_source"`
-}
 
 type transactionHit struct {
 	Source transaction `json:"_source"`
@@ -53,27 +43,28 @@ type transaction struct {
 
 const maxTrackTotalHits int = 10000 // limit for better performance
 
-func (r *ArchiveRepository) GetTransactionByHash(_ context.Context, hash string) (*api.Transaction, error) {
-	res, err := r.esClient.Get(r.txIndex, hash)
-	if err != nil {
-		return nil, fmt.Errorf("calling es client get with: %w", err)
-	}
-	defer res.Body.Close()
+func (r *ArchiveRepository) GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error) {
+	query := createTransactionByHashQuery(hash)
 
-	if res.StatusCode == 404 {
+	var searchRes transactionsSearchResponse
+	err := performElasticSearch(ctx, r.esClient, r.txIndex, strings.NewReader(query), &searchRes)
+	if err != nil {
+		return nil, fmt.Errorf("performing elastic search: %w", err)
+	}
+
+	if len(searchRes.Hits.Hits) == 0 {
 		return nil, domain.ErrNotFound
 	}
 
-	if res.IsError() {
-		return nil, fmt.Errorf("got error response from data store: %s", res.String())
+	if len(searchRes.Hits.Hits) > 1 { // should never happen. same hash in multiple indices.
+		log.Printf("[WARN] multiple transactions found for hash [%s].", hash)
 	}
 
-	var result transactionGetResponse
-	if err = json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decoding json response: %w", err)
-	}
+	return transactionToAPITransaction(searchRes.Hits.Hits[0].Source), nil
+}
 
-	return transactionToAPITransaction(result.Source), nil
+func createTransactionByHashQuery(hash string) string {
+	return fmt.Sprintf(`{"query":{"term":{"hash":"%s"}},"size":1}`, hash)
 }
 
 func (r *ArchiveRepository) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error) {
