@@ -395,3 +395,41 @@ func Test_createEventsQuery_tickCap_onlyLowerBound(t *testing.T) {
 	tickRange := rangeFilter["tickNumber"].(map[string]any)
 	assert.Equal(t, "1000", tickRange["gte"])
 }
+
+func Test_createEventsQuery_withLogIdRangeFilter(t *testing.T) {
+	includes := map[string][]string{
+		"tickNumber": {"42"},
+	}
+	ranges := map[string][]entities.Range{
+		"logId": {
+			{Operation: "gte", Value: "0"},
+			{Operation: "lte", Value: "9999"},
+		},
+	}
+	query, err := createEventsQuery(entities.Filters{Include: includes, Ranges: ranges}, 0, 10, 999999)
+	require.NoError(t, err)
+
+	var parsed map[string]any
+	err = json.Unmarshal([]byte(query), &parsed)
+	require.NoError(t, err)
+
+	q := parsed["query"].(map[string]any)
+	boolQuery := q["bool"].(map[string]any)
+	filterArr := boolQuery["filter"].([]any)
+	require.Len(t, filterArr, 3) // default tick cap (no tick range) + tickNumber include + logId range
+
+	// First entry is the default tick cap (logId range does not provide a tickNumber upper bound)
+	capFilter := filterArr[0].(map[string]any)["range"].(map[string]any)
+	capRange := capFilter["tickNumber"].(map[string]any)
+	assert.Equal(t, "999999", capRange["lte"])
+
+	// Second is the include filter (tickNumber term)
+	tickTerm := filterArr[1].(map[string]any)["term"].(map[string]any)
+	assert.Equal(t, "42", tickTerm["tickNumber"])
+
+	// Third is the logId range
+	rangeFilter := filterArr[2].(map[string]any)["range"].(map[string]any)
+	logIdRange := rangeFilter["logId"].(map[string]any)
+	assert.Equal(t, "0", logIdRange["gte"])
+	assert.Equal(t, "9999", logIdRange["lte"])
+}

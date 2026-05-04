@@ -346,6 +346,38 @@ func (s *eventsSuite) Test_GetEvents_WithRangeFilter() {
 	assert.Equal(s.T(), 1000, int(events[0].GetQuTransfer().GetAmount()))
 }
 
+func (s *eventsSuite) Test_GetEvents_WithLogIdRangeFilter() {
+	ranges := map[string][]entities.Range{
+		"logId": {
+			{Operation: "gte", Value: "3"},
+			{Operation: "lte", Value: "5"},
+		},
+	}
+	events, hits, err := s.repo.GetEvents(s.ctx, entities.Filters{Ranges: ranges}, 0, 10, 999999)
+	require.NoError(s.T(), err, "getting events with logId range filter")
+	require.Len(s.T(), events, 3)
+	require.Equal(s.T(), 3, hits.Total)
+
+	logIds := []uint64{events[0].GetLogId(), events[1].GetLogId(), events[2].GetLogId()}
+	assert.ElementsMatch(s.T(), []uint64{3, 4, 5}, logIds)
+}
+
+func (s *eventsSuite) Test_GetEvents_WithLogIdRangeAndExclusiveBounds() {
+	ranges := map[string][]entities.Range{
+		"logId": {
+			{Operation: "gt", Value: "2"},
+			{Operation: "lt", Value: "5"},
+		},
+	}
+	events, hits, err := s.repo.GetEvents(s.ctx, entities.Filters{Ranges: ranges}, 0, 10, 999999)
+	require.NoError(s.T(), err, "getting events with exclusive logId range")
+	require.Len(s.T(), events, 2)
+	require.Equal(s.T(), 2, hits.Total)
+
+	logIds := []uint64{events[0].GetLogId(), events[1].GetLogId()}
+	assert.ElementsMatch(s.T(), []uint64{3, 4}, logIds)
+}
+
 func (s *eventsSuite) Test_GetEvents_WithShouldFilter() {
 	should := []entities.ShouldFilter{
 		{Terms: map[string][]string{
