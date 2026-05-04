@@ -555,6 +555,69 @@ func TestCreateEventQueryRanges_InvalidRangeBounds(t *testing.T) {
 	require.ErrorContains(t, err, "invalid [numberOfShares] range")
 }
 
+func TestCreateEventQueryRanges_ValidLogIdRange(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"logId": {
+			LowerBound: &api.Range_Gte{Gte: "0"},
+			UpperBound: &api.Range_Lte{Lte: "9999"},
+		},
+	}
+	result, err := CreateEventRanges(ranges, AllowedEventRanges)
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.Contains(t, result, "logId")
+	assert.Len(t, result["logId"], 2)
+	assert.Equal(t, "gte", result["logId"][0].Operation)
+	assert.Equal(t, "0", result["logId"][0].Value)
+	assert.Equal(t, "lte", result["logId"][1].Operation)
+	assert.Equal(t, "9999", result["logId"][1].Value)
+}
+
+func TestCreateEventQueryRanges_LogIdInvalidBounds(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"logId": {
+			LowerBound: &api.Range_Gte{Gte: "1000"},
+			UpperBound: &api.Range_Lte{Lte: "10"},
+		},
+	}
+	_, err := CreateEventRanges(ranges, AllowedEventRanges)
+	require.ErrorContains(t, err, "invalid [logId] range")
+}
+
+func TestCreateEventQueryRanges_LogIdNonNumeric(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"logId": {
+			LowerBound: &api.Range_Gte{Gte: "abc"},
+			UpperBound: &api.Range_Lte{Lte: "100"},
+		},
+	}
+	_, err := CreateEventRanges(ranges, AllowedEventRanges)
+	require.ErrorContains(t, err, "invalid [logId] range")
+}
+
+func TestCreateEventQueryRanges_LogIdNegativeRejected(t *testing.T) {
+	ranges := map[string]*api.Range{
+		"logId": {
+			LowerBound: &api.Range_Gte{Gte: "-1"},
+			UpperBound: &api.Range_Lte{Lte: "100"},
+		},
+	}
+	_, err := CreateEventRanges(ranges, AllowedEventRanges)
+	require.ErrorContains(t, err, "invalid [logId] range")
+}
+
+func TestVerifyNoConflictingFilters_LogIdIncludeAndRangeConflict(t *testing.T) {
+	queryFilters := entities.Filters{
+		Include: map[string][]string{"logId": {"42"}},
+		Ranges: map[string][]entities.Range{
+			"logId": {{Operation: "gte", Value: "0"}},
+		},
+	}
+	err := VerifyNoConflictingFilters(queryFilters)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate [logId] filter")
+}
+
 func TestValidateEventsFilters_ValidUint64OracleFilters(t *testing.T) {
 	filterNames := []string{"queryId", "queryType", "queryStatus", "subscriptionId", "interfaceIndex"}
 	for _, filterName := range filterNames {

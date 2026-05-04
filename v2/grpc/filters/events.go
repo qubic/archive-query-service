@@ -86,6 +86,7 @@ var AllowedEventRanges = map[string]bool{
 	EventRangeTimestamp:        true,
 	EventFilterDeductedAmount:  true,
 	EventFilterRemainingAmount: true,
+	EventFilterLogId:           true,
 }
 
 var AllowedEventShouldRanges = map[string]bool{
@@ -187,7 +188,7 @@ func CreateEventRanges(ranges map[string]*api.Range, allowedKeys map[string]bool
 		}
 
 		switch key {
-		case EventFilterAmount, EventFilterNumberOfShares, EventRangeTimestamp, EventFilterDeductedAmount:
+		case EventFilterAmount, EventFilterNumberOfShares, EventRangeTimestamp, EventFilterDeductedAmount, EventFilterLogId:
 			r, err := CreateUnsignedNumericRange(value, 64)
 			if err != nil {
 				return nil, fmt.Errorf("invalid [%s] range: %w", key, err)
