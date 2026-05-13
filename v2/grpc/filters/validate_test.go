@@ -454,11 +454,79 @@ func TestVerifyNoConflictingFilters(t *testing.T) {
 			wantErr:    true,
 			errMessage: "duplicate [field1] filter",
 		},
+		{
+			name: "no error - logId range with tick number filter",
+			filters: entities.Filters{
+				Include: map[string][]string{
+					EventFilterTickNumber: {"1234"},
+				},
+				Exclude: map[string][]string{},
+				Ranges: map[string][]entities.Range{
+					EventFilterLogId: {{Operation: "gte", Value: "0"}},
+				},
+				Should: []entities.ShouldFilter{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "error - logId range without tick number filter",
+			filters: entities.Filters{
+				Include: map[string][]string{},
+				Exclude: map[string][]string{},
+				Ranges: map[string][]entities.Range{
+					EventFilterLogId: {{Operation: "gte", Value: "0"}},
+				},
+				Should: []entities.ShouldFilter{},
+			},
+			wantErr:    true,
+			errMessage: "log id range without tick number filter",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := VerifyNoConflictingFilters(tt.filters)
+			if tt.wantErr {
+				require.ErrorContains(t, err, tt.errMessage)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateRangeDependencies(t *testing.T) {
+	tests := []struct {
+		name       string
+		ranges     map[string][]entities.Range
+		includes   map[string][]string
+		wantErr    bool
+		errMessage string
+	}{
+		{
+			name: "logId range with tick number filter - no error",
+			ranges: map[string][]entities.Range{
+				EventFilterLogId: {{Operation: "gte", Value: "0"}},
+			},
+			includes: map[string][]string{
+				EventFilterTickNumber: {"1234"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "logId range without tick number filter - error",
+			ranges: map[string][]entities.Range{
+				EventFilterLogId: {{Operation: "gte", Value: "0"}},
+			},
+			includes:   map[string][]string{},
+			wantErr:    true,
+			errMessage: "log id range without tick number filter",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateRangeDependencies(tt.ranges, tt.includes)
 			if tt.wantErr {
 				require.ErrorContains(t, err, tt.errMessage)
 			} else {
