@@ -75,6 +75,11 @@ func VerifyNoConflictingFilters(queryFilters entities.Filters) error {
 		return err
 	}
 
+	err = validateRangeDependencies(queryFilters.Ranges, queryFilters.Include)
+	if err != nil {
+		return err
+	}
+
 	// we do not check the exclude filters against the should filters
 	// allow excluding values that are returned by applying the should filters
 	err = checkForConflictingKeys(keys, queryFilters.Exclude, false) // do not modify
@@ -91,6 +96,14 @@ func VerifyNoConflictingFilters(queryFilters entities.Filters) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func validateRangeDependencies(ranges map[string][]entities.Range, includes map[string][]string) error {
+	// we only accept log id ranges
+	if _, ok := ranges[EventFilterLogId]; ok && includes[EventFilterTickNumber] == nil {
+		return fmt.Errorf("log id range without tick number filter")
 	}
 	return nil
 }
