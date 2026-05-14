@@ -102,8 +102,8 @@ func VerifyNoConflictingFilters(queryFilters entities.Filters) error {
 
 func validateRangeDependencies(ranges map[string][]entities.Range, includes map[string][]string) error {
 	// we only accept log id ranges
-	if _, ok := ranges[EventFilterLogId]; ok && includes[EventFilterTickNumber] == nil {
-		return fmt.Errorf("log id range without tick number filter")
+	if _, ok := ranges[EventFilterLogId]; ok && (includes[EventFilterTickNumber] == nil && includes[EventFilterEpoch] == nil) {
+		return fmt.Errorf("log id range without tick number or epoch filter")
 	}
 	return nil
 }
