@@ -479,7 +479,7 @@ func TestVerifyNoConflictingFilters(t *testing.T) {
 				Should: []entities.ShouldFilter{},
 			},
 			wantErr:    true,
-			errMessage: "log id range without tick number filter",
+			errMessage: "log id range",
 		},
 	}
 
@@ -514,13 +514,34 @@ func TestValidateRangeDependencies(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "logId range with epoch filter - no error",
+			ranges: map[string][]entities.Range{
+				EventFilterLogId: {{Operation: "gte", Value: "0"}},
+			},
+			includes: map[string][]string{
+				EventFilterEpoch: {"456"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "logId range with tick number and epoch filter - no error",
+			ranges: map[string][]entities.Range{
+				EventFilterLogId: {{Operation: "gte", Value: "0"}},
+			},
+			includes: map[string][]string{
+				EventFilterTickNumber: {"123"},
+				EventFilterEpoch:      {"456"},
+			},
+			wantErr: false,
+		},
+		{
 			name: "logId range without tick number filter - error",
 			ranges: map[string][]entities.Range{
 				EventFilterLogId: {{Operation: "gte", Value: "0"}},
 			},
 			includes:   map[string][]string{},
 			wantErr:    true,
-			errMessage: "log id range without tick number filter",
+			errMessage: "log id range without tick number or epoch",
 		},
 	}
 
