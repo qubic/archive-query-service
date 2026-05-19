@@ -105,7 +105,7 @@ func createTickTransactionsQuery(tick uint32, filters map[string][]string, range
 				"filter": [%s]
 			}
 		},
-		"size": 1024
+		"size": 4096
 	}`, strings.Join(filterStrings, ","))
 
 	var buf bytes.Buffer

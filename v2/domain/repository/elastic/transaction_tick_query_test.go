@@ -21,7 +21,7 @@ func Test_createTickTransactionsQuery_noFilters(t *testing.T) {
 	assert.Equal(t, true, parsed["track_total_hits"])
 
 	// Verify size
-	assert.Equal(t, float64(1024), parsed["size"])
+	assert.Equal(t, float64(4096), parsed["size"])
 
 	// Verify query structure
 	queryBlock, ok := parsed["query"].(map[string]interface{})
