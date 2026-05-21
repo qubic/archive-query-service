@@ -61,8 +61,8 @@ func run() error {
 			CertificatePath    string        `conf:"default:http_ca.crt"`
 			MaxRetries         int           `conf:"default:3"`
 			ReadTimeout        time.Duration `conf:"default:10s"`
-			TransactionsIndex  string        `conf:"default:qubic-transactions-alias"`
-			TickDataIndex      string        `conf:"default:qubic-tick-data-alias"`
+			TransactionsIndex  string        `conf:"default:qubic-transactions-read"`
+			TickDataIndex      string        `conf:"default:qubic-tick-data-read"`
 			ComputorsListIndex string        `conf:"default:qubic-computors-alias"`
 		}
 		EventsElasticSearch struct {
