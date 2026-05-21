@@ -50,7 +50,7 @@ func (s *ServerTestSuite) SetupSuite() {
 	mockTxService := mock.NewMockTransactionsService(ctrl)
 	mockStatusService := mock.NewMockStatusService(ctrl)
 	mockEvService := mock.NewMockEventsService(ctrl)
-	rpcServer := rpc.NewArchiveQueryService(mockTxService, nil, mockStatusService, nil, mockEvService, rpc.NewPageSizeLimits(1000, 10))
+	rpcServer := rpc.NewArchiveQueryService(mockTxService, nil, mockStatusService, nil, mockEvService, rpc.NewPageSizeLimits(1000, 10, 10000))
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(mockStatusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
 	var logTechnicalErrorInterceptor rpc.LogTechnicalErrorInterceptor
@@ -157,10 +157,10 @@ func (s *ServerTestSuite) TestGetEvents_Success() {
 		Return(&entities.EventsResult{
 			Hits: &entities.Hits{Total: 2, Relation: "eq"},
 			Events: []*api.Event{
-				{TickNumber: 100, TransactionHash: ToStringPointer(validTransactionHash), LogType: 0, EventData: &api.Event_QuTransfer{
+				{TickNumber: 100, TransactionHash: new(validTransactionHash), LogType: 0, EventData: &api.Event_QuTransfer{
 					QuTransfer: &api.QuTransferData{Source: "SRC", Destination: "DST", Amount: 1000},
 				}},
-				{TickNumber: 101, TransactionHash: ToStringPointer(validTransactionHash2), LogType: 1, EventData: &api.Event_AssetIssuance{
+				{TickNumber: 101, TransactionHash: new(validTransactionHash2), LogType: 1, EventData: &api.Event_AssetIssuance{
 					AssetIssuance: &api.AssetIssuanceData{AssetIssuer: "ISSUER", AssetName: "QX"},
 				}},
 			},

@@ -58,7 +58,7 @@ func TestArchiverQueryService_GetTransactionByHash(t *testing.T) {
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{expected},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	response, err := service.GetTransactionByHash(context.Background(), &api.GetTransactionByHashRequest{Hash: "tx-hash"})
 	require.NoError(t, err)
 	require.Equal(t, expected, response.Transaction)
@@ -69,7 +69,7 @@ func TestArchiverQueryService_GetTransactionByHash_GivenNoTransaction_ThenReturn
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	_, err := service.GetTransactionByHash(context.Background(), &api.GetTransactionByHashRequest{Hash: "not-found"})
 	require.Error(t, err)
 	require.Equal(t, status.Error(codes.NotFound, "transaction not found"), err)
@@ -79,7 +79,7 @@ func TestArchiverQueryService_GetTransactionsForTick(t *testing.T) {
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}, {Hash: "tx-hash-2", TickNumber: 43}},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	response, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{TickNumber: 42})
 	require.NoError(t, err)
 	require.NotNil(t, response)
@@ -90,7 +90,7 @@ func TestArchiverQueryService_GetTransactionsForTick_GivenNoTransaction_ThenRetu
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}, {Hash: "tx-hash-2", TickNumber: 43}},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	response, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{TickNumber: 666})
 	require.NoError(t, err)
 	require.NotNil(t, response)
@@ -103,7 +103,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 		hits:         &entities.Hits{Total: 2, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	from := uint32(0)
 	size := uint32(10)
@@ -151,7 +151,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_WithDeprecatedExcludeFil
 		hits:         &entities.Hits{Total: 1, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
@@ -173,7 +173,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_WithExcludeMap(t *testin
 		hits:         &entities.Hits{Total: 1, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
@@ -196,7 +196,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_DeprecatedApiMismatchErr
 		hits:         &entities.Hits{Total: 1, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
@@ -210,7 +210,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_DeprecatedApiMismatchErr
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity_GivenInvalidExcludeFilter_ThenErrors(t *testing.T) {
-	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	request := &api.GetTransactionsForIdentityRequest{
 		Identity: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",

@@ -98,6 +98,20 @@ func (s *ArchiveQueryService) GetTransactionsForTick(ctx context.Context, req *a
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
 
+	limits := PageSizeLimits{
+		maxPageSize:     4096,
+		defaultPageSize: 4096,
+		maxHits:         4096,
+	}
+	from, size, err := limits.ValidatePagination(req.GetPagination())
+	if err != nil {
+		// debug log temporarily. we need to find out how many users use strange pagination parameters.
+		log.Printf("[DEBUG] Invalid pagination: %v. Request: %v", err, req)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
+	}
+	_ = from // TODO
+	_ = size // TODO
+
 	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, filterMap, ranges)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for tick [%d]", req.GetTickNumber()), err)

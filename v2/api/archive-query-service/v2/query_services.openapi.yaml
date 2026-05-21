@@ -136,13 +136,6 @@ paths:
                  | deductedAmount  | string | Numeric (uint64)                         | Only find logs in the deducted amount range.       |
                  | remainingAmount | string | Numeric (int64)                          | Only find logs in the remaining amount range.      |
                  | logId           | string | Numeric (uint64)                         | Only find logs in the logId range. Combine with a tickNumber filter to paginate beyond 10K events in a tick. |
-
-                 ### Pagination
-
-                 | Name   | Type   | Necessity | Description                                                                                         |
-                 |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-                 | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-                 | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
             operationId: ArchiveQueryService_GetEventLogs
             requestBody:
                 content:
@@ -291,13 +284,6 @@ paths:
                  | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
                  | inputType  | string | Numeric                                  | Only find transactions in input type range. |
                  | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
-
-                 ### Pagination
-
-                 | Name   | Type   | Necessity | Description                                                                                         |
-                 |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-                 | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-                 | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
             operationId: ArchiveQueryService_GetTransactionsForIdentity
             requestBody:
                 content:
@@ -328,6 +314,7 @@ paths:
                  | identity   | string             | required  | 60 characters uppercase identity.               |
                  | filters    | map<string,string> | optional  | Filters that restrict results to single value.  |
                  | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range. |
+                 | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved. |
 
                  ### Filters
 
@@ -366,8 +353,6 @@ paths:
                  | lte       | string | optional  | Less than or equal to.                    |
 
                  Only one lower bound and one upper bound can be specified.
-
-                 For examples how to use filters and ranges see the GetTransactionsForIdentity endpoint documentation.
             operationId: ArchiveQueryService_GetTransactionsForTick
             requestBody:
                 content:
@@ -769,7 +754,9 @@ components:
                     additionalProperties:
                         $ref: '#/components/schemas/Range'
                     description: 'Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType'
-            description: GetTransactionsForTickRequest
+                pagination:
+                    $ref: '#/components/schemas/Pagination'
+            description: Maximum and default page size is 4096.
         GetTransactionsForTickResponse:
             type: object
             properties:
@@ -778,6 +765,8 @@ components:
                     items:
                         $ref: '#/components/schemas/Transaction'
                     description: The transactions for the requested tick number.
+                hits:
+                    $ref: '#/components/schemas/Hits'
             description: GetTransactionsForTickResponse
         HealthResponse:
             type: object
@@ -839,9 +828,9 @@ components:
                     format: uint32
                 size:
                     type: integer
-                    description: The size specifies how many results should be returned. Defaults to 10.
+                    description: Number of results that should be returned. Defaults to 10 and allows a maximum of 1000 unless otherwise stated.
                     format: uint32
-            description: The number of maximum results (offset + size) is limited to 10000.
+            description: Offset + size together is limited to the number of maximum results (10000 unless otherwise stated).
         ProcessedTickInterval:
             type: object
             properties:
@@ -972,7 +961,7 @@ components:
                         type: string
                 signature:
                     type: string
-                    description: Base64 encoded byte array representing the tick data's signature.
+                    description: Base64 encoded byte array representing the signature of the tick data's signature.
             description: TickData
         Transaction:
             type: object

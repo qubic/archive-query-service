@@ -52,10 +52,10 @@ message ProcessedTickInterval {
 // Pagination
 message Pagination {
   option (openapi.v3.schema) = {
-    description: "The number of maximum results (offset + size) is limited to 10000."
+    description: "Offset + size together is limited to the number of maximum results (10000 unless otherwise stated)."
   };
   uint32 offset = 1 [(openapi.v3.property) = {description:"The offset specifies the starting point of the returned data. Defaults to zero."}];
-  uint32 size = 2 [(openapi.v3.property) = {description:"The size specifies how many results should be returned. Defaults to 10."}];
+  uint32 size = 2 [(openapi.v3.property) = {description:"Number of results that should be returned. Defaults to 10 and allows a maximum of 1000 unless otherwise stated."}];
 }
 
 // GetTransactionByHashRequest
@@ -71,6 +71,7 @@ message GetTransactionByHashResponse {
 // GetTransactionsForTickRequest
 message GetTransactionsForTickRequest {
   option (openapi.v3.schema) = {
+    description: "Maximum and default page size is 4096.",
     example: {
       yaml: "tickNumber: 42977140\nfilters:\n  destination: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\nranges:\n  amount:\n    gte: \"1\""
     };
@@ -79,11 +80,13 @@ message GetTransactionsForTickRequest {
   uint32 tick_number = 1 [(openapi.v3.property) = {description:"The tick number to get the transactions for."}];
   map<string, string> filters = 2 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputType"}];
   map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType"}];
+  Pagination pagination = 9 [(openapi.v3.property) = {description:"Optional paging information."}];
 }
 
 // GetTransactionsForTickResponse
 message GetTransactionsForTickResponse {
   repeated Transaction transactions = 1 [(openapi.v3.property) = {description:"The transactions for the requested tick number."}];
+  Hits hits = 9 [(openapi.v3.property) = {description:"Information about the returned results."}];
 }
 
 // Range filter

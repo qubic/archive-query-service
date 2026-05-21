@@ -38,7 +38,7 @@ func (s *HTTPServerTestSuite) SetupSuite() {
 	ctrl := gomock.NewController(s.T())
 	mockEvService := mock.NewMockEventsService(ctrl)
 	mockStatusService := mock.NewMockStatusService(ctrl)
-	rpcServer := rpc.NewArchiveQueryService(nil, nil, mockStatusService, nil, mockEvService, rpc.NewPageSizeLimits(1000, 10))
+	rpcServer := rpc.NewArchiveQueryService(nil, nil, mockStatusService, nil, mockEvService, rpc.NewPageSizeLimits(1000, 10, 10000))
 
 	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{EmitDefaultValues: true, EmitUnpopulated: true},
@@ -82,7 +82,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type0_QuTransfer() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15000, Timestamp: 1700000001,
-				TransactionHash: ToStringPointer("txhash1"), LogId: 1, LogDigest: "digest1", LogType: 0,
+				TransactionHash: new("txhash1"), LogId: 1, LogDigest: "digest1", LogType: 0,
 				EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 					Source: "SRC_IDENTITY", Destination: "DST_IDENTITY", Amount: 5000,
 				}},
@@ -118,7 +118,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type1_AssetIssuance() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15001, Timestamp: 1700000002,
-				TransactionHash: ToStringPointer("txhash2"), LogId: 2, LogDigest: "digest2", LogType: 1,
+				TransactionHash: new("txhash2"), LogId: 2, LogDigest: "digest2", LogType: 1,
 				EventData: &api.Event_AssetIssuance{AssetIssuance: &api.AssetIssuanceData{
 					AssetIssuer: "ISSUER_ID", NumberOfShares: 1000000,
 					ManagingContractIndex: 5, AssetName: "QX",
@@ -158,7 +158,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type2_AssetOwnershipChange() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15002, LogType: 2,
-				TransactionHash: ToStringPointer("txhash3"), LogId: 3, LogDigest: "digest3",
+				TransactionHash: new("txhash3"), LogId: 3, LogDigest: "digest3",
 				EventData: &api.Event_AssetOwnershipChange{AssetOwnershipChange: &api.AssetOwnershipChangeData{
 					Source: "OWNER_A", Destination: "OWNER_B", AssetIssuer: "ISSUER", AssetName: "TOKEN", NumberOfShares: 500,
 				}},
@@ -195,7 +195,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type3_AssetPossessionChange() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 100, TickNumber: 15003, LogType: 3,
-				TransactionHash: ToStringPointer("txhash4"), LogId: 4, LogDigest: "digest4",
+				TransactionHash: new("txhash4"), LogId: 4, LogDigest: "digest4",
 				EventData: &api.Event_AssetPossessionChange{AssetPossessionChange: &api.AssetPossessionChangeData{
 					Source: "POSSESSOR_A", Destination: "POSSESSOR_B", AssetIssuer: "ISSUER", AssetName: "TOKEN", NumberOfShares: 300,
 				}},
@@ -232,7 +232,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type8_Burning() {
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 101, TickNumber: 16001, LogType: 8,
-				TransactionHash: ToStringPointer("txhash5"), LogId: 5, LogDigest: "digest5",
+				TransactionHash: new("txhash5"), LogId: 5, LogDigest: "digest5",
 				EventData: &api.Event_Burning{Burning: &api.BurningData{
 					Source: "BURNER", Amount: 9999, ContractIndex: 7,
 				}},
@@ -268,7 +268,7 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_Type13_ContractReserveDeduction
 			Hits: &entities.Hits{Total: 1, Relation: "eq"},
 			Events: []*api.Event{{
 				Epoch: 101, TickNumber: 16002, LogType: 13,
-				TransactionHash: ToStringPointer("txhash6"), LogId: 6, LogDigest: "digest6",
+				TransactionHash: new("txhash6"), LogId: 6, LogDigest: "digest6",
 				EventData: &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 					DeductedAmount: 50000, RemainingAmount: 100000, ContractIndex: 3,
 				}},
@@ -305,21 +305,21 @@ func (s *HTTPServerTestSuite) TestHTTP_GetEvents_MixedTypes() {
 			Events: []*api.Event{
 				{
 					Epoch: 100, TickNumber: 15000, LogType: 0,
-					TransactionHash: ToStringPointer("tx1"), LogId: 1, LogDigest: "d1",
+					TransactionHash: new("tx1"), LogId: 1, LogDigest: "d1",
 					EventData: &api.Event_QuTransfer{QuTransfer: &api.QuTransferData{
 						Source: "A", Destination: "B", Amount: 100,
 					}},
 				},
 				{
 					Epoch: 100, TickNumber: 15001, LogType: 8,
-					TransactionHash: ToStringPointer("tx2"), LogId: 2, LogDigest: "d2",
+					TransactionHash: new("tx2"), LogId: 2, LogDigest: "d2",
 					EventData: &api.Event_Burning{Burning: &api.BurningData{
 						Source: "C", Amount: 200, ContractIndex: 1,
 					}},
 				},
 				{
 					Epoch: 100, TickNumber: 15002, LogType: 13,
-					TransactionHash: ToStringPointer("tx3"), LogId: 3, LogDigest: "d3",
+					TransactionHash: new("tx3"), LogId: 3, LogDigest: "d3",
 					EventData: &api.Event_ContractReserveDeduction{ContractReserveDeduction: &api.ContractReserveDeductionData{
 						DeductedAmount: 300, RemainingAmount: 700, ContractIndex: 2,
 					}},

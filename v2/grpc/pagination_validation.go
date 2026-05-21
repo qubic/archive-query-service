@@ -6,17 +6,17 @@ import (
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 )
 
-const maxHitsSize uint32 = 10000
-
 type PageSizeLimits struct {
 	maxPageSize     uint32
 	defaultPageSize uint32
+	maxHits         uint32
 }
 
-func NewPageSizeLimits(maxPageSize, defaultPageSize uint32) PageSizeLimits {
+func NewPageSizeLimits(maxPageSize, defaultPageSize, maxHits uint32) PageSizeLimits {
 	return PageSizeLimits{
 		maxPageSize:     maxPageSize,
 		defaultPageSize: defaultPageSize,
+		maxHits:         maxHits,
 	}
 }
 
@@ -59,12 +59,12 @@ func (psl PageSizeLimits) validatePageSize(pageSize uint32) (uint32, error) {
 }
 
 func (psl PageSizeLimits) validatePageOffset(pageSize, offset uint32) (uint32, error) {
-	if offset > maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] exceeds maximum allowed [%d]", offset, maxHitsSize)
+	if offset > psl.maxHits {
+		return 0, fmt.Errorf("offset [%d] exceeds maximum allowed [%d]", offset, psl.maxHits)
 	}
 
-	if offset+pageSize > maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum allowed [%d]", offset, pageSize, maxHitsSize)
+	if offset+pageSize > psl.maxHits {
+		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum allowed [%d]", offset, pageSize, psl.maxHits)
 	}
 
 	return offset, nil

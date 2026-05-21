@@ -557,6 +557,7 @@ type GetTransactionsForTickRequest struct {
 	TickNumber    uint32            `protobuf:"varint,1,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
 	Filters       map[string]string `protobuf:"bytes,2,rep,name=filters,proto3" json:"filters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Ranges        map[string]*Range `protobuf:"bytes,3,rep,name=ranges,proto3" json:"ranges,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Pagination    *Pagination       `protobuf:"bytes,9,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -612,10 +613,18 @@ func (x *GetTransactionsForTickRequest) GetRanges() map[string]*Range {
 	return nil
 }
 
+func (x *GetTransactionsForTickRequest) GetPagination() *Pagination {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
 // GetTransactionsForTickResponse
 type GetTransactionsForTickResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Transactions  []*Transaction         `protobuf:"bytes,1,rep,name=transactions,proto3" json:"transactions,omitempty"`
+	Hits          *Hits                  `protobuf:"bytes,9,opt,name=hits,proto3" json:"hits,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -653,6 +662,13 @@ func (*GetTransactionsForTickResponse) Descriptor() ([]byte, []int) {
 func (x *GetTransactionsForTickResponse) GetTransactions() []*Transaction {
 	if x != nil {
 		return x.Transactions
+	}
+	return nil
+}
+
+func (x *GetTransactionsForTickResponse) GetHits() *Hits {
+	if x != nil {
+		return x.Hits
 	}
 	return nil
 }
@@ -2810,7 +2826,7 @@ const file_messages_proto_rawDesc = "" +
 	"\tsignature\x18\n" +
 	" \x01(\tBJ\xbaGG\x92\x02DBase64 encoded byte array representing the transactions's signature.R\tsignature\x12\x83\x01\n" +
 	"\n" +
-	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\x8a\x05\n" +
+	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\x9b\x05\n" +
 	"\bTickData\x12>\n" +
 	"\vtick_number\x18\x01 \x01(\rB\x1d\xbaG\x1a\x92\x02\x17The number of the tick.R\n" +
 	"tickNumber\x124\n" +
@@ -2821,39 +2837,43 @@ const file_messages_proto_rawDesc = "" +
 	"var_struct\x18\x05 \x01(\tR\tvarStruct\x12\x1b\n" +
 	"\ttime_lock\x18\x06 \x01(\tR\btimeLock\x12u\n" +
 	"\x12transaction_hashes\x18\a \x03(\tBF\xbaGC\x92\x02@A list of all the ticks transaction hashes in the correct order.R\x11transactionHashes\x12#\n" +
-	"\rcontract_fees\x18\b \x03(\x03R\fcontractFees\x12e\n" +
-	"\tsignature\x18\t \x01(\tBG\xbaGD\x92\x02ABase64 encoded byte array representing the tick data's signature.R\tsignature\"\xf1\x01\n" +
+	"\rcontract_fees\x18\b \x03(\x03R\fcontractFees\x12v\n" +
+	"\tsignature\x18\t \x01(\tBX\xbaGU\x92\x02RBase64 encoded byte array representing the signature of the tick data's signature.R\tsignature\"\xf1\x01\n" +
 	"\x15ProcessedTickInterval\x129\n" +
 	"\x05epoch\x18\x01 \x01(\rB#\xbaG \x92\x02\x1dThe epoch the interval is in.R\x05epoch\x12P\n" +
 	"\n" +
 	"first_tick\x18\x02 \x01(\rB1\xbaG.\x92\x02+The initial processed tick of the interval.R\tfirstTick\x12K\n" +
-	"\tlast_tick\x18\x03 \x01(\rB.\xbaG+\x92\x02(The last processed tick of the interval.R\blastTick\"\xa8\x02\n" +
+	"\tlast_tick\x18\x03 \x01(\rB.\xbaG+\x92\x02(The last processed tick of the interval.R\blastTick\"\xf2\x02\n" +
 	"\n" +
 	"Pagination\x12m\n" +
-	"\x06offset\x18\x01 \x01(\rBU\xbaGR\x92\x02OThe offset specifies the starting point of the returned data. Defaults to zero.R\x06offset\x12a\n" +
-	"\x04size\x18\x02 \x01(\rBM\xbaGJ\x92\x02GThe size specifies how many results should be returned. Defaults to 10.R\x04size:H\xbaGE\x92\x02BThe number of maximum results (offset + size) is limited to 10000.\"U\n" +
+	"\x06offset\x18\x01 \x01(\rBU\xbaGR\x92\x02OThe offset specifies the starting point of the returned data. Defaults to zero.R\x06offset\x12\x89\x01\n" +
+	"\x04size\x18\x02 \x01(\rBu\xbaGr\x92\x02oNumber of results that should be returned. Defaults to 10 and allows a maximum of 1000 unless otherwise stated.R\x04size:i\xbaGf\x92\x02cOffset + size together is limited to the number of maximum results (10000 unless otherwise stated).\"U\n" +
 	"\x1bGetTransactionByHashRequest\x126\n" +
 	"\x04hash\x18\x01 \x01(\tB\"\xbaG\x1f\x92\x02\x1cThe hash of the transaction.R\x04hash\"\x91\x01\n" +
 	"\x1cGetTransactionByHashResponse\x12q\n" +
-	"\vtransaction\x18\x01 \x01(\v2 .qubic.v2.archive.pb.TransactionB-\xbaG*\x92\x02'The transaction for the requested hash.R\vtransaction\"\xa8\x06\n" +
+	"\vtransaction\x18\x01 \x01(\v2 .qubic.v2.archive.pb.TransactionB-\xbaG*\x92\x02'The transaction for the requested hash.R\vtransaction\"\xb6\a\n" +
 	"\x1dGetTransactionsForTickRequest\x12S\n" +
 	"\vtick_number\x18\x01 \x01(\rB2\xbaG/\x92\x02,The tick number to get the transactions for.R\n" +
 	"tickNumber\x12\xd2\x01\n" +
 	"\afilters\x18\x02 \x03(\v2?.qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntryBw\xbaGt\x92\x02qInclude filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputTypeR\afilters\x12\xb4\x01\n" +
-	"\x06ranges\x18\x03 \x03(\v2>.qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntryB\\\xbaGY\x92\x02VRanges restrict the results by a maximum and minimum value. Allowed: amount, inputTypeR\x06ranges\x1a:\n" +
+	"\x06ranges\x18\x03 \x03(\v2>.qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntryB\\\xbaGY\x92\x02VRanges restrict the results by a maximum and minimum value. Allowed: amount, inputTypeR\x06ranges\x12c\n" +
+	"\n" +
+	"pagination\x18\t \x01(\v2\x1f.qubic.v2.archive.pb.PaginationB\"\xbaG\x1f\x92\x02\x1cOptional paging information.R\n" +
+	"pagination\x1a:\n" +
 	"\fFiltersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aU\n" +
 	"\vRangesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
-	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01:\x92\x01\xbaG\x8e\x01:\x8b\x01\x12\x88\x01tickNumber: 42977140\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.qubic.v2.archive.pb.RangeR\x05value:\x028\x01:\xbb\x01\xbaG\xb7\x01:\x8b\x01\x12\x88\x01tickNumber: 42977140\n" +
 	"filters:\n" +
 	"  destination: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\n" +
 	"ranges:\n" +
 	"  amount:\n" +
-	"    gte: \"1\"\"\x9d\x01\n" +
+	"    gte: \"1\"\x92\x02&Maximum and default page size is 4096.\"\xfb\x01\n" +
 	"\x1eGetTransactionsForTickResponse\x12{\n" +
-	"\ftransactions\x18\x01 \x03(\v2 .qubic.v2.archive.pb.TransactionB5\xbaG2\x92\x02/The transactions for the requested tick number.R\ftransactions\"\xd1\x01\n" +
+	"\ftransactions\x18\x01 \x03(\v2 .qubic.v2.archive.pb.TransactionB5\xbaG2\x92\x02/The transactions for the requested tick number.R\ftransactions\x12\\\n" +
+	"\x04hits\x18\t \x01(\v2\x19.qubic.v2.archive.pb.HitsB-\xbaG*\x92\x02'Information about the returned results.R\x04hits\"\xd1\x01\n" +
 	"\x05Range\x12%\n" +
 	"\x02gt\x18\x01 \x01(\tB\x13\xbaG\x10\x92\x02\rGreater than.H\x00R\x02gt\x120\n" +
 	"\x03gte\x18\x02 \x01(\tB\x1c\xbaG\x19\x92\x02\x16Greater than or equal.H\x00R\x03gte\x12\"\n" +
@@ -3129,46 +3149,48 @@ var file_messages_proto_depIdxs = []int32{
 	2,  // 0: qubic.v2.archive.pb.GetTransactionByHashResponse.transaction:type_name -> qubic.v2.archive.pb.Transaction
 	38, // 1: qubic.v2.archive.pb.GetTransactionsForTickRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.FiltersEntry
 	39, // 2: qubic.v2.archive.pb.GetTransactionsForTickRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry
-	2,  // 3: qubic.v2.archive.pb.GetTransactionsForTickResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	40, // 4: qubic.v2.archive.pb.ShouldFilter.terms:type_name -> qubic.v2.archive.pb.ShouldFilter.TermsEntry
-	41, // 5: qubic.v2.archive.pb.ShouldFilter.ranges:type_name -> qubic.v2.archive.pb.ShouldFilter.RangesEntry
-	42, // 6: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
-	43, // 7: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.exclude:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
-	44, // 8: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
-	5,  // 9: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	13, // 10: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	2,  // 11: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
-	3,  // 12: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
-	4,  // 13: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
-	20, // 14: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
-	23, // 15: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
-	24, // 16: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
-	25, // 17: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
-	26, // 18: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
-	27, // 19: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
-	32, // 20: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
-	28, // 21: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
-	29, // 22: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
-	30, // 23: qubic.v2.archive.pb.Event.asset_ownership_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
-	31, // 24: qubic.v2.archive.pb.Event.asset_possession_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
-	33, // 25: qubic.v2.archive.pb.Event.oracle_query_status_change:type_name -> qubic.v2.archive.pb.OracleQueryStatusChangeData
-	34, // 26: qubic.v2.archive.pb.Event.oracle_subscriber_log_message:type_name -> qubic.v2.archive.pb.OracleSubscriberLogMessageData
-	45, // 27: qubic.v2.archive.pb.GetEventLogsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.FiltersEntry
-	46, // 28: qubic.v2.archive.pb.GetEventLogsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.ExcludeEntry
-	11, // 29: qubic.v2.archive.pb.GetEventLogsRequest.should:type_name -> qubic.v2.archive.pb.ShouldFilter
-	47, // 30: qubic.v2.archive.pb.GetEventLogsRequest.ranges:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry
-	5,  // 31: qubic.v2.archive.pb.GetEventLogsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
-	13, // 32: qubic.v2.archive.pb.GetEventLogsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
-	35, // 33: qubic.v2.archive.pb.GetEventLogsResponse.event_logs:type_name -> qubic.v2.archive.pb.Event
-	10, // 34: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 35: qubic.v2.archive.pb.ShouldFilter.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 36: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	10, // 37: qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
-	38, // [38:38] is the sub-list for method output_type
-	38, // [38:38] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	5,  // 3: qubic.v2.archive.pb.GetTransactionsForTickRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	2,  // 4: qubic.v2.archive.pb.GetTransactionsForTickResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
+	13, // 5: qubic.v2.archive.pb.GetTransactionsForTickResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	40, // 6: qubic.v2.archive.pb.ShouldFilter.terms:type_name -> qubic.v2.archive.pb.ShouldFilter.TermsEntry
+	41, // 7: qubic.v2.archive.pb.ShouldFilter.ranges:type_name -> qubic.v2.archive.pb.ShouldFilter.RangesEntry
+	42, // 8: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.filters:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.FiltersEntry
+	43, // 9: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.exclude:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ExcludeEntry
+	44, // 10: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.ranges:type_name -> qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry
+	5,  // 11: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	13, // 12: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	2,  // 13: qubic.v2.archive.pb.GetTransactionsForIdentityResponse.transactions:type_name -> qubic.v2.archive.pb.Transaction
+	3,  // 14: qubic.v2.archive.pb.GetTickDataResponse.tick_data:type_name -> qubic.v2.archive.pb.TickData
+	4,  // 15: qubic.v2.archive.pb.GetProcessedTickIntervalsResponse.processed_tick_intervals:type_name -> qubic.v2.archive.pb.ProcessedTickInterval
+	20, // 16: qubic.v2.archive.pb.GetComputorListsForEpochResponse.computors_lists:type_name -> qubic.v2.archive.pb.ComputorList
+	23, // 17: qubic.v2.archive.pb.Event.qu_transfer:type_name -> qubic.v2.archive.pb.QuTransferData
+	24, // 18: qubic.v2.archive.pb.Event.asset_issuance:type_name -> qubic.v2.archive.pb.AssetIssuanceData
+	25, // 19: qubic.v2.archive.pb.Event.asset_ownership_change:type_name -> qubic.v2.archive.pb.AssetOwnershipChangeData
+	26, // 20: qubic.v2.archive.pb.Event.asset_possession_change:type_name -> qubic.v2.archive.pb.AssetPossessionChangeData
+	27, // 21: qubic.v2.archive.pb.Event.burning:type_name -> qubic.v2.archive.pb.BurningData
+	32, // 22: qubic.v2.archive.pb.Event.contract_reserve_deduction:type_name -> qubic.v2.archive.pb.ContractReserveDeductionData
+	28, // 23: qubic.v2.archive.pb.Event.smart_contract_message:type_name -> qubic.v2.archive.pb.SmartContractMessageData
+	29, // 24: qubic.v2.archive.pb.Event.custom_message:type_name -> qubic.v2.archive.pb.CustomMessageData
+	30, // 25: qubic.v2.archive.pb.Event.asset_ownership_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetOwnershipManagingContractChangeData
+	31, // 26: qubic.v2.archive.pb.Event.asset_possession_managing_contract_change:type_name -> qubic.v2.archive.pb.AssetPossessionManagingContractChangeData
+	33, // 27: qubic.v2.archive.pb.Event.oracle_query_status_change:type_name -> qubic.v2.archive.pb.OracleQueryStatusChangeData
+	34, // 28: qubic.v2.archive.pb.Event.oracle_subscriber_log_message:type_name -> qubic.v2.archive.pb.OracleSubscriberLogMessageData
+	45, // 29: qubic.v2.archive.pb.GetEventLogsRequest.filters:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.FiltersEntry
+	46, // 30: qubic.v2.archive.pb.GetEventLogsRequest.exclude:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.ExcludeEntry
+	11, // 31: qubic.v2.archive.pb.GetEventLogsRequest.should:type_name -> qubic.v2.archive.pb.ShouldFilter
+	47, // 32: qubic.v2.archive.pb.GetEventLogsRequest.ranges:type_name -> qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry
+	5,  // 33: qubic.v2.archive.pb.GetEventLogsRequest.pagination:type_name -> qubic.v2.archive.pb.Pagination
+	13, // 34: qubic.v2.archive.pb.GetEventLogsResponse.hits:type_name -> qubic.v2.archive.pb.Hits
+	35, // 35: qubic.v2.archive.pb.GetEventLogsResponse.event_logs:type_name -> qubic.v2.archive.pb.Event
+	10, // 36: qubic.v2.archive.pb.GetTransactionsForTickRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 37: qubic.v2.archive.pb.ShouldFilter.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 38: qubic.v2.archive.pb.GetTransactionsForIdentityRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	10, // 39: qubic.v2.archive.pb.GetEventLogsRequest.RangesEntry.value:type_name -> qubic.v2.archive.pb.Range
+	40, // [40:40] is the sub-list for method output_type
+	40, // [40:40] is the sub-list for method input_type
+	40, // [40:40] is the sub-list for extension type_name
+	40, // [40:40] is the sub-list for extension extendee
+	0,  // [0:40] is the sub-list for field type_name
 }
 
 func init() { file_messages_proto_init() }

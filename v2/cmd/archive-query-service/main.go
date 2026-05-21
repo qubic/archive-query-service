@@ -177,7 +177,7 @@ func run() error {
 	tdService := domain.NewTickDataService(repo)
 	statusService := domain.NewStatusService(cache)
 	clService := domain.NewComputorsListService(repo)
-	pageSizeLimits := rpc.NewPageSizeLimits(cfg.Pagination.MaxPageSize, cfg.Pagination.DefaultPageSize)
+	pageSizeLimits := rpc.NewPageSizeLimits(cfg.Pagination.MaxPageSize, cfg.Pagination.DefaultPageSize, 10000)
 	rpcServer := rpc.NewArchiveQueryService(txService, tdService, statusService, clService, eventsService, pageSizeLimits)
 	tickInBoundsInterceptor := rpc.NewTickWithinBoundsInterceptor(statusService)
 	var identitiesValidatorInterceptor rpc.IdentitiesValidatorInterceptor
