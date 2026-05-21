@@ -24,13 +24,8 @@ var _ api.ArchiveQueryServiceServer = &ArchiveQueryService{}
 
 type TransactionsService interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
-	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(
-		ctx context.Context,
-		identity string,
-		queryFilters entities.Filters,
-		from, size uint32,
-	) (*entities.TransactionsResult, error)
+	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, queryFilters entities.Filters, from, size uint32) (*entities.TickTransactionsResult, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, queryFilters entities.Filters, from, size uint32) (*entities.TransactionsResult, error)
 }
 
 type TickDataService interface {
@@ -92,32 +87,30 @@ func (s *ArchiveQueryService) GetTransactionsForTick(ctx context.Context, req *a
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid filters: %v", err)
 	}
-
 	ranges, err := filters.ValidateTickTransactionQueryRanges(filterMap, req.GetRanges())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid range: %v", err)
 	}
+	queryFilters := entities.Filters{Include: filterMap, Ranges: ranges}
 
-	limits := PageSizeLimits{
-		maxPageSize:     4096,
-		defaultPageSize: 4096,
-		maxHits:         4096,
-	}
-	from, size, err := limits.ValidatePagination(req.GetPagination())
+	pageLimits := PageSizeLimits{maxPageSize: 4096, defaultPageSize: 4096, maxHits: 4096}
+	from, size, err := pageLimits.ValidatePagination(req.GetPagination())
 	if err != nil {
-		// debug log temporarily. we need to find out how many users use strange pagination parameters.
-		log.Printf("[DEBUG] Invalid pagination: %v. Request: %v", err, req)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
-	_ = from // TODO
-	_ = size // TODO
 
-	txs, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, filterMap, ranges)
+	result, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, queryFilters, from, size)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for tick [%d]", req.GetTickNumber()), err)
 	}
 
-	return &api.GetTransactionsForTickResponse{Transactions: txs}, nil
+	// paging information
+	apiHits := &api.Hits{
+		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
+		From:  from,
+		Size:  size,
+	}
+	return &api.GetTransactionsForTickResponse{Transactions: result.Transactions, Hits: apiHits}, nil
 }
 
 func (s *ArchiveQueryService) GetTickData(ctx context.Context, req *api.GetTickDataRequest) (*api.GetTickDataResponse, error) {
@@ -172,8 +165,6 @@ func (s *ArchiveQueryService) GetTransactionsForIdentity(ctx context.Context, re
 
 	from, size, err := s.pageSizeLimits.ValidatePagination(request.GetPagination())
 	if err != nil {
-		// debug log temporarily. we need to find out how many users use strange pagination parameters.
-		log.Printf("[DEBUG] Invalid pagination: %v. Request: %v", err, request)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
 	}
 

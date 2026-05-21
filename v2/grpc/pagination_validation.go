@@ -20,10 +20,7 @@ func NewPageSizeLimits(maxPageSize, defaultPageSize, maxHits uint32) PageSizeLim
 	}
 }
 
-func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (uint32, uint32, error) {
-	var pageSize uint32
-	var offset uint32
-
+func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (offset uint32, pageSize uint32, err error) {
 	// Sane defaults if pagination block is missing inside request
 	if pagination == nil {
 		pageSize = psl.defaultPageSize
@@ -33,7 +30,7 @@ func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (uint32
 		offset = pagination.Offset
 	}
 
-	pageSize, err := psl.validatePageSize(pageSize)
+	pageSize, err = psl.validatePageSize(pageSize)
 	if err != nil {
 		return 0, 0, fmt.Errorf("validating page size: %w", err)
 	}

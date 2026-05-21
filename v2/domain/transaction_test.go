@@ -37,6 +37,26 @@ func TestTransactionService_GetTransactionByHash(t *testing.T) {
 	require.Empty(t, diff, "running test GetTransactionByHash")
 }
 
+func TestTransactionService_GetTransactionsForTickNumber(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockTransactionRepository(ctrl)
+	service := NewTransactionService(repo, statusFetcherFunc)
+
+	apiTransactions := []*api.Transaction{{Hash: "tx-hash-1"}, {Hash: "tx-hash-2"}}
+	entityHits := &entities.Hits{Total: 2, Relation: "eq"}
+	ctx := context.Background()
+	queryFilters := entities.Filters{}
+	repo.EXPECT().GetTransactionsForTickNumber(ctx, uint32(42), queryFilters, uint32(0), uint32(10)).Return(apiTransactions, entityHits, nil)
+
+	result, err := service.GetTransactionsForTickNumber(ctx, 42, queryFilters, 0, 10)
+	require.NoError(t, err)
+
+	assert.Equal(t, apiTransactions, result.GetTransactions())
+	assert.Equal(t, entityHits, result.GetHits())
+}
+
 func TestTransactionService_GetTransactionByIdentity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

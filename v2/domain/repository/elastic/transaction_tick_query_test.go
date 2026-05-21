@@ -10,7 +10,7 @@ import (
 )
 
 func Test_createTickTransactionsQuery_noFilters(t *testing.T) {
-	query, err := createTickTransactionsQuery(12345, nil, nil)
+	query, err := createTickTransactionsQuery(12345, nil, nil, 0, 4096)
 	require.NoError(t, err)
 
 	var parsed map[string]interface{}
@@ -41,7 +41,7 @@ func Test_createTickTransactionsQuery_withFilters(t *testing.T) {
 		"amount":    {"100"},
 		"inputType": {"1"},
 	}
-	query, err := createTickTransactionsQuery(42, filters, nil)
+	query, err := createTickTransactionsQuery(42, filters, nil, 0, 4096)
 	require.NoError(t, err)
 
 	var parsed map[string]interface{}
@@ -67,7 +67,7 @@ func Test_createTickTransactionsQuery_withRanges(t *testing.T) {
 			{Operation: "gt", Value: "0"},
 		},
 	}
-	query, err := createTickTransactionsQuery(42, nil, ranges)
+	query, err := createTickTransactionsQuery(42, nil, ranges, 0, 4096)
 	require.NoError(t, err)
 
 	var parsed map[string]interface{}
@@ -83,6 +83,18 @@ func Test_createTickTransactionsQuery_withRanges(t *testing.T) {
 	assert.Len(t, filterBlock, 3)
 }
 
+func Test_createTickTransactionsQuery_paginationIsSet(t *testing.T) {
+	query, err := createTickTransactionsQuery(42, nil, nil, 20, 50)
+	require.NoError(t, err)
+
+	var parsed map[string]interface{}
+	err = json.Unmarshal(query.Bytes(), &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, float64(20), parsed["from"])
+	assert.Equal(t, float64(50), parsed["size"])
+}
+
 func Test_createTickTransactionsQuery_withFiltersAndRanges(t *testing.T) {
 	filters := map[string][]string{
 		"destination": {"SOMEDESTIDENTITY123456789012345678901234567890123456"},
@@ -92,7 +104,7 @@ func Test_createTickTransactionsQuery_withFiltersAndRanges(t *testing.T) {
 			{Operation: "gte", Value: "100"},
 		},
 	}
-	query, err := createTickTransactionsQuery(999, filters, ranges)
+	query, err := createTickTransactionsQuery(999, filters, ranges, 0, 4096)
 	require.NoError(t, err)
 
 	var parsed map[string]interface{}

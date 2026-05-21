@@ -19,6 +19,12 @@ type TransactionServiceStub struct {
 	newFilters   entities.Filters
 	transactions []*api.Transaction
 	hits         *entities.Hits
+
+	// captured tick call args
+	capturedTickNumber  uint32
+	capturedTickFilters entities.Filters
+	capturedTickFrom    uint32
+	capturedTickSize    uint32
 }
 
 func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash string) (*api.Transaction, error) {
@@ -30,14 +36,23 @@ func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash st
 	return nil, nil
 }
 
-func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, _ map[string][]string, _ map[string][]entities.Range) ([]*api.Transaction, error) {
+func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, queryFilters entities.Filters, from uint32, size uint32) (*entities.TickTransactionsResult, error) {
+	t.capturedTickNumber = tickNumber
+	t.capturedTickFilters = queryFilters
+	t.capturedTickFrom = from
+	t.capturedTickSize = size
+
 	transactions := make([]*api.Transaction, 0)
 	for _, tx := range t.transactions {
 		if tx.TickNumber == tickNumber {
 			transactions = append(transactions, tx)
 		}
 	}
-	return transactions, nil
+	hits := t.hits
+	if hits == nil {
+		hits = &entities.Hits{Total: len(transactions), Relation: "eq"}
+	}
+	return &entities.TickTransactionsResult{Transactions: transactions, Hits: hits}, nil
 }
 
 func (t *TransactionServiceStub) GetTransactionsForIdentity(
@@ -95,6 +110,101 @@ func TestArchiverQueryService_GetTransactionsForTick_GivenNoTransaction_ThenRetu
 	require.NoError(t, err)
 	require.NotNil(t, response)
 	require.Empty(t, response.Transactions)
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_HitsReturnedInResponse(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{
+			{Hash: "tx-hash-1", TickNumber: 42},
+			{Hash: "tx-hash-2", TickNumber: 42},
+			{Hash: "tx-hash-3", TickNumber: 42},
+		},
+		hits: &entities.Hits{Total: 10, Relation: "eq"},
+	}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	response, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Pagination: &api.Pagination{Offset: 5, Size: 3},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, response)
+
+	assert.EqualValues(t, 10, response.GetHits().GetTotal())
+	assert.EqualValues(t, 5, response.GetHits().GetFrom())
+	assert.EqualValues(t, 3, response.GetHits().GetSize())
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_PaginationPassedToService(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}},
+	}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Pagination: &api.Pagination{Offset: 10, Size: 20},
+	})
+	require.NoError(t, err)
+
+	assert.EqualValues(t, 42, txService.capturedTickNumber)
+	assert.EqualValues(t, 10, txService.capturedTickFrom)
+	assert.EqualValues(t, 20, txService.capturedTickSize)
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidPagination_ThenErrors(t *testing.T) {
+	txService := &TransactionServiceStub{}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Pagination: &api.Pagination{Size: 5000}, // exceeds hardcoded max of 4096
+	})
+	require.Error(t, err)
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidFilter_ThenErrors(t *testing.T) {
+	txService := &TransactionServiceStub{}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters:    map[string]string{"unsupportedKey": "value"},
+	})
+	require.Error(t, err)
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidRange_ThenErrors(t *testing.T) {
+	txService := &TransactionServiceStub{}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Ranges:     map[string]*api.Range{"unsupportedKey": {LowerBound: &api.Range_Gte{Gte: "1"}}},
+	})
+	require.Error(t, err)
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_WithFilters_FiltersPassedToService(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}},
+	}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters:    map[string]string{"inputType": "1"},
+		Ranges: map[string]*api.Range{
+			"amount": {LowerBound: &api.Range_Gte{Gte: "100"}},
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, map[string][]string{"inputType": {"1"}}, txService.capturedTickFilters.Include)
+	assert.Equal(t, map[string][]entities.Range{"amount": {{Operation: "gte", Value: "100"}}}, txService.capturedTickFilters.Ranges)
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
