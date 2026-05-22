@@ -19,6 +19,12 @@ type TransactionServiceStub struct {
 	newFilters   entities.Filters
 	transactions []*api.Transaction
 	hits         *entities.Hits
+
+	// captured tick call args
+	capturedTickNumber  uint32
+	capturedTickFilters entities.Filters
+	capturedTickFrom    uint32
+	capturedTickSize    uint32
 }
 
 func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash string) (*api.Transaction, error) {
@@ -30,14 +36,23 @@ func (t *TransactionServiceStub) GetTransactionByHash(_ context.Context, hash st
 	return nil, nil
 }
 
-func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, _ map[string][]string, _ map[string][]entities.Range) ([]*api.Transaction, error) {
+func (t *TransactionServiceStub) GetTransactionsForTickNumber(_ context.Context, tickNumber uint32, queryFilters entities.Filters, from uint32, size uint32) (*entities.TickTransactionsResult, error) {
+	t.capturedTickNumber = tickNumber
+	t.capturedTickFilters = queryFilters
+	t.capturedTickFrom = from
+	t.capturedTickSize = size
+
 	transactions := make([]*api.Transaction, 0)
 	for _, tx := range t.transactions {
 		if tx.TickNumber == tickNumber {
 			transactions = append(transactions, tx)
 		}
 	}
-	return transactions, nil
+	hits := t.hits
+	if hits == nil {
+		hits = &entities.Hits{Total: len(transactions), Relation: "eq"}
+	}
+	return &entities.TickTransactionsResult{Transactions: transactions, Hits: hits}, nil
 }
 
 func (t *TransactionServiceStub) GetTransactionsForIdentity(
@@ -58,7 +73,7 @@ func TestArchiverQueryService_GetTransactionByHash(t *testing.T) {
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{expected},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	response, err := service.GetTransactionByHash(context.Background(), &api.GetTransactionByHashRequest{Hash: "tx-hash"})
 	require.NoError(t, err)
 	require.Equal(t, expected, response.Transaction)
@@ -69,7 +84,7 @@ func TestArchiverQueryService_GetTransactionByHash_GivenNoTransaction_ThenReturn
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	_, err := service.GetTransactionByHash(context.Background(), &api.GetTransactionByHashRequest{Hash: "not-found"})
 	require.Error(t, err)
 	require.Equal(t, status.Error(codes.NotFound, "transaction not found"), err)
@@ -79,7 +94,7 @@ func TestArchiverQueryService_GetTransactionsForTick(t *testing.T) {
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}, {Hash: "tx-hash-2", TickNumber: 43}},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	response, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{TickNumber: 42})
 	require.NoError(t, err)
 	require.NotNil(t, response)
@@ -90,11 +105,54 @@ func TestArchiverQueryService_GetTransactionsForTick_GivenNoTransaction_ThenRetu
 	txService := &TransactionServiceStub{
 		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}, {Hash: "tx-hash-2", TickNumber: 43}},
 	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 	response, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{TickNumber: 666})
 	require.NoError(t, err)
 	require.NotNil(t, response)
 	require.Empty(t, response.Transactions)
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidFilter_ThenErrors(t *testing.T) {
+	txService := &TransactionServiceStub{}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters:    map[string]string{"unsupportedKey": "value"},
+	})
+	require.Error(t, err)
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidRange_ThenErrors(t *testing.T) {
+	txService := &TransactionServiceStub{}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Ranges:     map[string]*api.Range{"unsupportedKey": {LowerBound: &api.Range_Gte{Gte: "1"}}},
+	})
+	require.Error(t, err)
+	require.Equal(t, codes.InvalidArgument, status.Code(err))
+}
+
+func TestArchiverQueryService_GetTransactionsForTick_WithFilters_FiltersPassedToService(t *testing.T) {
+	txService := &TransactionServiceStub{
+		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}},
+	}
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
+
+	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
+		TickNumber: 42,
+		Filters:    map[string]string{"inputType": "1"},
+		Ranges: map[string]*api.Range{
+			"amount": {LowerBound: &api.Range_Gte{Gte: "100"}},
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, map[string][]string{"inputType": {"1"}}, txService.capturedTickFilters.Include)
+	assert.Equal(t, map[string][]entities.Range{"amount": {{Operation: "gte", Value: "100"}}}, txService.capturedTickFilters.Ranges)
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
@@ -103,7 +161,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity(t *testing.T) {
 		hits:         &entities.Hits{Total: 2, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	from := uint32(0)
 	size := uint32(10)
@@ -151,7 +209,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_WithDeprecatedExcludeFil
 		hits:         &entities.Hits{Total: 1, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
@@ -173,7 +231,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_WithExcludeMap(t *testin
 		hits:         &entities.Hits{Total: 1, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
@@ -196,7 +254,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_DeprecatedApiMismatchErr
 		hits:         &entities.Hits{Total: 1, Relation: "eq"},
 	}
 
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	ctx := context.Background()
 	request := &api.GetTransactionsForIdentityRequest{
@@ -210,7 +268,7 @@ func TestArchiveQueryService_GetTransactionsForIdentity_DeprecatedApiMismatchErr
 }
 
 func TestArchiveQueryService_GetTransactionsForIdentity_GivenInvalidExcludeFilter_ThenErrors(t *testing.T) {
-	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10))
+	service := NewArchiveQueryService(nil, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
 
 	request := &api.GetTransactionsForIdentityRequest{
 		Identity: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB",

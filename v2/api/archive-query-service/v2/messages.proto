@@ -52,10 +52,10 @@ message ProcessedTickInterval {
 // Pagination
 message Pagination {
   option (openapi.v3.schema) = {
-    description: "The number of maximum results (offset + size) is limited to 10000."
+    description: "Offset + size together is limited to the number of maximum results (10000 unless otherwise stated)."
   };
   uint32 offset = 1 [(openapi.v3.property) = {description:"The offset specifies the starting point of the returned data. Defaults to zero."}];
-  uint32 size = 2 [(openapi.v3.property) = {description:"The size specifies how many results should be returned. Defaults to 10."}];
+  uint32 size = 2 [(openapi.v3.property) = {description:"Number of results that should be returned. Defaults to 10 and allows a maximum of 1000 unless otherwise stated."}];
 }
 
 // GetTransactionByHashRequest

@@ -10,7 +10,7 @@ import (
 
 func TestPageSizeLimits_ValidatePagination_GivenValidPageSize_ThenNoError(t *testing.T) {
 
-	defaultPageLimits := NewPageSizeLimits(1000, 10)
+	defaultPageLimits := NewPageSizeLimits(1000, 10, 10000)
 
 	test := map[string]struct {
 		pageSizeLimits   PageSizeLimits
@@ -80,6 +80,17 @@ func TestPageSizeLimits_ValidatePagination_GivenValidPageSize_ThenNoError(t *tes
 			expectedPageSize: 1,
 			expectedOffset:   1,
 		},
+		"TestPageSizeTickTransactions": {
+			pageSizeLimits: PageSizeLimits{
+				maxPageSize:     4096,
+				defaultPageSize: 4096,
+				maxHits:         4096,
+			},
+			inputPageSize:    0,
+			inputOffset:      0,
+			expectedPageSize: 4096,
+			expectedOffset:   0,
+		},
 	}
 
 	for testName, testData := range test {
@@ -98,7 +109,7 @@ func TestPageSizeLimits_ValidatePagination_GivenValidPageSize_ThenNoError(t *tes
 
 func TestPageSizeLimits_ValidatePagination_GivenInvalidPageSize_ThenError(t *testing.T) {
 
-	defaultPageLimits := NewPageSizeLimits(1000, 10)
+	defaultPageLimits := NewPageSizeLimits(1000, 10, 10000)
 
 	test := map[string]struct {
 		pageSizeLimits   PageSizeLimits
@@ -111,6 +122,15 @@ func TestPageSizeLimits_ValidatePagination_GivenInvalidPageSize_ThenError(t *tes
 			pageSizeLimits: defaultPageLimits,
 			inputPageSize:  1010,
 			inputOffset:    0,
+		},
+		"TestPageSizeTickTransactionsOverMax": {
+			pageSizeLimits: PageSizeLimits{
+				maxPageSize:     4096,
+				defaultPageSize: 4096,
+				maxHits:         4096,
+			},
+			inputPageSize: 5000,
+			inputOffset:   0,
 		},
 	}
 
@@ -128,7 +148,7 @@ func TestPageSizeLimits_ValidatePagination_GivenInvalidPageSize_ThenError(t *tes
 
 func TestPageSizeLimits_ValidatePagination_GivenValidOffset_ThenNoError(t *testing.T) {
 
-	defaultPageLimits := NewPageSizeLimits(1000, 10)
+	defaultPageLimits := NewPageSizeLimits(1000, 10, 10000)
 
 	test := map[string]struct {
 		pageSizeLimits   PageSizeLimits
@@ -216,6 +236,17 @@ func TestPageSizeLimits_ValidatePagination_GivenValidOffset_ThenNoError(t *testi
 			expectedPageSize: 10,
 			expectedOffset:   5,
 		},
+		"TestPageSizeTickTransactionsWithOffset": {
+			pageSizeLimits: PageSizeLimits{
+				maxPageSize:     4096,
+				defaultPageSize: 4096,
+				maxHits:         4096,
+			},
+			inputPageSize:    1000,
+			inputOffset:      3096,
+			expectedPageSize: 1000,
+			expectedOffset:   3096,
+		},
 	}
 
 	for testName, testData := range test {
@@ -234,7 +265,7 @@ func TestPageSizeLimits_ValidatePagination_GivenValidOffset_ThenNoError(t *testi
 
 func TestPageSizeLimits_ValidatePagination_GivenInvalidOffset_ThenError(t *testing.T) {
 
-	defaultPageLimits := NewPageSizeLimits(1000, 10)
+	defaultPageLimits := NewPageSizeLimits(1000, 10, 10000)
 
 	test := map[string]struct {
 		pageSizeLimits PageSizeLimits
@@ -259,6 +290,16 @@ func TestPageSizeLimits_ValidatePagination_GivenInvalidOffset_ThenError(t *testi
 			inputPageSize:  100,
 			inputOffset:    9990,
 			errorMsg:       "exceeds maximum allowed",
+		},
+		"TestPageSizeTickTransactionsWithInvalidOffset": {
+			pageSizeLimits: PageSizeLimits{
+				maxPageSize:     4096,
+				defaultPageSize: 4096,
+				maxHits:         4096,
+			},
+			inputPageSize: 1,
+			inputOffset:   4096,
+			errorMsg:      "exceeds maximum allowed",
 		},
 	}
 

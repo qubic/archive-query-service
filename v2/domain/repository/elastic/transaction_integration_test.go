@@ -238,6 +238,22 @@ func (t *transactionsSuite) Test_GetTransactionByHash_NotFound() {
 	require.Nil(t.T(), tx)
 }
 
+func (t *transactionsSuite) Test_GetTransactionsForTickNumber() {
+	txs, hits, err := t.repo.GetTransactionsForTickNumber(t.ctx, testTx1.TickNumber, entities.Filters{}, 0, 10)
+	require.NoError(t.T(), err)
+	require.Len(t.T(), txs, 1)
+	assert.Equal(t.T(), &entities.Hits{Total: 1, Relation: "eq"}, hits)
+	diff := cmp.Diff(transactionToAPITransaction(testTx1), txs[0], cmpopts.IgnoreUnexported(api.Transaction{}))
+	assert.Empty(t.T(), diff, "queried transaction should match the indexed one. diff: %s", diff)
+}
+
+func (t *transactionsSuite) Test_GetTransactionsForTickNumber_NoResults() {
+	txs, hits, err := t.repo.GetTransactionsForTickNumber(t.ctx, 9999, entities.Filters{}, 0, 10)
+	require.NoError(t.T(), err)
+	assert.Empty(t.T(), txs)
+	assert.Equal(t.T(), &entities.Hits{Total: 0, Relation: "eq"}, hits)
+}
+
 func (t *transactionsSuite) Test_GetIdentityTransactions() {
 	filters := entities.Filters{
 		Include: map[string][]string{"destination": {"KDPFLKJDPLRPZGLWNGPYBPSOXONATJZEIQZQPMWLTDWTGAFOKGNTZMFAMSAA"}}, // excludes tx 3

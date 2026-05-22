@@ -107,7 +107,7 @@ func (s *EventsE2ESuite) SetupSuite() {
 	// 4. Wire service stack: ES repo -> domain service -> gRPC server
 	eventsRepo := elastic.NewEventsRepository(e2eEventsIndex, esClient)
 	eventsService := domain.NewEventsService(eventsRepo)
-	rpcServer := rpc.NewArchiveQueryService(nil, nil, &statusServiceStub{}, nil, eventsService, rpc.NewPageSizeLimits(1000, 10))
+	rpcServer := rpc.NewArchiveQueryService(nil, nil, &statusServiceStub{}, nil, eventsService, rpc.NewPageSizeLimits(1000, 10, 10000))
 
 	// 5. Start gRPC server
 	srvErrorsChan := make(chan error, 1)

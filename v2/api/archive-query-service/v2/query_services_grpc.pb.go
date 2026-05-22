@@ -85,8 +85,6 @@ type ArchiveQueryServiceClient interface {
 	// | lte       | string | optional  | Less than or equal to.                    |
 	//
 	// Only one lower bound and one upper bound can be specified.
-	//
-	// For examples how to use filters and ranges see the GetTransactionsForIdentity endpoint documentation.
 	GetTransactionsForTick(ctx context.Context, in *GetTransactionsForTickRequest, opts ...grpc.CallOption) (*GetTransactionsForTickResponse, error)
 	// Get the transactions for one identity sorted by tick number descending.
 	//
@@ -133,13 +131,6 @@ type ArchiveQueryServiceClient interface {
 	// | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
 	// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
-	//
-	// ### Pagination
-	//
-	// | Name   | Type   | Necessity | Description                                                                                         |
-	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetTransactionsForIdentity(ctx context.Context, in *GetTransactionsForIdentityRequest, opts ...grpc.CallOption) (*GetTransactionsForIdentityResponse, error)
 	// Get the tick data for one tick
 	GetTickData(ctx context.Context, in *GetTickDataRequest, opts ...grpc.CallOption) (*GetTickDataResponse, error)
@@ -255,13 +246,6 @@ type ArchiveQueryServiceClient interface {
 	// | deductedAmount  | string | Numeric (uint64)                         | Only find logs in the deducted amount range.       |
 	// | remainingAmount | string | Numeric (int64)                          | Only find logs in the remaining amount range.      |
 	// | logId           | string | Numeric (uint64)                         | Only find logs in the logId range. Combine with a tickNumber filter to paginate beyond 10K events in a tick. |
-	//
-	// ### Pagination
-	//
-	// | Name   | Type   | Necessity | Description                                                                                         |
-	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetEventLogs(ctx context.Context, in *GetEventLogsRequest, opts ...grpc.CallOption) (*GetEventLogsResponse, error)
 	GetHealth(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthResponse, error)
 }
@@ -418,8 +402,6 @@ type ArchiveQueryServiceServer interface {
 	// | lte       | string | optional  | Less than or equal to.                    |
 	//
 	// Only one lower bound and one upper bound can be specified.
-	//
-	// For examples how to use filters and ranges see the GetTransactionsForIdentity endpoint documentation.
 	GetTransactionsForTick(context.Context, *GetTransactionsForTickRequest) (*GetTransactionsForTickResponse, error)
 	// Get the transactions for one identity sorted by tick number descending.
 	//
@@ -466,13 +448,6 @@ type ArchiveQueryServiceServer interface {
 	// | tickNumber | string | Numeric                                  | Only find transactions in tick range.       |
 	// | inputType  | string | Numeric                                  | Only find transactions in input type range. |
 	// | timestamp  | string | Numeric (Unix Timestamp in milliseconds) | Only find transactions in time range.       |
-	//
-	// ### Pagination
-	//
-	// | Name   | Type   | Necessity | Description                                                                                         |
-	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetTransactionsForIdentity(context.Context, *GetTransactionsForIdentityRequest) (*GetTransactionsForIdentityResponse, error)
 	// Get the tick data for one tick
 	GetTickData(context.Context, *GetTickDataRequest) (*GetTickDataResponse, error)
@@ -588,13 +563,6 @@ type ArchiveQueryServiceServer interface {
 	// | deductedAmount  | string | Numeric (uint64)                         | Only find logs in the deducted amount range.       |
 	// | remainingAmount | string | Numeric (int64)                          | Only find logs in the remaining amount range.      |
 	// | logId           | string | Numeric (uint64)                         | Only find logs in the logId range. Combine with a tickNumber filter to paginate beyond 10K events in a tick. |
-	//
-	// ### Pagination
-	//
-	// | Name   | Type   | Necessity | Description                                                                                         |
-	// |--------|--------|-----------|-----------------------------------------------------------------------------------------------------|
-	// | offset | uint32 | optional  | The offset of the first record to return. Defaults to zero (first record). Maximum offset is 10000. |
-	// | size   | uint32 | optional  | Defaults to 10. Maximum size is 1000. Zero value is ignored (uses default). |
 	GetEventLogs(context.Context, *GetEventLogsRequest) (*GetEventLogsResponse, error)
 	GetHealth(context.Context, *emptypb.Empty) (*HealthResponse, error)
 	mustEmbedUnimplementedArchiveQueryServiceServer()

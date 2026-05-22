@@ -2810,7 +2810,7 @@ const file_messages_proto_rawDesc = "" +
 	"\tsignature\x18\n" +
 	" \x01(\tBJ\xbaGG\x92\x02DBase64 encoded byte array representing the transactions's signature.R\tsignature\x12\x83\x01\n" +
 	"\n" +
-	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\x8a\x05\n" +
+	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\x9b\x05\n" +
 	"\bTickData\x12>\n" +
 	"\vtick_number\x18\x01 \x01(\rB\x1d\xbaG\x1a\x92\x02\x17The number of the tick.R\n" +
 	"tickNumber\x124\n" +
@@ -2821,17 +2821,17 @@ const file_messages_proto_rawDesc = "" +
 	"var_struct\x18\x05 \x01(\tR\tvarStruct\x12\x1b\n" +
 	"\ttime_lock\x18\x06 \x01(\tR\btimeLock\x12u\n" +
 	"\x12transaction_hashes\x18\a \x03(\tBF\xbaGC\x92\x02@A list of all the ticks transaction hashes in the correct order.R\x11transactionHashes\x12#\n" +
-	"\rcontract_fees\x18\b \x03(\x03R\fcontractFees\x12e\n" +
-	"\tsignature\x18\t \x01(\tBG\xbaGD\x92\x02ABase64 encoded byte array representing the tick data's signature.R\tsignature\"\xf1\x01\n" +
+	"\rcontract_fees\x18\b \x03(\x03R\fcontractFees\x12v\n" +
+	"\tsignature\x18\t \x01(\tBX\xbaGU\x92\x02RBase64 encoded byte array representing the signature of the tick data's signature.R\tsignature\"\xf1\x01\n" +
 	"\x15ProcessedTickInterval\x129\n" +
 	"\x05epoch\x18\x01 \x01(\rB#\xbaG \x92\x02\x1dThe epoch the interval is in.R\x05epoch\x12P\n" +
 	"\n" +
 	"first_tick\x18\x02 \x01(\rB1\xbaG.\x92\x02+The initial processed tick of the interval.R\tfirstTick\x12K\n" +
-	"\tlast_tick\x18\x03 \x01(\rB.\xbaG+\x92\x02(The last processed tick of the interval.R\blastTick\"\xa8\x02\n" +
+	"\tlast_tick\x18\x03 \x01(\rB.\xbaG+\x92\x02(The last processed tick of the interval.R\blastTick\"\xf2\x02\n" +
 	"\n" +
 	"Pagination\x12m\n" +
-	"\x06offset\x18\x01 \x01(\rBU\xbaGR\x92\x02OThe offset specifies the starting point of the returned data. Defaults to zero.R\x06offset\x12a\n" +
-	"\x04size\x18\x02 \x01(\rBM\xbaGJ\x92\x02GThe size specifies how many results should be returned. Defaults to 10.R\x04size:H\xbaGE\x92\x02BThe number of maximum results (offset + size) is limited to 10000.\"U\n" +
+	"\x06offset\x18\x01 \x01(\rBU\xbaGR\x92\x02OThe offset specifies the starting point of the returned data. Defaults to zero.R\x06offset\x12\x89\x01\n" +
+	"\x04size\x18\x02 \x01(\rBu\xbaGr\x92\x02oNumber of results that should be returned. Defaults to 10 and allows a maximum of 1000 unless otherwise stated.R\x04size:i\xbaGf\x92\x02cOffset + size together is limited to the number of maximum results (10000 unless otherwise stated).\"U\n" +
 	"\x1bGetTransactionByHashRequest\x126\n" +
 	"\x04hash\x18\x01 \x01(\tB\"\xbaG\x1f\x92\x02\x1cThe hash of the transaction.R\x04hash\"\x91\x01\n" +
 	"\x1cGetTransactionByHashResponse\x12q\n" +

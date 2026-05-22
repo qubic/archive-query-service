@@ -6,24 +6,21 @@ import (
 	api "github.com/qubic/archive-query-service/v2/api/archive-query-service/v2"
 )
 
-const maxHitsSize uint32 = 10000
-
 type PageSizeLimits struct {
 	maxPageSize     uint32
 	defaultPageSize uint32
+	maxHits         uint32
 }
 
-func NewPageSizeLimits(maxPageSize, defaultPageSize uint32) PageSizeLimits {
+func NewPageSizeLimits(maxPageSize, defaultPageSize, maxHits uint32) PageSizeLimits {
 	return PageSizeLimits{
 		maxPageSize:     maxPageSize,
 		defaultPageSize: defaultPageSize,
+		maxHits:         maxHits,
 	}
 }
 
-func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (uint32, uint32, error) {
-	var pageSize uint32
-	var offset uint32
-
+func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (offset uint32, pageSize uint32, err error) {
 	// Sane defaults if pagination block is missing inside request
 	if pagination == nil {
 		pageSize = psl.defaultPageSize
@@ -33,7 +30,7 @@ func (psl PageSizeLimits) ValidatePagination(pagination *api.Pagination) (uint32
 		offset = pagination.Offset
 	}
 
-	pageSize, err := psl.validatePageSize(pageSize)
+	pageSize, err = psl.validatePageSize(pageSize)
 	if err != nil {
 		return 0, 0, fmt.Errorf("validating page size: %w", err)
 	}
@@ -59,12 +56,12 @@ func (psl PageSizeLimits) validatePageSize(pageSize uint32) (uint32, error) {
 }
 
 func (psl PageSizeLimits) validatePageOffset(pageSize, offset uint32) (uint32, error) {
-	if offset > maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] exceeds maximum allowed [%d]", offset, maxHitsSize)
+	if offset > psl.maxHits {
+		return 0, fmt.Errorf("offset [%d] exceeds maximum allowed [%d]", offset, psl.maxHits)
 	}
 
-	if offset+pageSize > maxHitsSize {
-		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum allowed [%d]", offset, pageSize, maxHitsSize)
+	if offset+pageSize > psl.maxHits {
+		return 0, fmt.Errorf("offset [%d] + size [%d] exceeds maximum allowed [%d]", offset, pageSize, psl.maxHits)
 	}
 
 	return offset, nil

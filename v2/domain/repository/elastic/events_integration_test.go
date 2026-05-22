@@ -11,7 +11,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/go-cmp/cmp"
 	"github.com/qubic/archive-query-service/v2/entities"
-	"github.com/qubic/archive-query-service/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -25,7 +24,7 @@ var testEvent1 = event{
 	Epoch:           100,
 	TickNumber:      15000,
 	Timestamp:       1700000001,
-	TransactionHash: test.ToStringPointer("txhash1"),
+	TransactionHash: new("txhash1"),
 	LogID:           1,
 	LogDigest:       "digest1",
 	LogType:         0,
@@ -38,7 +37,7 @@ var testEvent2 = event{
 	Epoch:           100,
 	TickNumber:      15001,
 	Timestamp:       1700000002,
-	TransactionHash: test.ToStringPointer("txhash2"),
+	TransactionHash: new("txhash2"),
 	LogID:           2,
 	LogDigest:       "digest2",
 	LogType:         1,
@@ -52,7 +51,7 @@ var testEvent3 = event{
 	Epoch:           100,
 	TickNumber:      15002,
 	Timestamp:       1700000003,
-	TransactionHash: test.ToStringPointer("txhash1"),
+	TransactionHash: new("txhash1"),
 	LogID:           3,
 	LogDigest:       "digest3",
 	LogType:         2,
@@ -65,7 +64,7 @@ var testEvent4 = event{
 	Epoch:           101,
 	TickNumber:      16000,
 	Timestamp:       1700000004,
-	TransactionHash: test.ToStringPointer("txhash3"),
+	TransactionHash: new("txhash3"),
 	LogID:           4,
 	LogDigest:       "digest4",
 	LogType:         3,
@@ -78,7 +77,7 @@ var testEvent5 = event{
 	Epoch:           101,
 	TickNumber:      16001,
 	Timestamp:       1700000005,
-	TransactionHash: test.ToStringPointer("txhash4"),
+	TransactionHash: new("txhash4"),
 	LogID:           5,
 	LogType:         8,
 }
@@ -87,7 +86,7 @@ var testEvent6 = event{
 	Epoch:           101,
 	TickNumber:      16002,
 	Timestamp:       1700000006,
-	TransactionHash: test.ToStringPointer("txhash5"),
+	TransactionHash: new("txhash5"),
 	LogID:           6,
 	LogType:         13,
 }
@@ -96,7 +95,7 @@ var testEvent7 = event{
 	Epoch:                    101,
 	TickNumber:               16003,
 	Timestamp:                1700000007,
-	TransactionHash:          test.ToStringPointer("txhash6"),
+	TransactionHash:          new("txhash6"),
 	LogID:                    7,
 	LogDigest:                "digest7",
 	LogType:                  11,
@@ -112,7 +111,7 @@ var testEvent8 = event{
 	Epoch:                    101,
 	TickNumber:               16004,
 	Timestamp:                1700000008,
-	TransactionHash:          test.ToStringPointer("txhash7"),
+	TransactionHash:          new("txhash7"),
 	LogID:                    8,
 	LogDigest:                "digest8",
 	LogType:                  12,

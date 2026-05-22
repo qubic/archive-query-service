@@ -47,6 +47,16 @@ Accept: application/json
     "hash": "wnkujtaavborugjhgudeimborfpgyudnuekalkbsjeaxiejvvdgahdrerajo"
 }
 
+### Get transactions for tick
+
+POST {{host}}/getTransactionsForTick
+Accept: application/json
+Content-Type: application/json
+
+{
+  "tickNumber": 52942531
+}
+
 ### Get event logs
 
 POST {{host}}/getEventLogs

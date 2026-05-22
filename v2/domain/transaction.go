@@ -12,14 +12,8 @@ import (
 //go:generate go tool go.uber.org/mock/mockgen -destination=mock/transactions.mock.go -package=mock -source transaction.go
 type TransactionRepository interface {
 	GetTransactionByHash(ctx context.Context, hash string) (*api.Transaction, error)
-	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error)
-	GetTransactionsForIdentity(
-		ctx context.Context,
-		identity string,
-		maxTick uint32,
-		filters entities.Filters,
-		from, size uint32,
-	) ([]*api.Transaction, *entities.Hits, error)
+	GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters entities.Filters, from, size uint32) ([]*api.Transaction, *entities.Hits, error)
+	GetTransactionsForIdentity(ctx context.Context, identity string, maxTick uint32, filters entities.Filters, from, size uint32) ([]*api.Transaction, *entities.Hits, error)
 }
 
 type StatusFetcherFunc func(ctx context.Context) (*statusPb.GetStatusResponse, error)
@@ -44,8 +38,9 @@ func (s *TransactionService) GetTransactionByHash(ctx context.Context, hash stri
 	return tx, err
 }
 
-func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, filters map[string][]string, ranges map[string][]entities.Range) ([]*api.Transaction, error) {
-	return s.repo.GetTransactionsForTickNumber(ctx, tickNumber, filters, ranges)
+func (s *TransactionService) GetTransactionsForTickNumber(ctx context.Context, tickNumber uint32, queryFilters entities.Filters, from uint32, size uint32) (*entities.TickTransactionsResult, error) {
+	txs, hits, err := s.repo.GetTransactionsForTickNumber(ctx, tickNumber, queryFilters, from, size)
+	return &entities.TickTransactionsResult{Hits: hits, Transactions: txs}, err
 }
 
 func (s *TransactionService) GetTransactionsForIdentity(ctx context.Context, identity string, filters entities.Filters, from, size uint32) (*entities.TransactionsResult, error) {
