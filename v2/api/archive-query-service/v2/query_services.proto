@@ -191,6 +191,7 @@ service ArchiveQueryService {
     };
   }
 
+  // Get the tick data for one tick
   rpc GetTickData(GetTickDataRequest) returns (GetTickDataResponse) {
     option (openapi.v3.operation) = {
       tags: ["Ticks"]

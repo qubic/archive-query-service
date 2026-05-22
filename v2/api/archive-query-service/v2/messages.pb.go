@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// LastProcessedTick
 type LastProcessedTick struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TickNumber    uint32                 `protobuf:"varint,1,opt,name=tick_number,json=tickNumber,proto3" json:"tick_number,omitempty"`
@@ -66,6 +67,7 @@ func (x *LastProcessedTick) GetTickNumber() uint32 {
 	return 0
 }
 
+// NextAvailableTick (only used in error messages)
 type NextAvailableTick struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	NextTickNumber uint32                 `protobuf:"varint,1,opt,name=next_tick_number,json=nextTickNumber,proto3" json:"next_tick_number,omitempty"`
@@ -2785,20 +2787,20 @@ var File_messages_proto protoreflect.FileDescriptor
 
 const file_messages_proto_rawDesc = "" +
 	"\n" +
-	"\x0emessages.proto\x12\x13qubic.v2.archive.pb\x1a\x1bopenapiv3/annotations.proto\"4\n" +
-	"\x11LastProcessedTick\x12\x1f\n" +
-	"\vtick_number\x18\x01 \x01(\rR\n" +
+	"\x0emessages.proto\x12\x13qubic.v2.archive.pb\x1a\x1bopenapiv3/annotations.proto\"h\n" +
+	"\x11LastProcessedTick\x12S\n" +
+	"\vtick_number\x18\x01 \x01(\rB2\xbaG/\x92\x02,The number of the last fully processed tick.R\n" +
 	"tickNumber\"=\n" +
 	"\x11NextAvailableTick\x12(\n" +
-	"\x10next_tick_number\x18\x01 \x01(\rR\x0enextTickNumber\"\xda\x05\n" +
-	"\vTransaction\x12\x12\n" +
-	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x16\n" +
-	"\x06amount\x18\x02 \x01(\x04R\x06amount\x12\x16\n" +
-	"\x06source\x18\x03 \x01(\tR\x06source\x12 \n" +
-	"\vdestination\x18\x04 \x01(\tR\vdestination\x12\x1f\n" +
-	"\vtick_number\x18\x05 \x01(\rR\n" +
-	"tickNumber\x12\x1c\n" +
-	"\ttimestamp\x18\x06 \x01(\x04R\ttimestamp\x12\x8b\x01\n" +
+	"\x10next_tick_number\x18\x01 \x01(\rR\x0enextTickNumber\"\x91\b\n" +
+	"\vTransaction\x12E\n" +
+	"\x04hash\x18\x01 \x01(\tB1\xbaG.\x92\x02+The unique identifier for this transaction.R\x04hash\x128\n" +
+	"\x06amount\x18\x02 \x01(\x04B \xbaG\x1d\x92\x02\x1aQubic amount. Can be zero.R\x06amount\x12L\n" +
+	"\x06source\x18\x03 \x01(\tB4\xbaG1\x92\x02.The source identity that sent the transaction.R\x06source\x12U\n" +
+	"\vdestination\x18\x04 \x01(\tB3\xbaG0\x92\x02-The destination identity for the transaction.R\vdestination\x12>\n" +
+	"\vtick_number\x18\x05 \x01(\rB\x1d\xbaG\x1a\x92\x02\x17The number of the tick.R\n" +
+	"tickNumber\x12t\n" +
+	"\ttimestamp\x18\x06 \x01(\x04BV\xbaGS\x92\x02PThe timestamp of the tick. Not guaranteed to be perfectly synchronized with UTC.R\ttimestamp\x12\x8b\x01\n" +
 	"\n" +
 	"input_type\x18\a \x01(\rBl\xbaGi\x92\x02fSmart contract procedure index. (The smart contract procedure this transaction is supposed to trigger)R\tinputType\x12C\n" +
 	"\n" +
@@ -2808,19 +2810,19 @@ const file_messages_proto_rawDesc = "" +
 	"\tsignature\x18\n" +
 	" \x01(\tBJ\xbaGG\x92\x02DBase64 encoded byte array representing the transactions's signature.R\tsignature\x12\x83\x01\n" +
 	"\n" +
-	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\xb4\x02\n" +
-	"\bTickData\x12\x1f\n" +
-	"\vtick_number\x18\x01 \x01(\rR\n" +
-	"tickNumber\x12\x14\n" +
-	"\x05epoch\x18\x02 \x01(\rR\x05epoch\x12%\n" +
-	"\x0ecomputor_index\x18\x03 \x01(\rR\rcomputorIndex\x12\x1c\n" +
-	"\ttimestamp\x18\x04 \x01(\x04R\ttimestamp\x12\x1d\n" +
+	"money_flew\x18\v \x01(\bBd\xbaGa\x92\x02^Money flew is an additional information provided by some nodes with the tx status addon patch.R\tmoneyFlew\"\x8a\x05\n" +
+	"\bTickData\x12>\n" +
+	"\vtick_number\x18\x01 \x01(\rB\x1d\xbaG\x1a\x92\x02\x17The number of the tick.R\n" +
+	"tickNumber\x124\n" +
+	"\x05epoch\x18\x02 \x01(\rB\x1e\xbaG\x1b\x92\x02\x18The number of the epoch.R\x05epoch\x12S\n" +
+	"\x0ecomputor_index\x18\x03 \x01(\rB,\xbaG)\x92\x02&The computor index of the tick leader.R\rcomputorIndex\x12t\n" +
+	"\ttimestamp\x18\x04 \x01(\x04BV\xbaGS\x92\x02PThe timestamp of the tick. Not guaranteed to be perfectly synchronized with UTC.R\ttimestamp\x12\x1d\n" +
 	"\n" +
 	"var_struct\x18\x05 \x01(\tR\tvarStruct\x12\x1b\n" +
-	"\ttime_lock\x18\x06 \x01(\tR\btimeLock\x12-\n" +
-	"\x12transaction_hashes\x18\a \x03(\tR\x11transactionHashes\x12#\n" +
-	"\rcontract_fees\x18\b \x03(\x03R\fcontractFees\x12\x1c\n" +
-	"\tsignature\x18\t \x01(\tR\tsignature\"\xf1\x01\n" +
+	"\ttime_lock\x18\x06 \x01(\tR\btimeLock\x12u\n" +
+	"\x12transaction_hashes\x18\a \x03(\tBF\xbaGC\x92\x02@A list of all the ticks transaction hashes in the correct order.R\x11transactionHashes\x12#\n" +
+	"\rcontract_fees\x18\b \x03(\x03R\fcontractFees\x12e\n" +
+	"\tsignature\x18\t \x01(\tBG\xbaGD\x92\x02ABase64 encoded byte array representing the tick data's signature.R\tsignature\"\xf1\x01\n" +
 	"\x15ProcessedTickInterval\x129\n" +
 	"\x05epoch\x18\x01 \x01(\rB#\xbaG \x92\x02\x1dThe epoch the interval is in.R\x05epoch\x12P\n" +
 	"\n" +
@@ -2918,15 +2920,15 @@ const file_messages_proto_rawDesc = "" +
 	"\x15interval_initial_tick\x18\x03 \x01(\rB4\xbaG1\x92\x02.The initial tick of the current tick interval.R\x13intervalInitialTick\x12U\n" +
 	"\x0flog_tick_number\x18\x04 \x01(\rB-\xbaG*\x92\x02'The last processed tick for event logs.R\rlogTickNumber\"n\n" +
 	"\x1fGetComputorListsForEpochRequest\x12K\n" +
-	"\x05epoch\x18\x01 \x01(\rB5\xbaG2\x92\x02/The epoch number to get the computor lists for.R\x05epoch\"\xcc\x02\n" +
+	"\x05epoch\x18\x01 \x01(\rB5\xbaG2\x92\x02/The epoch number to get the computor lists for.R\x05epoch\"\xe0\x02\n" +
 	"\fComputorList\x12)\n" +
 	"\x05epoch\x18\x01 \x01(\rB\x13\xbaG\x10\x92\x02\rEpoch number.R\x05epoch\x12t\n" +
 	"\vtick_number\x18\x02 \x01(\rBS\xbaGP\x92\x02MTick number when the list was received by the archive after it was published.R\n" +
-	"tickNumber\x12Y\n" +
+	"tickNumber\x12B\n" +
 	"\n" +
-	"identities\x18\x03 \x03(\tB9\xbaG6\x92\x023List of computor identities (signed by arbitrator).R\n" +
-	"identities\x12@\n" +
-	"\tsignature\x18\x04 \x01(\tB\"\xbaG\x1f\x92\x02\x1cSignature of the arbitrator.R\tsignature\"\xa7\x01\n" +
+	"identities\x18\x03 \x03(\tB\"\xbaG\x1f\x92\x02\x1cList of computor identities.R\n" +
+	"identities\x12k\n" +
+	"\tsignature\x18\x04 \x01(\tBM\xbaGJ\x92\x02GBase64 encoded byte array representing the signature of the arbitrator.R\tsignature\"\xa7\x01\n" +
 	" GetComputorListsForEpochResponse\x12\x82\x01\n" +
 	"\x0fcomputors_lists\x18\x01 \x03(\v2!.qubic.v2.archive.pb.ComputorListB6\xbaG3\x92\x020The lists of computors that voted in this epoch.R\x0ecomputorsLists\"J\n" +
 	"\x0eHealthResponse\x128\n" +
