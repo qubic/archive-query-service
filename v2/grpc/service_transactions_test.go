@@ -112,58 +112,6 @@ func TestArchiverQueryService_GetTransactionsForTick_GivenNoTransaction_ThenRetu
 	require.Empty(t, response.Transactions)
 }
 
-func TestArchiverQueryService_GetTransactionsForTick_HitsReturnedInResponse(t *testing.T) {
-	txService := &TransactionServiceStub{
-		transactions: []*api.Transaction{
-			{Hash: "tx-hash-1", TickNumber: 42},
-			{Hash: "tx-hash-2", TickNumber: 42},
-			{Hash: "tx-hash-3", TickNumber: 42},
-		},
-		hits: &entities.Hits{Total: 10, Relation: "eq"},
-	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
-
-	response, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
-		TickNumber: 42,
-		Pagination: &api.Pagination{Offset: 5, Size: 3},
-	})
-	require.NoError(t, err)
-	require.NotNil(t, response)
-
-	assert.EqualValues(t, 10, response.GetHits().GetTotal())
-	assert.EqualValues(t, 5, response.GetHits().GetFrom())
-	assert.EqualValues(t, 3, response.GetHits().GetSize())
-}
-
-func TestArchiverQueryService_GetTransactionsForTick_PaginationPassedToService(t *testing.T) {
-	txService := &TransactionServiceStub{
-		transactions: []*api.Transaction{{Hash: "tx-hash-1", TickNumber: 42}},
-	}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
-
-	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
-		TickNumber: 42,
-		Pagination: &api.Pagination{Offset: 10, Size: 20},
-	})
-	require.NoError(t, err)
-
-	assert.EqualValues(t, 42, txService.capturedTickNumber)
-	assert.EqualValues(t, 10, txService.capturedTickFrom)
-	assert.EqualValues(t, 20, txService.capturedTickSize)
-}
-
-func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidPagination_ThenErrors(t *testing.T) {
-	txService := &TransactionServiceStub{}
-	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))
-
-	_, err := service.GetTransactionsForTick(context.Background(), &api.GetTransactionsForTickRequest{
-		TickNumber: 42,
-		Pagination: &api.Pagination{Size: 5000}, // exceeds hardcoded max of 4096
-	})
-	require.Error(t, err)
-	require.Equal(t, codes.InvalidArgument, status.Code(err))
-}
-
 func TestArchiverQueryService_GetTransactionsForTick_GivenInvalidFilter_ThenErrors(t *testing.T) {
 	txService := &TransactionServiceStub{}
 	service := NewArchiveQueryService(txService, nil, nil, nil, nil, NewPageSizeLimits(1000, 10, 10000))

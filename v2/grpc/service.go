@@ -93,24 +93,12 @@ func (s *ArchiveQueryService) GetTransactionsForTick(ctx context.Context, req *a
 	}
 	queryFilters := entities.Filters{Include: filterMap, Ranges: ranges}
 
-	pageLimits := PageSizeLimits{maxPageSize: 4096, defaultPageSize: 4096, maxHits: 4096}
-	from, size, err := pageLimits.ValidatePagination(req.GetPagination())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid pagination: %v", err)
-	}
-
-	result, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, queryFilters, from, size)
+	result, err := s.txService.GetTransactionsForTickNumber(ctx, req.TickNumber, queryFilters, 0, 4096)
 	if err != nil {
 		return nil, createInternalError(fmt.Sprintf("failed to get transactions for tick [%d]", req.GetTickNumber()), err)
 	}
 
-	// paging information
-	apiHits := &api.Hits{
-		Total: uint32(result.GetHits().GetTotal()), //nolint: gosec
-		From:  from,
-		Size:  size,
-	}
-	return &api.GetTransactionsForTickResponse{Transactions: result.Transactions, Hits: apiHits}, nil
+	return &api.GetTransactionsForTickResponse{Transactions: result.Transactions}, nil
 }
 
 func (s *ArchiveQueryService) GetTickData(ctx context.Context, req *api.GetTickDataRequest) (*api.GetTickDataResponse, error) {

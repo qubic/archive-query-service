@@ -71,7 +71,6 @@ message GetTransactionByHashResponse {
 // GetTransactionsForTickRequest
 message GetTransactionsForTickRequest {
   option (openapi.v3.schema) = {
-    description: "Maximum and default page size is 4096.",
     example: {
       yaml: "tickNumber: 42977140\nfilters:\n  destination: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\nranges:\n  amount:\n    gte: \"1\""
     };
@@ -80,13 +79,11 @@ message GetTransactionsForTickRequest {
   uint32 tick_number = 1 [(openapi.v3.property) = {description:"The tick number to get the transactions for."}];
   map<string, string> filters = 2 [(openapi.v3.property) = {description:"Include filters: the value must appear in the matching documents. Allowed: source, destination, amount, inputType"}];
   map<string, Range> ranges = 3 [(openapi.v3.property) = {description:"Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType"}];
-  Pagination pagination = 9 [(openapi.v3.property) = {description:"Optional paging information."}];
 }
 
 // GetTransactionsForTickResponse
 message GetTransactionsForTickResponse {
   repeated Transaction transactions = 1 [(openapi.v3.property) = {description:"The transactions for the requested tick number."}];
-  Hits hits = 9 [(openapi.v3.property) = {description:"Information about the returned results."}];
 }
 
 // Range filter

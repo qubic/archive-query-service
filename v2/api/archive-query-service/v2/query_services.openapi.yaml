@@ -314,7 +314,6 @@ paths:
                  | identity   | string             | required  | 60 characters uppercase identity.               |
                  | filters    | map<string,string> | optional  | Filters that restrict results to single value.  |
                  | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range. |
-                 | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved. |
 
                  ### Filters
 
@@ -754,9 +753,7 @@ components:
                     additionalProperties:
                         $ref: '#/components/schemas/Range'
                     description: 'Ranges restrict the results by a maximum and minimum value. Allowed: amount, inputType'
-                pagination:
-                    $ref: '#/components/schemas/Pagination'
-            description: Maximum and default page size is 4096.
+            description: GetTransactionsForTickRequest
         GetTransactionsForTickResponse:
             type: object
             properties:
@@ -765,8 +762,6 @@ components:
                     items:
                         $ref: '#/components/schemas/Transaction'
                     description: The transactions for the requested tick number.
-                hits:
-                    $ref: '#/components/schemas/Hits'
             description: GetTransactionsForTickResponse
         HealthResponse:
             type: object

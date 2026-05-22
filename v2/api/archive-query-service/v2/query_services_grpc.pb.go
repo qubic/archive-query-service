@@ -47,7 +47,6 @@ type ArchiveQueryServiceClient interface {
 	// | identity   | string             | required  | 60 characters uppercase identity.               |
 	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.  |
 	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range. |
-	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved. |
 	//
 	// ### Filters
 	//
@@ -365,7 +364,6 @@ type ArchiveQueryServiceServer interface {
 	// | identity   | string             | required  | 60 characters uppercase identity.               |
 	// | filters    | map<string,string> | optional  | Filters that restrict results to single value.  |
 	// | ranges     | map<string,Range>  | optional  | Filters that restrict results to a value range. |
-	// | pagination | Pagination         | optional  | Allows to specify the first record and the number of records to be retrieved. |
 	//
 	// ### Filters
 	//
