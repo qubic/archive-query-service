@@ -11,7 +11,18 @@ import "openapiv3/annotations.proto";
 option (openapi.v3.document) = {
   info: {
     title: "Qubic Query API"
-    description: "API for querying historical Qubic ledger data."
+    description: "API for querying historical Qubic ledger data.\n"
+      "\n"
+      "## Data availability and pruning\n"
+      "\n"
+      "### Ephemeral transactions\n"
+      "\n"
+      "**Certain transactions are marked as ephemeral and deleted from storage after 28 days,** so results from transaction endpoints may be incomplete. A transaction is ephemeral when **all** of the following are true:\n"
+      "- Transaction input type = 6\n"
+      "- Destination is the zero address (\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\")\n"
+      "- Amount = 0\n"
+      "\n"
+      "Affects: *Get Transaction By Hash*, *Get Transactions For Tick*, *Get Transactions For Identity*."
     version: "1.0.0"
   }
   servers: [
@@ -49,12 +60,15 @@ option (openapi.v3.document) = {
 
 // Qubic Query API
 service ArchiveQueryService {
-
+  // Get a single transaction by its hash / transaction id.
+  //
+  // **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+  // See the "Data availability and pruning" section in the API description for the full rule.
+  //
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
     option (openapi.v3.operation) = {
       tags: ["Transactions"]
       summary: "Get Transaction By Hash"
-      description: "Get a single transaction by its hash."
     };
 
     option (google.api.http) = {
@@ -65,6 +79,9 @@ service ArchiveQueryService {
   }
 
   // Get the transactions that are in included in one tick.
+  //
+  // **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+  // See the "Data availability and pruning" section in the API description for the full rule.
   //
   // ###  Request structure
   //
@@ -126,6 +143,9 @@ service ArchiveQueryService {
 
 
   // Get the transactions for one identity sorted by tick number descending.
+  //
+  // **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+  // See the "Data availability and pruning" section in the API description for the full rule.
   //
   // ###  Request structure
   //
@@ -342,6 +362,15 @@ service ArchiveQueryService {
   // | deductedAmount  | string | Numeric (uint64)                         | Only find logs in the deducted amount range.       |
   // | remainingAmount | string | Numeric (int64)                          | Only find logs in the remaining amount range.      |
   // | logId           | string | Numeric (uint64)                         | Only find logs in the logId range. Combine with a tickNumber filter to paginate beyond 10K events in a tick. |
+  //
+  // ### Log events not stored
+  //
+  // There are certain events which the underlying infrastructure does not currently store or provide:
+  // | Log type |          Event         |       Condition       |
+  // |----------|------------------------|-----------------------|
+  // |     0    |       qu_transfer      | Skipped if amount = 0 |
+  // |     7    | contract_debug_message |       Not stored      |
+  // |     8    |         burning        | Skipped if amount = 0 |
   rpc GetEventLogs(GetEventLogsRequest) returns (GetEventLogsResponse) {
     option (openapi.v3.operation) = {
       tags: ["Events (Beta)"]
