@@ -17,7 +17,7 @@ option (openapi.v3.document) = {
       "\n"
       "### Ephemeral transactions\n"
       "\n"
-      "**Certain transactions are marked as ephemeral and deleted from storage after 28 days,** so results from transaction endpoints may be incomplete. A transaction is ephemeral when **all** of the following are true:\n"
+      "**Certain transactions are marked as ephemeral and kept for at least 21 days**, so results from transaction endpoints may be incomplete. A transaction is ephemeral when **all** of the following are true:\n"
       "- Transaction input type = 6\n"
       "- Destination is the zero address (\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB\")\n"
       "- Amount = 0\n"
@@ -62,7 +62,7 @@ option (openapi.v3.document) = {
 service ArchiveQueryService {
   // Get a single transaction by its hash / transaction id.
   //
-  // **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+  // **Note:** results may be incomplete — certain transactions are marked as ephemeral and pruned after a certain amount of time.
   // See the "Data availability and pruning" section in the API description for the full rule.
   //
   rpc GetTransactionByHash(GetTransactionByHashRequest) returns (GetTransactionByHashResponse) {
@@ -80,7 +80,7 @@ service ArchiveQueryService {
 
   // Get the transactions that are in included in one tick.
   //
-  // **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+  // **Note:** results may be incomplete — certain transactions are marked as ephemeral and pruned after a certain amount of time.
   // See the "Data availability and pruning" section in the API description for the full rule.
   //
   // ###  Request structure
@@ -144,7 +144,7 @@ service ArchiveQueryService {
 
   // Get the transactions for one identity sorted by tick number descending.
   //
-  // **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+  // **Note:** results may be incomplete — certain transactions are marked as ephemeral and pruned after a certain amount of time.
   // See the "Data availability and pruning" section in the API description for the full rule.
   //
   // ###  Request structure

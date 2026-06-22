@@ -11,7 +11,7 @@ info:
 
         ### Ephemeral transactions
 
-        **Certain transactions are marked as ephemeral and deleted from storage after 28 days,** so results from transaction endpoints may be incomplete. A transaction is ephemeral when **all** of the following are true:
+        **Certain transactions are marked as ephemeral and kept for at least 21 days**, so results from transaction endpoints may be incomplete. A transaction is ephemeral when **all** of the following are true:
         - Transaction input type = 6
         - Destination is the zero address ("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB")
         - Amount = 0
@@ -243,7 +243,7 @@ paths:
             description: |-
                 Get a single transaction by its hash / transaction id.
 
-                 **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+                 **Note:** results may be incomplete — certain transactions are marked as ephemeral and pruned after a certain amount of time.
                  See the "Data availability and pruning" section in the API description for the full rule.
             operationId: ArchiveQueryService_GetTransactionByHash
             requestBody:
@@ -268,7 +268,7 @@ paths:
             description: |-
                 Get the transactions for one identity sorted by tick number descending.
 
-                 **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+                 **Note:** results may be incomplete — certain transactions are marked as ephemeral and pruned after a certain amount of time.
                  See the "Data availability and pruning" section in the API description for the full rule.
 
                  ###  Request structure
@@ -337,7 +337,7 @@ paths:
             description: |-
                 Get the transactions that are in included in one tick.
 
-                 **Note:** results may be incomplete — certain ephemeral transactions are pruned after 28 days.
+                 **Note:** results may be incomplete — certain transactions are marked as ephemeral and pruned after a certain amount of time.
                  See the "Data availability and pruning" section in the API description for the full rule.
 
                  ###  Request structure
