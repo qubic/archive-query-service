@@ -3,7 +3,7 @@ name: Deploy v2 snapshot images to GHCR
 on:
   push:
     branches:
-      - 'feature/replace-get-with-query'
+      - 'bugfix/support-raw-payload-on-custom-message-event'
 
 jobs:
   docker-publish:
@@ -33,4 +33,4 @@ jobs:
           context: ./v2
           file: ./v2/Dockerfile
           push: true
-          tags: ghcr.io/qubic/archive-query-service-v2:idquery
+          tags: ghcr.io/qubic/archive-query-service-v2:support-raw-payload-on-custom-message-event
