@@ -128,6 +128,8 @@ func eventToAPIEvent(e event) *api.Event {
 			SubscriptionId: e.SubscriptionId, InterfaceIndex: e.InterfaceIndex, ContractIndex: e.ContractIndex, PeriodMillis: e.PeriodMillis, FirstQueryTimestamp: e.FirstQueryTimestamp,
 		}}
 	case 255:
+		// custom messages of 8 bytes or fewer arrive packed into customMessage, longer ones as rawPayload
+		ev.RawPayload = e.RawPayload
 		ev.EventData = &api.Event_CustomMessage{CustomMessage: &api.CustomMessageData{
 			Value: e.CustomMessage,
 		}}

@@ -264,6 +264,12 @@ message SmartContractMessageData {
   uint64 contract_message_type = 2;
 }
 
+// CustomMessageData contains fields specific to custom message events (type 255).
+//
+// Custom messages arrive in one of two shapes, never both. A message of 8 bytes or fewer is
+// packed little-endian into a uint64 and returned in `value`. A longer message is returned in
+// the top level `raw_payload` field instead, and `value` is then 0 and carries no meaning.
+// Clients should read `raw_payload` when it is present and fall back to `value` otherwise.
 message CustomMessageData {
   uint64 value = 1;
 }
@@ -324,6 +330,8 @@ message Event {
   uint64 log_id = 6;
   string log_digest = 7;
   repeated int32 categories = 8;
+  // Undecoded event payload. Present for event types 4-7, 9, 10 and for type 255 custom
+  // messages longer than 8 bytes. Omitted entirely when the event carries no raw payload.
   optional bytes raw_payload = 9;
   oneof event_data {
     QuTransferData qu_transfer = 10;
