@@ -96,6 +96,25 @@ func Test_eventToAPIEvent_CustomMessage(t *testing.T) {
 	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
 }
 
+func Test_eventToAPIEvent_CustomMessage_RawPayload(t *testing.T) {
+	e := event{
+		LogType:    255,
+		RawPayload: []byte{0x41, 0x4e, 0x54, 0x5f, 0x53, 0x4f, 0x4c, 0x55, 0xde, 0x00},
+	}
+
+	apiEv := eventToAPIEvent(e)
+
+	expected := &api.Event{
+		LogType:    255,
+		RawPayload: []byte{0x41, 0x4e, 0x54, 0x5f, 0x53, 0x4f, 0x4c, 0x55, 0xde, 0x00},
+		EventData: &api.Event_CustomMessage{CustomMessage: &api.CustomMessageData{
+			Value: 0,
+		}},
+	}
+	diff := cmp.Diff(expected, apiEv, protocmp.Transform())
+	require.Empty(t, diff, "mismatch (-expected +actual):\n"+diff)
+}
+
 func Test_eventToAPIEvent_RawTypes(t *testing.T) {
 	tests := []struct {
 		name    string
