@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -10,7 +11,6 @@ import (
 	"slices"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pkg/errors"
 	"github.com/qubic/archive-query-service/legacy/elastic"
 	"github.com/qubic/archive-query-service/legacy/protobuf"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
