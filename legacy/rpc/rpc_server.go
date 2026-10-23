@@ -14,7 +14,7 @@ import (
 	"github.com/qubic/archive-query-service/legacy/elastic"
 	"github.com/qubic/archive-query-service/legacy/protobuf"
 	statusPb "github.com/qubic/go-data-publisher/status-service/protobuf"
-	"github.com/qubic/go-node-connector/types"
+	"github.com/qubic/go-node-connector/v2/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"

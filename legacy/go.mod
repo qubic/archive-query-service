@@ -10,9 +10,9 @@ require (
 	github.com/jellydator/ttlcache/v3 v3.4.1
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.25.0
-	github.com/qubic/go-archiver v0.13.1
-	github.com/qubic/go-data-publisher/status-service v1.6.0
-	github.com/qubic/go-node-connector v0.17.0
+	github.com/qubic/go-archiver v0.14.0
+	github.com/qubic/go-data-publisher/status-service v1.7.0
+	github.com/qubic/go-node-connector/v2 v2.4.0
 	github.com/stretchr/testify v1.12.1
 	google.golang.org/genproto/googleapis/api v0.0.0-20261019180522-ce908d29299b
 	google.golang.org/grpc v1.84.0
@@ -23,8 +23,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cloudflare/circl v1.6.3 // indirect
-	github.com/cloudflare/fourq v0.0.0-20260424232836-f176cb2c40b1 // indirect
+	github.com/cloudflare/circl v1.6.5 // indirect
 	github.com/consensys/gnark-crypto v0.22.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.9.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -32,7 +31,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
 	github.com/linckode/circl v1.3.72 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common v0.72.0 // indirect
 	github.com/prometheus/procfs v0.22.0 // indirect
